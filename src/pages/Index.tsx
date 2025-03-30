@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
@@ -77,7 +76,6 @@ const Index = () => {
 
   const handleUpdateQuantity = (item: Product, delta: number) => {
     setCart(prevCart => {
-      // Find existing item with the same characteristics
       const existingItem = prevCart.find(
         (p) =>
           p.name === item.name &&
@@ -101,7 +99,6 @@ const Index = () => {
           .filter(p => (p.qty || 1) > 0);
       }
       
-      // Add new item
       return delta > 0 ? [...prevCart, { ...item, qty: 1 }] : prevCart;
     });
   };
@@ -238,7 +235,6 @@ const Index = () => {
       total
     );
 
-    // URL encode for WhatsApp
     const mensagemEncoded = mensagem.replace(/\n/g, "%0A");
     const urlWhatsApp = `https://wa.me/5512982704573?text=${mensagemEncoded}`;
     window.open(urlWhatsApp, "_blank");
@@ -247,7 +243,7 @@ const Index = () => {
   return (
     <div
       className="min-h-screen bg-cover bg-center bg-no-repeat"
-      style={{ backgroundImage: "url('/bgs.jpg')" }}
+      style={{ backgroundImage: "url('https://adegavm.com/bgs.jpg')" }}
     >
       <div className="w-full max-w-md mx-auto min-h-screen bg-black/70 p-4">
         <Logo />
@@ -274,7 +270,6 @@ const Index = () => {
                 />
               )}
               
-              {/* Cart floating button */}
               <motion.button
                 onClick={checkMissingFlavorsAndProceed}
                 className="fixed bottom-6 right-6 bg-purple-dark text-white px-4 py-3 rounded-full shadow-lg flex items-center gap-2"
