@@ -230,7 +230,7 @@ export const products = {
     { name: "Combo Tanqueray Sevilla e Red Bull", price: 210.00 },
     { name: "Combo Tanqueray Sevilla e Monster", price: 215.00 }
   ],
-   "Drinks 43": [
+  "Drinks 43": [
     { name: "Refresco 43 - Licor 43, limão e laranja.", price: 38.00 },
     { name: "Abacaxi 43 - Licor 43, limão e abacaxi", price: 38.00 },
     { name: "Summer 43 - Licor 43, pessego e morango", price: 45.00 },
@@ -403,4 +403,151 @@ export const products = {
     { name: "Trakinas Limão", price: 4.50 },
     { name: "Trakinas Chocolate", price: 4.50 },
     { name: "Passatempo Chocolate", price: 4.50 },
-    { name: "Oreo
+    { name: "Oreo/Negresco", price: 4.50 }
+  ],
+  "Tabacaria": [
+    { name: "Rothmans Branco", price: 9.00 },
+    { name: "Rothmans Branco Solto", price: 1.00 },
+    { name: "Rothmans Vermelho", price: 9.00 },
+    { name: "Rothmans Vermelho Solto", price: 1.00 },
+    { name: "Carlton", price: 15.50 },
+    { name: "Carlton Solto", price: 1.00 },
+    { name: "Marlboro Vermelho", price: 15.50 },
+    { name: "Marlboro Vermelho Solto", price: 1.00 },
+    { name: "Marlboro Melancia", price: 15.50 },
+    { name: "Marlboro Melancia Solto", price: 1.00 },
+    { name: "Eight", price: 6.50 },
+    { name: "Eight Solto", price: 1.00 },
+    { name: "Palheiro Menta", price: 12.00 },
+    { name: "Palheiro Menta Solto", price: 2.00 },
+    { name: "Palheiro Uva", price: 12.00 },
+    { name: "Palheiro Uva Solto", price: 2.00 },
+    { name: "Palheiro Tradicional", price: 12.00 },
+    { name: "Palheiro Tradicional Solto", price: 2.00 },
+    { name: "Gudang Garand", price: 35.00 },
+    { name: "Gudang Garand Solto", price: 3.00 },
+    { name: "Essências Sabores", price: 15.00 },
+    { name: "Carvão", price: 3.00 },
+    { name: "Alumínio", price: 2.00 },
+    { name: "Seda ZOMO", price: 5.00 },
+    { name: "Seda Vidro", price: 10.00 },
+    { name: "Piteira Vidro", price: 3.00 },
+    { name: "Piteira Papel", price: 10.00 },
+    { name: "Dichavador", price: 10.00 },
+    { name: "Recipiente OCB Pratinho", price: 55.00 },
+    { name: "Gás para Isqueiro", price: 20.00 },
+    { name: "Tabaco", price: 20.00 },
+    { name: "Isqueiro BIC P", price: 5.50 },
+    { name: "Isqueiro BIC G", price: 7.00 },
+    { name: "Isqueiro Paraguai", price: 4.00 }
+  ],
+  "Diversos": [
+    { name: "Camisinha", price: 8.00 },
+    { name: "Copo 700ml", price: 2.00 },
+    { name: "Canudo Rosa ou Preto", price: 2.00 },
+    { name: "Carvão de Churrasco 2kg", price: 12.00 }
+  ]
+};
+
+export const bairros = [
+  { nome: "Selecione Um Bairro", taxa: 0 },
+  { nome: "Vila Maria", taxa: 3 },
+  { nome: "Jardim Bela Vista", taxa: 3 },
+  { nome: "Centro", taxa: 3 },
+  { nome: "Vl. Guarani", taxa: 4 },
+  { nome: "Vila Nova São José", taxa: 4 },
+  { nome: "Monte Castelo", taxa: 4 },
+  { nome: "Vl. São Pedro", taxa: 5 },
+  { nome: "Vl Zizinha", taxa: 5 },
+  { nome: "Vl Teresinha", taxa: 5 },
+  { nome: "Vila Machado", taxa: 5 },
+  { nome: "Vila Industrial", taxa: 5 },
+  { nome: "Vila Guarani", taxa: 5 },
+  { nome: "Vila Cristina", taxa: 5 },
+  { nome: "São Dimas", taxa: 5 },
+  { nome: "Santana", taxa: 5 },
+  { nome: "Jd. Paulista", taxa: 5 },
+  { nome: "Jd. Oswaldo Cruz", taxa: 5 },
+  { nome: "Jd Augusta", taxa: 5 },
+  { nome: "Vl. Betania", taxa: 6 },
+  { nome: "Vl. Adyana", taxa: 6 },
+  { nome: "Vl. Candida", taxa: 6 },
+  { nome: "Jd. Sao Dimas", taxa: 6 },
+  { nome: "Jd. Maringa", taxa: 6 },
+  { nome: "Jd. Apolo", taxa: 6 },
+  { nome: "Jd Minas Gerais", taxa: 6 },
+  { nome: "Jd. Telespark", taxa: 7 },
+  { nome: "Vila Tesouro", taxa: 8 },
+  { nome: "Vila São Geraldo", taxa: 8 },
+  { nome: "Vila Paiva", taxa: 8 },
+  { nome: "Vila Ema", taxa: 8 },
+  { nome: "Jd. Das Colinas", taxa: 8 },
+  { nome: "Jardim Da Granja", taxa: 8 },
+  { nome: "Boa Vista", taxa: 8 },
+  { nome: "Altos De Santana", taxa: 8 },
+  { nome: "Aguas De Canindu", taxa: 8 },
+  { nome: "Motorama", taxa: 9 },
+  { nome: "Vista Verde", taxa: 10 },
+  { nome: "Residencial São Francisco", taxa: 10 },
+  { nome: "Parque Industrial", taxa: 10 },
+  { nome: "Esplanada Do Sol", taxa: 10 },
+  { nome: "Vila São Bento", taxa: 10 },
+  { nome: "Vale Do Sol", taxa: 12 },
+  { nome: "Urbanova", taxa: 12 },
+  { nome: "Satelite", taxa: 12 },
+  { nome: "Pararangaba", taxa: 12 },
+  { nome: "Novo Horizonte", taxa: 12 },
+  { nome: "Jd. Das Industrias", taxa: 12 },
+  { nome: "Jd. Portugal", taxa: 12 },
+  { nome: "Jd. Nova Republica", taxa: 12 },
+  { nome: "Jd. Morumbi", taxa: 12 },
+  { nome: "Jd. Colonial", taxa: 12 },
+  { nome: "Jd. Aquarius", taxa: 12 },
+  { nome: "Jd. America", taxa: 12 },
+  { nome: "Jd. Alvorada", taxa: 12 },
+  { nome: "Jardim Sao Vicente", taxa: 12 },
+  { nome: "D Pedro II", taxa: 12 },
+  { nome: "D Pedro I", taxa: 12 },
+  { nome: "Conj. 31 De Março", taxa: 12 },
+  { nome: "Campo Dos Alemaes", taxa: 12 },
+  { nome: "Bosque Dos Ypes", taxa: 12 },
+  { nome: "Bosque Dos Eucalipitos", taxa: 12 },
+  { nome: "Nova Michigan", taxa: 13 },
+  { nome: "Jd. Nova Michigan", taxa: 13 },
+  { nome: "Paraiso Do Sol", taxa: 15 },
+  { nome: "Campos De São Jose", taxa: 15 },
+  { nome: "Buquirinha II", taxa: 15 },
+  { nome: "Jd. Imperial", taxa: 15 },
+  { nome: "Jardim Santa Ines III", taxa: 16 },
+  { nome: "Jardim Jatoba", taxa: 16 },
+  { nome: "Interlagos", taxa: 16 },
+  { nome: "Galo Branco", taxa: 18 }
+];
+
+export const iceFlavors = ["Coco", "Melancia", "Maracujá", "Maçã Verde", "Morango", "Gelo de Água"];
+
+export const alcoholOptions = [
+  { name: "Vodka", extraCost: 0 },
+  { name: "Pinga", extraCost: 0 },
+  { name: "Jurupinga", extraCost: 10 },
+  { name: "Whisky", extraCost: 10 },
+  { name: "Gin", extraCost: 10 },
+  { name: "Saquê", extraCost: 10 },
+];
+
+export const gerarCodigoPedido = () => `A${Math.floor(1000 + Math.random() * 9000)}`;
+
+export const requiresFlavor = (category: string) => {
+  return [
+    "Copão Whisky", "Copão Vodka", "Copão Gin",
+    "Combos Whisky", "Combos Vodka", "Combos Gin"
+  ].includes(category);
+};
+
+export const requiresAlcoholChoice = (category: string) => category === "Caipirinhas";
+
+export const getMaxIce = (category: string) => {
+  if (["Copão Whisky", "Copão Vodka", "Copão Gin"].includes(category)) return 1;
+  if (["Combos Whisky", "Combos Vodka", "Combos Gin"].includes(category)) return 5;
+  return 0;
+};
