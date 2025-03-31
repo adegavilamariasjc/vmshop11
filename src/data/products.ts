@@ -10,7 +10,7 @@ export const categories = [
   "Vinhos",
   "Refrigerantes",
   "Energéticos",
-  "Corotes"
+  "Corotes",
   "Caipirinhas",
   "Drinks 43",
   "Drinks Gourmet",
