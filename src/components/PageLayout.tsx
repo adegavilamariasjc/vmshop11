@@ -19,7 +19,9 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
       }}
     >
       <div className="w-full max-w-md mx-auto min-h-screen bg-black/70 p-4">
-        <Logo />
+        <div className="flex justify-center">
+          <Logo />
+        </div>
         {children}
         <AdminLink />
       </div>
