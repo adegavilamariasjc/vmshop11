@@ -338,7 +338,7 @@ export const products = {
     { name: "Corote Limão", price: 6.00 },
     { name: "Corote Maracuja", price: 6.00 },
     { name: "Corote Blueberry", price: 6.00 },
-    { name: "Corote Melancia", price: 6.00 },
+    { name: "Corote Melância", price: 6.00 },
     { name: "Corote Morango", price: 6.00 }
   ],
   "Caipirinhas": [
