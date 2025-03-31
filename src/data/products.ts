@@ -1,3 +1,4 @@
+
 export const categories = [
   "Copão Whisky",
   "Copão Vodka",
@@ -551,3 +552,72 @@ export const getMaxIce = (category: string) => {
   if (["Combos Whisky", "Combos Vodka", "Combos Gin"].includes(category)) return 5;
   return 0;
 };
+
+// Local Storage functions to save/load data
+const PRODUCTS_STORAGE_KEY = 'adegavm_products';
+const CATEGORIES_STORAGE_KEY = 'adegavm_categories';
+const BAIRROS_STORAGE_KEY = 'adegavm_bairros';
+
+// Load data from localStorage on initialization
+const loadFromStorage = () => {
+  try {
+    // Load products
+    const storedProducts = localStorage.getItem(PRODUCTS_STORAGE_KEY);
+    if (storedProducts) {
+      Object.assign(products, JSON.parse(storedProducts));
+    }
+    
+    // Load categories
+    const storedCategories = localStorage.getItem(CATEGORIES_STORAGE_KEY);
+    if (storedCategories) {
+      const parsedCategories = JSON.parse(storedCategories);
+      categories.length = 0; // Clear the array
+      categories.push(...parsedCategories);
+    }
+    
+    // Load bairros
+    const storedBairros = localStorage.getItem(BAIRROS_STORAGE_KEY);
+    if (storedBairros) {
+      const parsedBairros = JSON.parse(storedBairros);
+      bairros.length = 0; // Clear the array
+      bairros.push(...parsedBairros);
+    }
+  } catch (error) {
+    console.error('Error loading data from localStorage:', error);
+  }
+};
+
+// Save products to localStorage
+export const saveProducts = (updatedProducts: Record<string, any[]>) => {
+  try {
+    localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(updatedProducts));
+    Object.assign(products, updatedProducts);
+  } catch (error) {
+    console.error('Error saving products to localStorage:', error);
+  }
+};
+
+// Save categories to localStorage
+export const saveCategories = (updatedCategories: string[]) => {
+  try {
+    localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(updatedCategories));
+    categories.length = 0; // Clear the array
+    categories.push(...updatedCategories);
+  } catch (error) {
+    console.error('Error saving categories to localStorage:', error);
+  }
+};
+
+// Save bairros to localStorage
+export const saveBairros = (updatedBairros: any[]) => {
+  try {
+    localStorage.setItem(BAIRROS_STORAGE_KEY, JSON.stringify(updatedBairros));
+    bairros.length = 0; // Clear the array
+    bairros.push(...updatedBairros);
+  } catch (error) {
+    console.error('Error saving bairros to localStorage:', error);
+  }
+};
+
+// Initialize by loading data from localStorage
+loadFromStorage();

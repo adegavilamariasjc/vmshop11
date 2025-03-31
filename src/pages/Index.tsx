@@ -10,6 +10,7 @@ import FlavorSelectionModal from '../components/FlavorSelectionModal';
 import AlcoholSelectionModal from '../components/AlcoholSelectionModal';
 import CartSummary from '../components/CartSummary';
 import CheckoutForm from '../components/CheckoutForm';
+import AdminLink from '../components/AdminLink';
 import { Product, AlcoholOption, Bairro, FormData } from '../types';
 import { 
   bairros, 
@@ -334,6 +335,8 @@ const Index = () => {
           setSelectedAlcohol={setSelectedAlcohol}
           onConfirm={confirmAlcoholSelection}
         />
+
+        <AdminLink />
       </div>
     </div>
   );
