@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useToast } from '@/hooks/use-toast';
@@ -242,8 +243,13 @@ const Index = () => {
 
   return (
     <div
-      className="min-h-screen bg-cover bg-center bg-no-repeat"
-      style={{ backgroundImage: "url('https://adegavm.com/bgs.jpg')" }}
+      className="min-h-screen w-full bg-fixed"
+      style={{ 
+        backgroundImage: "url('https://adegavm.com/bgs.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat"
+      }}
     >
       <div className="w-full max-w-md mx-auto min-h-screen bg-black/70 p-4">
         <Logo />
