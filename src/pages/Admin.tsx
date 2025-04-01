@@ -57,14 +57,12 @@ const Admin = () => {
               <div className="w-40">
                 <Logo />
               </div>
-              <div>
-                <Button 
-                  variant="destructive" 
-                  onClick={handleLogout}
-                >
-                  Sair
-                </Button>
-              </div>
+              <Button 
+                variant="destructive" 
+                onClick={handleLogout}
+              >
+                Sair
+              </Button>
             </div>
             <div className="mt-8">
               <h1 className="text-2xl font-bold text-white mb-6">Painel Administrativo</h1>

@@ -3,7 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import CartSummary from './CartSummary';
 import CheckoutForm from './CheckoutForm';
-import { Product, FormData, Bairro } from '../types';
+import { Product, FormData } from '../types';
 
 interface CheckoutViewProps {
   cart: Product[];
