@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Check, X } from 'lucide-react';
 import { Product } from '../types';
@@ -33,7 +32,19 @@ const FruitSelectionModal: React.FC<FruitSelectionModalProps> = ({
     { name: "Limão", selected: false }
   ]);
   const [singleFruit, setSingleFruit] = useState<string | null>(null);
-  const [addFruits, setAddFruits] = useState(true); // Default to true to show the fruit options
+  const [addFruits, setAddFruits] = useState(true);
+  
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedFruits([
+        { name: "Morango", selected: false },
+        { name: "Laranja", selected: false },
+        { name: "Limão", selected: false }
+      ]);
+      setSingleFruit(null);
+      setAddFruits(true);
+    }
+  }, [isOpen]);
 
   if (!isOpen || !product) return null;
 
@@ -67,11 +78,6 @@ const FruitSelectionModal: React.FC<FruitSelectionModalProps> = ({
         onConfirm([], 0);
       }
     }
-    
-    // Resetar estado
-    setSelectedFruits(selectedFruits.map(fruit => ({ ...fruit, selected: false })));
-    setSingleFruit(null);
-    onClose();
   };
 
   const selectedCount = selectedFruits.filter(fruit => fruit.selected).length;

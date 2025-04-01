@@ -1,9 +1,9 @@
-
 import { Dispatch, SetStateAction } from 'react';
 import { 
   requiresFlavor, 
   requiresAlcoholChoice,
-  getMaxIce
+  getMaxIce,
+  iceFlavors
 } from '../../data/products';
 import { isComboProduct, isCopaoProduct } from '../../utils/productHelpers';
 import { Product, AlcoholOption } from '../../types';
@@ -58,6 +58,13 @@ export const useCartOperations = ({
   setSelectedAlcohol,
   setShowSummary
 }: UseCartOperationsProps) => {
+  // Helper function to reset ice selection
+  const resetIceSelection = () => {
+    const initialIce: Record<string, number> = {};
+    iceFlavors.forEach(flavor => { initialIce[flavor] = 0; });
+    setSelectedIce(initialIce);
+  };
+
   // Helper function to update cart items
   const updateCart = (updatedCart: Product[]) => {
     // This is not exposed, but used internally by the functions below
@@ -79,6 +86,8 @@ export const useCartOperations = ({
     const productWithCategory = { ...item, category: activeCategory || '' };
     
     if (requiresFlavor(activeCategory || '')) {
+      // Reset ice selection when adding a new product that requires flavor
+      resetIceSelection();
       setSelectedProductForFlavor(productWithCategory);
       setIsFlavorModalOpen(true);
     } else if (requiresAlcoholChoice(activeCategory || '')) {
@@ -158,6 +167,7 @@ export const useCartOperations = ({
     if (isCopaoProduct(itemWithIce)) {
       setSelectedProductForFruit(itemWithIce);
       setIsFruitModalOpen(true);
+      setIsFlavorModalOpen(false);
     } else {
       handleUpdateQuantity(itemWithIce, 1);
       setIsFlavorModalOpen(false);
@@ -182,6 +192,7 @@ export const useCartOperations = ({
     if (isComboProduct(itemWithAlcohol)) {
       setSelectedProductForFruit(itemWithAlcohol);
       setIsFruitModalOpen(true);
+      setIsAlcoholModalOpen(false);
     } else {
       handleUpdateQuantity(itemWithAlcohol, 1);
       setIsAlcoholModalOpen(false);
@@ -221,6 +232,9 @@ export const useCartOperations = ({
     setIsFruitModalOpen(false);
     setIsFlavorModalOpen(false);
     setIsAlcoholModalOpen(false);
+    
+    // Reset ice selection after adding product to cart
+    resetIceSelection();
   };
 
   const checkMissingFlavorsAndProceed = () => {
@@ -243,6 +257,8 @@ export const useCartOperations = ({
       const itemPend = missing[0];
       
       if (requiresFlavor(itemPend.category || '')) {
+        // Reset ice selection when checking for missing flavors
+        resetIceSelection();
         setSelectedProductForFlavor(itemPend);
         setIsFlavorModalOpen(true);
       } else if (requiresAlcoholChoice(itemPend.category || '')) {
@@ -267,4 +283,3 @@ export const useCartOperations = ({
     checkMissingFlavorsAndProceed
   };
 };
-

@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Product, AlcoholOption } from '../../types';
 import { iceFlavors } from '../../data/products';
 
@@ -7,15 +7,13 @@ export const useCartState = () => {
   const [cart, setCart] = useState<Product[]>([]);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [showSummary, setShowSummary] = useState(false);
-  const [selectedIce, setSelectedIce] = useState<Record<string, number>>({});
+  
+  // Initialize ice flavors with zeros by default
+  const initialIce: Record<string, number> = {};
+  iceFlavors.forEach(flavor => { initialIce[flavor] = 0; });
+  
+  const [selectedIce, setSelectedIce] = useState<Record<string, number>>(initialIce);
   const [selectedAlcohol, setSelectedAlcohol] = useState<AlcoholOption | null>(null);
-
-  useEffect(() => {
-    // Initialize ice flavors when needed
-    const initialIce: Record<string, number> = {};
-    iceFlavors.forEach(flavor => { initialIce[flavor] = 0; });
-    setSelectedIce(initialIce);
-  }, []);
 
   return {
     cart,
@@ -30,4 +28,3 @@ export const useCartState = () => {
     setSelectedAlcohol
   };
 };
-
