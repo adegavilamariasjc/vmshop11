@@ -6,7 +6,6 @@ export interface Product {
   qty?: number;
   ice?: Record<string, number>;
   alcohol?: string;
-  fruits?: string[]; // Array com as frutas selecionadas
 }
 
 export interface Bairro {
@@ -30,5 +29,4 @@ export interface FormData {
   bairro: Bairro;
   pagamento: string;
   troco: string;
-  cep?: string;
 }

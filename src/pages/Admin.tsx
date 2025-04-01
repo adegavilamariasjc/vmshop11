@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import AdminLogin from '../components/admin/AdminLogin';
 import ProductManager from '../components/admin/ProductManager';
 import CategoryManager from '../components/admin/CategoryManager';
@@ -57,12 +58,21 @@ const Admin = () => {
               <div className="w-40">
                 <Logo />
               </div>
-              <Button 
-                variant="destructive" 
-                onClick={handleLogout}
-              >
-                Sair
-              </Button>
+              <div className="flex items-center gap-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate('/')}
+                  className="text-white border-white hover:bg-white/10"
+                >
+                  Voltar para a Loja
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  onClick={handleLogout}
+                >
+                  Sair
+                </Button>
+              </div>
             </div>
             <div className="mt-8">
               <h1 className="text-2xl font-bold text-white mb-6">Painel Administrativo</h1>

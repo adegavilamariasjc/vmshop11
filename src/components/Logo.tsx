@@ -3,7 +3,7 @@ import React from 'react';
 
 const Logo: React.FC = () => {
   return (
-    <div className="w-full max-w-[320px] h-[200px] overflow-hidden">
+    <div className="w-full max-w-[280px] h-[180px] overflow-hidden">
       <img
         src="https://adegavm.com/logo.gif"
         alt="Logotipo da Loja"

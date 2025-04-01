@@ -1,9 +1,8 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { FormData, Bairro } from '../types';
 import { bairros } from '../data/products';
-import { Search } from 'lucide-react';
 
 interface CheckoutFormProps {
   form: FormData;
@@ -13,7 +12,6 @@ interface CheckoutFormProps {
 
 const CheckoutForm: React.FC<CheckoutFormProps> = ({ form, setForm, onSubmit }) => {
   const { toast } = useToast();
-  const [isLoadingCep, setIsLoadingCep] = useState(false);
   
   const formatWhatsApp = (number: string) => {
     const cleaned = number.replace(/\D/g, '');
@@ -107,65 +105,6 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ form, setForm, onSubmit }) 
     });
   };
   
-  const handleCepSearch = async () => {
-    const cep = form.cep?.replace(/\D/g, '');
-    
-    if (!cep || cep.length !== 8) {
-      toast({
-        title: "CEP inválido",
-        description: "Por favor, digite um CEP válido com 8 números.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    setIsLoadingCep(true);
-    
-    try {
-      const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-      const data = await response.json();
-      
-      if (data.erro) {
-        toast({
-          title: "CEP não encontrado",
-          description: "O CEP informado não foi encontrado.",
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      // Encontrar o bairro correspondente na lista
-      let matchedBairro = bairros.find(b => 
-        b.nome.toLowerCase() === data.bairro.toLowerCase()
-      );
-      
-      // Se não encontrou um bairro exato, deixa o usuário escolher
-      if (!matchedBairro) {
-        matchedBairro = form.bairro;
-      }
-      
-      setForm({
-        ...form,
-        endereco: data.logradouro,
-        bairro: matchedBairro,
-        complemento: data.complemento || form.complemento
-      });
-      
-      toast({
-        title: "Endereço encontrado",
-        description: "Os dados do endereço foram preenchidos automaticamente.",
-      });
-    } catch (error) {
-      toast({
-        title: "Erro na busca",
-        description: "Não foi possível buscar o endereço. Tente novamente.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoadingCep(false);
-    }
-  };
-  
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid gap-4 md:grid-cols-2">
@@ -183,32 +122,6 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ form, setForm, onSubmit }) 
             placeholder="Seu nome completo"
             required
           />
-        </div>
-        
-        <div className="col-span-2 md:col-span-1">
-          <label htmlFor="cep" className="block text-sm font-medium text-white mb-1">
-            CEP
-          </label>
-          <div className="flex">
-            <input
-              id="cep"
-              name="cep"
-              type="text"
-              value={form.cep || ''}
-              onChange={handleChange}
-              className="w-full p-3 bg-gray-900 border border-gray-600 rounded-l-md text-white"
-              placeholder="Digite o CEP"
-              maxLength={9}
-            />
-            <button 
-              type="button" 
-              onClick={handleCepSearch}
-              disabled={isLoadingCep}
-              className="bg-purple-dark p-3 rounded-r-md text-white hover:bg-purple-600 transition-colors"
-            >
-              <Search size={20} />
-            </button>
-          </div>
         </div>
         
         <div className="col-span-1">
