@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -12,9 +11,8 @@ import {
   requiresAlcoholChoice, 
   iceFlavors, 
   getMaxIce,
-  isComboProduct,
-  isCopaoProduct
 } from '../data/products';
+import { isComboProduct, isCopaoProduct } from '../utils/productHelpers';
 
 export const useCart = () => {
   const { toast } = useToast();
