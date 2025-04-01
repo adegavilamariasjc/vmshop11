@@ -118,13 +118,19 @@ export const useCart = () => {
     }
     
     const itemWithIce = { ...selectedProductForFlavor, ice: selectedIce };
-    handleUpdateQuantity(itemWithIce, 1);
-    setIsFlavorModalOpen(false);
-    
-    toast({
-      title: "Item adicionado",
-      description: `${selectedProductForFlavor.name} adicionado ao pedido.`,
-    });
+
+    if (isCopaoProduct(itemWithIce)) {
+      setSelectedProductForFruit(itemWithIce);
+      setIsFruitModalOpen(true);
+    } else {
+      handleUpdateQuantity(itemWithIce, 1);
+      setIsFlavorModalOpen(false);
+      
+      toast({
+        title: "Item adicionado",
+        description: `${selectedProductForFlavor.name} adicionado ao pedido.`,
+      });
+    }
   };
 
   const confirmAlcoholSelection = () => {
@@ -136,14 +142,19 @@ export const useCart = () => {
       alcohol: selectedAlcohol.name,
       price: (selectedProductForAlcohol.price || 0) + extraCost,
     };
-    
-    handleUpdateQuantity(itemWithAlcohol, 1);
-    setIsAlcoholModalOpen(false);
-    
-    toast({
-      title: "Item adicionado",
-      description: `${selectedProductForAlcohol.name} com ${selectedAlcohol.name} adicionado ao pedido.`,
-    });
+
+    if (isComboProduct(itemWithAlcohol)) {
+      setSelectedProductForFruit(itemWithAlcohol);
+      setIsFruitModalOpen(true);
+    } else {
+      handleUpdateQuantity(itemWithAlcohol, 1);
+      setIsAlcoholModalOpen(false);
+      
+      toast({
+        title: "Item adicionado",
+        description: `${selectedProductForAlcohol.name} com ${selectedAlcohol.name} adicionado ao pedido.`,
+      });
+    }
   };
 
   const confirmFruitSelection = (selectedFruits: string[], extraCost: number) => {
@@ -163,7 +174,6 @@ export const useCart = () => {
         description: `${selectedProductForFruit.name} com ${selectedFruits.join(', ')} adicionado ao pedido.`,
       });
     } else {
-      // Adicionar sem frutas
       handleUpdateQuantity(selectedProductForFruit, 1);
       
       toast({
@@ -173,6 +183,8 @@ export const useCart = () => {
     }
     
     setIsFruitModalOpen(false);
+    setIsFlavorModalOpen(false);
+    setIsAlcoholModalOpen(false);
   };
 
   const checkMissingFlavorsAndProceed = () => {

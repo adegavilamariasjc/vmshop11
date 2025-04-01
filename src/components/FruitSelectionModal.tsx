@@ -33,7 +33,7 @@ const FruitSelectionModal: React.FC<FruitSelectionModalProps> = ({
     { name: "Limão", selected: false }
   ]);
   const [singleFruit, setSingleFruit] = useState<string | null>(null);
-  const [addFruits, setAddFruits] = useState(false);
+  const [addFruits, setAddFruits] = useState(true); // Default to true to show the fruit options
 
   if (!isOpen || !product) return null;
 
@@ -56,9 +56,13 @@ const FruitSelectionModal: React.FC<FruitSelectionModalProps> = ({
         onConfirm([], 0);
       }
     } else {
-      // Para copão: uma fruta por R$5
-      if (addFruits && singleFruit) {
-        onConfirm([singleFruit], 5.00);
+      // Para copão: frutas por R$5 (independentemente de quantas)
+      const selectedFruitNames = selectedFruits
+        .filter(fruit => fruit.selected)
+        .map(fruit => fruit.name);
+      
+      if (selectedFruitNames.length > 0) {
+        onConfirm(selectedFruitNames, 5.00);
       } else {
         onConfirm([], 0);
       }
@@ -67,7 +71,6 @@ const FruitSelectionModal: React.FC<FruitSelectionModalProps> = ({
     // Resetar estado
     setSelectedFruits(selectedFruits.map(fruit => ({ ...fruit, selected: false })));
     setSingleFruit(null);
-    setAddFruits(false);
     onClose();
   };
 
@@ -90,7 +93,7 @@ const FruitSelectionModal: React.FC<FruitSelectionModalProps> = ({
       >
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-bold text-white">
-            {isCombo ? "Adicionar porção de frutas" : "Adicionar frutas ao copão"}
+            {isCombo ? "Adicionar porção de frutas" : "Adicionar frutas"}
           </h2>
           <button onClick={onClose} className="text-gray-300 hover:text-white">
             <X size={20} />
@@ -122,47 +125,41 @@ const FruitSelectionModal: React.FC<FruitSelectionModalProps> = ({
           </div>
         ) : (
           <div className="space-y-4 mb-5">
-            <div className="flex items-center space-x-2 mb-4">
-              <Checkbox 
-                id="add-fruit" 
-                checked={addFruits}
-                onCheckedChange={() => setAddFruits(!addFruits)}
-              />
-              <Label htmlFor="add-fruit" className="text-white cursor-pointer">
-                Adicionar fruta por R$ 5,00
-              </Label>
-            </div>
+            <p className="text-white">
+              Deseja adicionar frutas por R$ 5,00?
+            </p>
             
-            {addFruits && (
-              <RadioGroup 
-                value={singleFruit || ""} 
-                onValueChange={setSingleFruit} 
-                className="space-y-3"
-              >
-                {selectedFruits.map((fruit) => (
-                  <div key={fruit.name} className="flex items-center space-x-2 bg-gray-800 rounded-md p-3">
-                    <RadioGroupItem value={fruit.name} id={`single-${fruit.name}`} className="text-purple-light" />
-                    <Label htmlFor={`single-${fruit.name}`} className="text-white cursor-pointer flex-grow">
-                      {fruit.name}
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
-            )}
+            <div className="space-y-3">
+              {selectedFruits.map((fruit, index) => (
+                <div key={fruit.name} className="flex items-center space-x-2 bg-gray-800 rounded-md p-3">
+                  <Checkbox 
+                    id={`copao-fruit-${index}`} 
+                    checked={fruit.selected}
+                    onCheckedChange={() => handleFruitToggle(index)}
+                  />
+                  <Label htmlFor={`copao-fruit-${index}`} className="text-white cursor-pointer flex-grow">
+                    {fruit.name}
+                  </Label>
+                </div>
+              ))}
+            </div>
           </div>
         )}
         
         <div className="flex gap-3 justify-end">
           <button 
-            onClick={onClose}
+            onClick={() => onConfirm([], 0)} // Skip fruit selection
             className="px-4 py-2 bg-gray-700 text-white rounded"
           >
-            Cancelar
+            Sem Frutas
           </button>
           
           <button 
             onClick={handleConfirm}
-            className={`px-4 py-2 rounded bg-purple-dark text-white`}
+            className={`px-4 py-2 rounded bg-purple-dark text-white ${
+              selectedCount === 0 ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
+            disabled={selectedCount === 0}
           >
             Confirmar
           </button>
