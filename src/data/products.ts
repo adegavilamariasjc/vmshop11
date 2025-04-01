@@ -1,3 +1,4 @@
+import { isComboProduct, isCopaoProduct } from '../utils/productHelpers';
 
 export const categories = [
   "Copão Whisky",
@@ -277,7 +278,7 @@ export const products = {
     { name: "Longneck Skol Beats Senses", price: 12.00 },
     { name: "Longneck Skol Beats GT", price: 12.00 }
   ],
-"Vinhos": [
+  "Vinhos": [
     { name: "Dani 700ml", price: 22.00 },
     { name: "Cantinho do Vale 880ml", price: 6.00 },
     { name: "Cantinho do Vale 2L", price: 12.00 },

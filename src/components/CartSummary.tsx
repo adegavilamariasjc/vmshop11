@@ -37,6 +37,12 @@ const CartSummary: React.FC<CartSummaryProps> = ({ cart, selectedBairro }) => {
                 .join(", ")}
             </div>
           )}
+          
+          {item.fruits && item.fruits.length > 0 && (
+            <div className="text-sm text-gray-300 ml-3">
+              Frutas: {item.fruits.join(", ")}
+            </div>
+          )}
         </div>
       ))}
       

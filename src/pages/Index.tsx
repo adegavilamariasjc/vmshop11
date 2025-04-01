@@ -10,6 +10,7 @@ import ProductSelectionView from '../components/ProductSelectionView';
 import CheckoutView from '../components/CheckoutView';
 import FlavorSelectionModal from '../components/FlavorSelectionModal';
 import AlcoholSelectionModal from '../components/AlcoholSelectionModal';
+import FruitSelectionModal from '../components/FruitSelectionModal';
 
 const Index = () => {
   const {
@@ -18,8 +19,10 @@ const Index = () => {
     showSummary,
     isFlavorModalOpen,
     isAlcoholModalOpen,
+    isFruitModalOpen,
     selectedProductForFlavor,
     selectedProductForAlcohol,
+    selectedProductForFruit,
     selectedIce,
     selectedAlcohol,
     setShowSummary,
@@ -29,9 +32,11 @@ const Index = () => {
     updateIceQuantity,
     confirmFlavorSelection,
     confirmAlcoholSelection,
+    confirmFruitSelection,
     checkMissingFlavorsAndProceed,
     setIsFlavorModalOpen,
     setIsAlcoholModalOpen,
+    setIsFruitModalOpen,
     setSelectedAlcohol
   } = useCart();
 
@@ -46,7 +51,8 @@ const Index = () => {
     whatsapp: "",
     bairro: bairros[0],
     pagamento: "",
-    troco: ""
+    troco: "",
+    cep: ""
   });
 
   const enviarPedidoWhatsApp = () => {
@@ -66,7 +72,10 @@ const Index = () => {
               .join(", ")
           : "";
         const alcoholText = p.alcohol ? ` (Álcool: ${p.alcohol})` : "";
-        return `${p.qty}x ${p.name}${alcoholText}${iceText} - R$${((p.price || 0) * (p.qty || 1)).toFixed(2)}`;
+        const fruitsText = p.fruits && p.fruits.length > 0 
+          ? ` \n   Frutas: ${p.fruits.join(", ")}` 
+          : "";
+        return `${p.qty}x ${p.name}${alcoholText}${iceText}${fruitsText} - R$${((p.price || 0) * (p.qty || 1)).toFixed(2)}`;
       })
       .join("\n");
     
@@ -130,6 +139,14 @@ const Index = () => {
         selectedAlcohol={selectedAlcohol}
         setSelectedAlcohol={setSelectedAlcohol}
         onConfirm={confirmAlcoholSelection}
+      />
+      
+      <FruitSelectionModal
+        isOpen={isFruitModalOpen}
+        onClose={() => setIsFruitModalOpen(false)}
+        product={selectedProductForFruit}
+        isCombo={selectedProductForFruit?.category?.includes('combo') || false}
+        onConfirm={confirmFruitSelection}
       />
     </PageLayout>
   );

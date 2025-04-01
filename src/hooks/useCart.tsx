@@ -11,7 +11,9 @@ import {
   requiresFlavor, 
   requiresAlcoholChoice, 
   iceFlavors, 
-  getMaxIce 
+  getMaxIce,
+  isComboProduct,
+  isCopaoProduct
 } from '../data/products';
 
 export const useCart = () => {
@@ -21,8 +23,10 @@ export const useCart = () => {
   const [showSummary, setShowSummary] = useState(false);
   const [isFlavorModalOpen, setIsFlavorModalOpen] = useState(false);
   const [isAlcoholModalOpen, setIsAlcoholModalOpen] = useState(false);
+  const [isFruitModalOpen, setIsFruitModalOpen] = useState(false);
   const [selectedProductForFlavor, setSelectedProductForFlavor] = useState<Product | null>(null);
   const [selectedProductForAlcohol, setSelectedProductForAlcohol] = useState<Product | null>(null);
+  const [selectedProductForFruit, setSelectedProductForFruit] = useState<Product | null>(null);
   const [selectedIce, setSelectedIce] = useState<Record<string, number>>({});
   const [selectedAlcohol, setSelectedAlcohol] = useState<AlcoholOption | null>(null);
 
@@ -48,6 +52,9 @@ export const useCart = () => {
       setSelectedProductForAlcohol(productWithCategory);
       setSelectedAlcohol(null);
       setIsAlcoholModalOpen(true);
+    } else if (isComboProduct(productWithCategory) || isCopaoProduct(productWithCategory)) {
+      setSelectedProductForFruit(productWithCategory);
+      setIsFruitModalOpen(true);
     } else {
       handleUpdateQuantity(productWithCategory, 1);
     }
@@ -61,7 +68,8 @@ export const useCart = () => {
           p.category === item.category &&
           ((p.ice && item.ice && JSON.stringify(p.ice) === JSON.stringify(item.ice)) ||
            (!p.ice && !item.ice)) &&
-          p.alcohol === item.alcohol
+          p.alcohol === item.alcohol &&
+          JSON.stringify(p.fruits) === JSON.stringify(item.fruits)
       );
       
       if (existingItem) {
@@ -71,7 +79,8 @@ export const useCart = () => {
             p.category === item.category &&
             ((p.ice && item.ice && JSON.stringify(p.ice) === JSON.stringify(item.ice)) ||
              (!p.ice && !item.ice)) &&
-            p.alcohol === item.alcohol
+            p.alcohol === item.alcohol &&
+            JSON.stringify(p.fruits) === JSON.stringify(item.fruits)
               ? { ...p, qty: Math.max(0, (p.qty || 1) + delta) }
               : p
           )
@@ -139,6 +148,35 @@ export const useCart = () => {
     });
   };
 
+  const confirmFruitSelection = (selectedFruits: string[], extraCost: number) => {
+    if (!selectedProductForFruit) return;
+    
+    if (selectedFruits.length > 0) {
+      const itemWithFruits = {
+        ...selectedProductForFruit,
+        fruits: selectedFruits,
+        price: (selectedProductForFruit.price || 0) + extraCost,
+      };
+      
+      handleUpdateQuantity(itemWithFruits, 1);
+      
+      toast({
+        title: "Item adicionado",
+        description: `${selectedProductForFruit.name} com ${selectedFruits.join(', ')} adicionado ao pedido.`,
+      });
+    } else {
+      // Adicionar sem frutas
+      handleUpdateQuantity(selectedProductForFruit, 1);
+      
+      toast({
+        title: "Item adicionado",
+        description: `${selectedProductForFruit.name} adicionado ao pedido.`,
+      });
+    }
+    
+    setIsFruitModalOpen(false);
+  };
+
   const checkMissingFlavorsAndProceed = () => {
     if (cart.length === 0) {
       toast({
@@ -178,8 +216,10 @@ export const useCart = () => {
     showSummary,
     isFlavorModalOpen,
     isAlcoholModalOpen,
+    isFruitModalOpen,
     selectedProductForFlavor,
     selectedProductForAlcohol,
+    selectedProductForFruit,
     selectedIce,
     selectedAlcohol,
     setShowSummary,
@@ -189,9 +229,11 @@ export const useCart = () => {
     updateIceQuantity,
     confirmFlavorSelection,
     confirmAlcoholSelection,
+    confirmFruitSelection,
     checkMissingFlavorsAndProceed,
     setIsFlavorModalOpen,
     setIsAlcoholModalOpen,
+    setIsFruitModalOpen,
     setSelectedAlcohol
   };
 };

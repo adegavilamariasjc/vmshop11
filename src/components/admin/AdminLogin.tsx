@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { LockKeyhole } from 'lucide-react';
+import { LockKeyhole, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface AdminLoginProps {
   onLogin: (password: string) => void;
@@ -11,6 +12,7 @@ interface AdminLoginProps {
 
 const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,10 +43,19 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
               />
             </div>
           </CardContent>
-          <CardFooter>
+          <CardFooter className="flex justify-between">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => navigate('/')}
+              className="bg-transparent border-white text-white hover:bg-white/20"
+            >
+              <ArrowLeft className="mr-2" size={16} />
+              Voltar
+            </Button>
             <Button 
               type="submit" 
-              className="w-full bg-purple-dark hover:bg-purple-600"
+              className="bg-purple-dark hover:bg-purple-600"
             >
               Entrar
             </Button>
