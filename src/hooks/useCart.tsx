@@ -1,5 +1,4 @@
 
-import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Product } from '../types';
 import { useCartState } from './cart/useCartState';
@@ -7,13 +6,14 @@ import { useProductModals } from './cart/useProductModals';
 import { useCartOperations } from './cart/useCartOperations';
 
 export const useCart = () => {
-  const { toast } = useToast();
+  const toast = useToast();
   const { 
     cart, 
     activeCategory, 
     showSummary, 
     selectedIce,
     selectedAlcohol,
+    setCart,
     setShowSummary,
     setActiveCategory,
     setSelectedIce,
@@ -92,4 +92,3 @@ export const useCart = () => {
     setSelectedAlcohol
   };
 };
-

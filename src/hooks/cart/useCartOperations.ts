@@ -18,7 +18,8 @@ interface UseCartOperationsProps {
       description?: string;
       action?: ToastActionElement;
       variant?: "default" | "destructive";
-    }) => { id: string; dismiss: () => void; update: (props: object) => void };
+    }) => { id: string; dismiss: () => void; update: (props: any) => void };
+    dismiss: (toastId?: string) => void;
   };
   selectedIce: Record<string, number>;
   selectedAlcohol: AlcoholOption | null;
