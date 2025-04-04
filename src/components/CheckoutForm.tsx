@@ -1,8 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { FormData, Bairro } from '../types';
 import { bairros } from '../data/products';
+import { searchAddressByCep } from '../utils/addressLookup';
+import { Search } from 'lucide-react';
 
 interface CheckoutFormProps {
   form: FormData;
@@ -12,6 +14,8 @@ interface CheckoutFormProps {
 
 const CheckoutForm: React.FC<CheckoutFormProps> = ({ form, setForm, onSubmit }) => {
   const { toast } = useToast();
+  const [cep, setCep] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
   
   const formatWhatsApp = (number: string) => {
     const cleaned = number.replace(/\D/g, '');
@@ -104,6 +108,53 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ form, setForm, onSubmit }) 
       troco: pagamento === "Dinheiro" ? form.troco : ""
     });
   };
+
+  const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '');
+    if (value.length <= 8) {
+      setCep(value);
+    }
+  };
+
+  const searchAddressByZipcode = async () => {
+    if (cep.length !== 8) {
+      toast({
+        title: "CEP Inválido",
+        description: "Por favor, digite um CEP válido com 8 dígitos.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSearching(true);
+    const address = await searchAddressByCep(cep);
+    setIsSearching(false);
+
+    if (!address) {
+      toast({
+        title: "Endereço não encontrado",
+        description: "Não foi possível encontrar o endereço para o CEP informado.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Try to find a matching bairro in our list
+    let matchedBairro = bairros.find(b => 
+      b.nome.toLowerCase() === address.neighborhood.toLowerCase()
+    ) || form.bairro;
+
+    setForm({
+      ...form,
+      endereco: address.street,
+      bairro: matchedBairro
+    });
+
+    toast({
+      title: "Endereço encontrado",
+      description: "O endereço foi preenchido automaticamente.",
+    });
+  };
   
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -121,6 +172,51 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ form, setForm, onSubmit }) 
             className="w-full p-3 bg-gray-900 border border-gray-600 rounded-md text-white"
             placeholder="Seu nome completo"
             required
+          />
+        </div>
+        
+        <div className="col-span-2 md:col-span-1">
+          <label htmlFor="cep" className="block text-sm font-medium text-white mb-1">
+            CEP (Buscar Endereço)
+          </label>
+          <div className="flex">
+            <input
+              id="cep"
+              name="cep"
+              type="text"
+              value={cep}
+              onChange={handleCepChange}
+              className="flex-1 p-3 bg-gray-900 border border-gray-600 rounded-l-md text-white"
+              placeholder="Apenas números"
+              maxLength={8}
+            />
+            <button
+              type="button"
+              onClick={searchAddressByZipcode}
+              disabled={isSearching || cep.length !== 8}
+              className={`flex items-center justify-center px-3 rounded-r-md ${
+                isSearching ? 'bg-gray-700' : 'bg-purple-dark hover:bg-purple-600'
+              }`}
+            >
+              <Search size={20} />
+            </button>
+          </div>
+        </div>
+        
+        <div className="col-span-2 md:col-span-1">
+          <label htmlFor="whatsapp" className="block text-sm font-medium text-white mb-1">
+            WhatsApp *
+          </label>
+          <input
+            id="whatsapp"
+            name="whatsapp"
+            type="text"
+            value={form.whatsapp}
+            onChange={handleChange}
+            className="w-full p-3 bg-gray-900 border border-gray-600 rounded-md text-white"
+            placeholder="Ex: 12999999999"
+            required
+            maxLength={11}
           />
         </div>
         
@@ -183,23 +279,6 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ form, setForm, onSubmit }) 
             onChange={handleChange}
             className="w-full p-3 bg-gray-900 border border-gray-600 rounded-md text-white"
             placeholder="Próximo a..."
-          />
-        </div>
-        
-        <div className="col-span-2">
-          <label htmlFor="whatsapp" className="block text-sm font-medium text-white mb-1">
-            WhatsApp *
-          </label>
-          <input
-            id="whatsapp"
-            name="whatsapp"
-            type="text"
-            value={form.whatsapp}
-            onChange={handleChange}
-            className="w-full p-3 bg-gray-900 border border-gray-600 rounded-md text-white"
-            placeholder="Ex: 12999999999"
-            required
-            maxLength={11}
           />
         </div>
         
