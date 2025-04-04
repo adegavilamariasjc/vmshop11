@@ -48,7 +48,7 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
               type="button"
               variant="outline"
               onClick={() => navigate('/')}
-              className="flex items-center gap-2 text-white border-white hover:bg-white/10"
+              className="flex items-center justify-center gap-2 text-black font-bold border-white hover:bg-white/10"
             >
               <ArrowLeft size={16} /> Voltar
             </Button>
