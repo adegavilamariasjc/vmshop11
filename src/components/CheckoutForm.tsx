@@ -1,10 +1,12 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { FormData, Bairro } from '../types';
 import { bairros } from '../data/products';
-import { searchAddressByCep } from '../utils/addressLookup';
-import { Search } from 'lucide-react';
+import PersonalInfoFields from './checkout/PersonalInfoFields';
+import AddressFields from './checkout/AddressFields';
+import LocationAndPaymentFields from './checkout/LocationAndPaymentFields';
+import CheckoutButton from './checkout/CheckoutButton';
 
 interface CheckoutFormProps {
   form: FormData;
@@ -14,8 +16,6 @@ interface CheckoutFormProps {
 
 const CheckoutForm: React.FC<CheckoutFormProps> = ({ form, setForm, onSubmit }) => {
   const { toast } = useToast();
-  const [cep, setCep] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
   
   const formatWhatsApp = (number: string) => {
     const cleaned = number.replace(/\D/g, '');
@@ -73,15 +73,6 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ form, setForm, onSubmit }) 
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    
-    if (name === 'whatsapp') {
-      setForm({
-        ...form,
-        [name]: formatWhatsApp(value)
-      });
-      return;
-    }
-    
     setForm({
       ...form,
       [name]: value
@@ -109,36 +100,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ form, setForm, onSubmit }) 
     });
   };
 
-  const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, '');
-    if (value.length <= 8) {
-      setCep(value);
-    }
-  };
-
-  const searchAddressByZipcode = async () => {
-    if (cep.length !== 8) {
-      toast({
-        title: "CEP Inválido",
-        description: "Por favor, digite um CEP válido com 8 dígitos.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsSearching(true);
-    const address = await searchAddressByCep(cep);
-    setIsSearching(false);
-
-    if (!address) {
-      toast({
-        title: "Endereço não encontrado",
-        description: "Não foi possível encontrar o endereço para o CEP informado.",
-        variant: "destructive"
-      });
-      return;
-    }
-
+  const handleAddressFound = (address: { street: string, neighborhood: string }) => {
     // Try to find a matching bairro in our list
     let matchedBairro = bairros.find(b => 
       b.nome.toLowerCase() === address.neighborhood.toLowerCase()
@@ -149,222 +111,32 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ form, setForm, onSubmit }) 
       endereco: address.street,
       bairro: matchedBairro
     });
-
-    toast({
-      title: "Endereço encontrado",
-      description: "O endereço foi preenchido automaticamente.",
-    });
   };
   
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid gap-4 md:grid-cols-2">
-        <div className="col-span-2">
-          <label htmlFor="nome" className="block text-sm font-medium text-white mb-1">
-            Nome *
-          </label>
-          <input
-            id="nome"
-            name="nome"
-            type="text"
-            value={form.nome}
-            onChange={handleChange}
-            className="w-full p-3 bg-gray-900 border border-gray-600 rounded-md text-white"
-            placeholder="Seu nome completo"
-            required
-          />
-        </div>
+        <PersonalInfoFields 
+          form={form} 
+          handleChange={handleChange}
+          formatWhatsApp={formatWhatsApp}
+          onAddressFound={handleAddressFound}
+        />
         
-        <div className="col-span-2 md:col-span-1">
-          <label htmlFor="cep" className="block text-sm font-medium text-white mb-1">
-            CEP (Buscar Endereço)
-          </label>
-          <div className="flex">
-            <input
-              id="cep"
-              name="cep"
-              type="text"
-              value={cep}
-              onChange={handleCepChange}
-              className="flex-1 p-3 bg-gray-900 border border-gray-600 rounded-l-md text-white"
-              placeholder="Apenas números"
-              maxLength={8}
-            />
-            <button
-              type="button"
-              onClick={searchAddressByZipcode}
-              disabled={isSearching || cep.length !== 8}
-              className={`flex items-center justify-center px-3 rounded-r-md ${
-                isSearching ? 'bg-gray-700' : 'bg-purple-dark hover:bg-purple-600'
-              }`}
-            >
-              <Search size={20} />
-            </button>
-          </div>
-        </div>
+        <AddressFields 
+          form={form} 
+          handleChange={handleChange}
+        />
         
-        <div className="col-span-2 md:col-span-1">
-          <label htmlFor="whatsapp" className="block text-sm font-medium text-white mb-1">
-            WhatsApp *
-          </label>
-          <input
-            id="whatsapp"
-            name="whatsapp"
-            type="text"
-            value={form.whatsapp}
-            onChange={handleChange}
-            className="w-full p-3 bg-gray-900 border border-gray-600 rounded-md text-white"
-            placeholder="Ex: 12999999999"
-            required
-            maxLength={11}
-          />
-        </div>
-        
-        <div className="col-span-1">
-          <label htmlFor="endereco" className="block text-sm font-medium text-white mb-1">
-            Endereço *
-          </label>
-          <input
-            id="endereco"
-            name="endereco"
-            type="text"
-            value={form.endereco}
-            onChange={handleChange}
-            className="w-full p-3 bg-gray-900 border border-gray-600 rounded-md text-white"
-            placeholder="Rua / Avenida"
-            required
-          />
-        </div>
-        
-        <div className="col-span-1">
-          <label htmlFor="numero" className="block text-sm font-medium text-white mb-1">
-            Número *
-          </label>
-          <input
-            id="numero"
-            name="numero"
-            type="text"
-            value={form.numero}
-            onChange={handleChange}
-            className="w-full p-3 bg-gray-900 border border-gray-600 rounded-md text-white"
-            placeholder="Número"
-            required
-          />
-        </div>
-        
-        <div className="col-span-1">
-          <label htmlFor="complemento" className="block text-sm font-medium text-white mb-1">
-            Complemento
-          </label>
-          <input
-            id="complemento"
-            name="complemento"
-            type="text"
-            value={form.complemento}
-            onChange={handleChange}
-            className="w-full p-3 bg-gray-900 border border-gray-600 rounded-md text-white"
-            placeholder="Apto / Casa / Bloco"
-          />
-        </div>
-        
-        <div className="col-span-1">
-          <label htmlFor="referencia" className="block text-sm font-medium text-white mb-1">
-            Referência
-          </label>
-          <input
-            id="referencia"
-            name="referencia"
-            type="text"
-            value={form.referencia}
-            onChange={handleChange}
-            className="w-full p-3 bg-gray-900 border border-gray-600 rounded-md text-white"
-            placeholder="Próximo a..."
-          />
-        </div>
-        
-        <div className="col-span-2">
-          <label htmlFor="observacao" className="block text-sm font-medium text-white mb-1">
-            Observações
-          </label>
-          <textarea
-            id="observacao"
-            name="observacao"
-            value={form.observacao}
-            onChange={handleChange}
-            className="w-full p-3 bg-gray-900 border border-gray-600 rounded-md text-white"
-            placeholder="Alguma observação especial?"
-            rows={3}
-          />
-        </div>
-        
-        {/* Emphasized bairro selection */}
-        <div className="col-span-2">
-          <label htmlFor="bairro" className="block text-lg font-medium text-purple-light mb-1">
-            Selecione Um Bairro *
-          </label>
-          <select
-            id="bairro"
-            name="bairro"
-            value={form.bairro.nome}
-            onChange={handleBairroChange}
-            className="w-full p-3 bg-gray-800 border-2 border-purple-dark rounded-md text-white"
-            required
-          >
-            {bairros.map((bairro) => (
-              <option key={bairro.nome} value={bairro.nome} disabled={bairro.nome === "Selecione Um Bairro"}>
-                {bairro.nome} {bairro.taxa > 0 ? `(R$ ${bairro.taxa.toFixed(2)})` : ''}
-              </option>
-            ))}
-          </select>
-        </div>
-        
-        {/* Emphasized payment method selection */}
-        <div className="col-span-2">
-          <label htmlFor="pagamento" className="block text-lg font-medium text-purple-light mb-1">
-            Selecione Forma de Pagamento *
-          </label>
-          <select
-            id="pagamento"
-            name="pagamento"
-            value={form.pagamento}
-            onChange={handlePagamentoChange}
-            className="w-full p-3 bg-gray-800 border-2 border-purple-dark rounded-md text-white"
-            required
-          >
-            <option value="" disabled>Escolha uma forma de pagamento</option>
-            <option value="Cartão">Cartão</option>
-            <option value="Pix">Pix</option>
-            <option value="Dinheiro">Dinheiro</option>
-          </select>
-        </div>
-        
-        {form.pagamento === "Dinheiro" && (
-          <div className="col-span-2">
-            <label htmlFor="troco" className="block text-sm font-medium text-white mb-1">
-              Troco para quanto? *
-            </label>
-            <input
-              id="troco"
-              name="troco"
-              type="number"
-              value={form.troco}
-              onChange={handleChange}
-              className="w-full p-3 bg-gray-900 border border-gray-600 rounded-md text-white"
-              placeholder="Valor para troco"
-              required
-              min="1"
-              step="0.01"
-            />
-          </div>
-        )}
+        <LocationAndPaymentFields 
+          form={form}
+          handleBairroChange={handleBairroChange}
+          handlePagamentoChange={handlePagamentoChange}
+          handleChange={handleChange}
+        />
       </div>
       
-      <button
-        type="submit"
-        className="w-full p-3 bg-purple-dark hover:bg-purple text-white rounded-md font-bold"
-      >
-        Enviar Pedido via WhatsApp
-      </button>
+      <CheckoutButton />
     </form>
   );
 };
