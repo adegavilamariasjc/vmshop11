@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { fetchCategories } from '../services/supabaseService';
+import { loadCategories } from '../data/categories';
 import { useToast } from '@/hooks/use-toast';
 
 interface CategorySelectorProps {
@@ -21,7 +21,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ activeCategory, onS
   const loadCategoriesData = async () => {
     setIsLoading(true);
     try {
-      const data = await fetchCategories();
+      const data = await loadCategories();
       setCategories(data);
       
       // Se houver categorias, selecione a primeira automaticamente

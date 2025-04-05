@@ -69,13 +69,21 @@ export const deleteProduct = async (product: Pick<Product, 'name' | 'category'>)
 };
 
 export const migrateStaticDataToSupabase = async () => {
-  return await migrateExistingData(
-    categories, 
-    allProducts, 
-    bairrosList, 
-    iceFlavors, 
-    alcoholOptions
-  );
+  console.log("Starting migration of static data to Supabase...");
+  try {
+    const result = await migrateExistingData(
+      categories, 
+      allProducts, 
+      bairrosList, 
+      iceFlavors, 
+      alcoholOptions
+    );
+    console.log("Migration completed successfully:", result);
+    return result;
+  } catch (error) {
+    console.error("Error during migration:", error);
+    throw error;
+  }
 };
 
 export const gerarCodigoPedido = () => {

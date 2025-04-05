@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Minus } from 'lucide-react';
 import { Product } from '../types';
-import { fetchProducts } from '../services/supabaseService';
+import { loadProductsByCategory } from '../data/products';
 import { useToast } from '@/hooks/use-toast';
 
 interface ProductListProps {
@@ -27,7 +27,7 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
   const loadProductsData = async (categoryName: string) => {
     setIsLoading(true);
     try {
-      const data = await fetchProducts(categoryName);
+      const data = await loadProductsByCategory(categoryName);
       setProducts(data);
     } catch (error) {
       console.error("Error loading products:", error);
