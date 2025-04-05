@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../hooks/useCart';
 import { AnimatePresence } from 'framer-motion';
-import { loadBairros, gerarCodigoPedido } from '../data/products';
+import { loadBairros } from '../data/bairros';
+import { gerarCodigoPedido } from '../data/products';
 import { formatWhatsAppMessage } from '../utils/formatWhatsApp';
 import { FormData, Bairro } from '../types';
 import PageLayout from '../components/PageLayout';

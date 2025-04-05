@@ -13,28 +13,21 @@ import { categories } from './categories';
 import { products } from './products-data';
 import { otherCategoryProducts } from './products-other-categories';
 import { bairrosList } from './bairros';
-import { iceFlavors, alcoholOptions } from './ice-and-alcohol';
-
-// Re-export from other files to maintain the same API
-export { 
-  categories,
-  bairrosList, 
-  alcoholOptions, 
+import { 
   iceFlavors, 
+  alcoholOptions, 
   getMaxIce, 
   requiresFlavor, 
-  requiresAlcoholChoice 
-} from './categories';
+  requiresAlcoholChoice,
+  loadIceFlavors,
+  loadAlcoholOptions
+} from './ice-and-alcohol';
+
+// Re-export from other files to maintain the same API
+export { categories, loadCategories, saveNewCategory as saveCategory, updateExistingCategory as updateCategory, deleteExistingCategory as deleteCategory, moveCategoriesOrder as moveCategoryOrder } from './categories';
 
 export { 
-  loadCategories,
-  saveNewCategory as saveCategory,
-  updateExistingCategory as updateCategory,
-  deleteExistingCategory as deleteCategory,
-  moveCategoriesOrder as moveCategoryOrder
-} from './categories';
-
-export {
+  bairrosList, 
   loadBairros,
   saveBairro,
   updateBairro,
@@ -42,6 +35,11 @@ export {
 } from './bairros';
 
 export {
+  alcoholOptions, 
+  iceFlavors, 
+  getMaxIce, 
+  requiresFlavor, 
+  requiresAlcoholChoice,
   loadIceFlavors,
   loadAlcoholOptions
 } from './ice-and-alcohol';

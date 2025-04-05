@@ -2,7 +2,7 @@
 import React from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { FormData, Bairro } from '../types';
-import { bairrosList as bairros } from '../data/products';
+import { bairrosList as bairros } from '../data/bairros';
 import PersonalInfoFields from './checkout/PersonalInfoFields';
 import AddressFields from './checkout/AddressFields';
 import LocationAndPaymentFields from './checkout/LocationAndPaymentFields';

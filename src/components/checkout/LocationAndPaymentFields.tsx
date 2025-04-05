@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { FormData, Bairro } from '../../types';
-import { bairrosList as bairros } from '../../data/products';
+import { bairrosList } from '../../data/bairros';
 import FormField from './FormField';
 
 interface LocationAndPaymentFieldsProps {
