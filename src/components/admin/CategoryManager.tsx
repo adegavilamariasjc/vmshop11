@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Pencil, Trash, Plus, Save, MoveUp, MoveDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { loadCategories, saveCategory, updateCategory, deleteCategory } from '../../data/products';
+import { loadCategories, saveCategory, updateCategory, deleteCategory, moveCategoryOrder } from '../../data/products';
 import { useToast } from '@/hooks/use-toast';
 
 const CategoryManager: React.FC = () => {
@@ -168,7 +168,7 @@ const CategoryManager: React.FC = () => {
     
     setIsLoading(true);
     try {
-      await saveCategoriesToDB(updatedCategories);
+      await moveCategoryOrder(updatedCategories);
       
       // Update local state
       setCategoriesList(updatedCategories);

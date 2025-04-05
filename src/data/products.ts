@@ -1,4 +1,3 @@
-
 import { Bairro, AlcoholOption, Product } from '../types';
 import { 
   fetchCategories, 
@@ -12,7 +11,7 @@ import {
   saveCategory as saveCategoryService,
   updateCategory as updateCategoryService,
   deleteCategory as deleteCategoryService,
-  moveCategoryOrder,
+  moveCategoryOrder as moveCategoryOrderService,
   saveProduct as saveProductService,
   updateProduct as updateProductService,
   deleteProduct as deleteProductService,
@@ -407,7 +406,6 @@ export const products = {
   ]
 };
 
-// Default alcohol options for use in components
 export const alcoholOptions = [
   { name: "Vodka", extraCost: 0 },
   { name: "Pinga", extraCost: 0 },
@@ -417,7 +415,6 @@ export const alcoholOptions = [
   { name: "Saquê", extraCost: 10 }
 ];
 
-// Default ice flavors for use in components
 export const iceFlavors = [
   "Gelo de Água", 
   "Coco", 
@@ -427,14 +424,12 @@ export const iceFlavors = [
   "Morango"
 ];
 
-// Helper function to get maximum allowed ice based on category
 export const getMaxIce = (category: string): number => {
   if (category.includes("Copão")) return 4;
   if (category.includes("Combo")) return 8;
   return 2; // Default for other categories
 };
 
-// Helper functions to determine if a product requires flavor/alcohol selection
 export const requiresFlavor = (category: string): boolean => {
   return category.includes("Copão") || category.includes("Combo");
 };
@@ -443,25 +438,21 @@ export const requiresAlcoholChoice = (category: string): boolean => {
   return category.includes("Caipirinha") || category === "Batidas";
 };
 
-// Default bairros list for use in components
 export const bairrosList = [
   { nome: "Centro", taxa: 5.00 },
   { nome: "Jardim América", taxa: 7.00 },
   { nome: "Vila Nova", taxa: 10.00 }
 ];
 
-// Helper function for migrating existing data to Supabase (for Admin page)
 export const migrateStaticDataToSupabase = async () => {
   return await migrateExistingData();
 };
 
-// Functions to interact with Supabase
 export const loadCategories = async () => {
   try {
     return await fetchCategories();
   } catch (error) {
     console.error("Error loading categories:", error);
-    // Fallback to local data if API fails
     return categories;
   }
 };
@@ -471,7 +462,6 @@ export const loadProductsByCategory = async (category: string) => {
     return await fetchProducts(category);
   } catch (error) {
     console.error("Error loading products:", error);
-    // Fallback to local data if API fails
     return products[category] || [];
   }
 };
@@ -503,7 +493,6 @@ export const loadAlcoholOptions = async () => {
   }
 };
 
-// Export the CRUD functions for components to use
 export const saveBairro = async (bairro: Bairro) => {
   return await saveBairroService(bairro);
 };
@@ -540,7 +529,10 @@ export const deleteProduct = async (product: Pick<Product, 'name' | 'category'>)
   return await deleteProductService(product);
 };
 
-// Helper function for generating order codes
+export const moveCategoryOrder = async (categories: string[]) => {
+  return await moveCategoryOrderService(categories);
+};
+
 export const gerarCodigoPedido = () => {
   const data = new Date();
   const dia = data.getDate().toString().padStart(2, '0');
