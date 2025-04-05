@@ -32,7 +32,7 @@ const LocationAndPaymentFields: React.FC<LocationAndPaymentFieldsProps> = ({
           className="w-full p-3 bg-gray-800 border-2 border-purple-dark rounded-md text-white"
           required
         >
-          {bairros.map((bairro) => (
+          {bairrosList.map((bairro) => (
             <option key={bairro.nome} value={bairro.nome} disabled={bairro.nome === "Selecione Um Bairro"}>
               {bairro.nome} {bairro.taxa > 0 ? `(R$ ${bairro.taxa.toFixed(2)})` : ''}
             </option>
