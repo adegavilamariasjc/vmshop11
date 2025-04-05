@@ -445,7 +445,7 @@ export const bairrosList = [
 ];
 
 export const migrateStaticDataToSupabase = async () => {
-  return await migrateExistingData();
+  return await migrateExistingData(categories, products, bairrosList, iceFlavors, alcoholOptions);
 };
 
 export const loadCategories = async () => {
