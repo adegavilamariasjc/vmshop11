@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { Pencil, Trash, Plus, Save, MoveUp, MoveDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { loadCategories, saveCategoriesToDB, saveCategory, updateCategory, deleteCategory } from '../../data/products';
+import { loadCategories, saveCategory, updateCategory, deleteCategory } from '../../data/products';
 import { useToast } from '@/hooks/use-toast';
 
 const CategoryManager: React.FC = () => {
