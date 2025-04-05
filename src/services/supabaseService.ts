@@ -1,9 +1,9 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Bairro, Product, AlcoholOption } from "../types";
 
 // Categories
 export const fetchCategories = async () => {
+  console.log("Fetching categories from Supabase...");
   const { data, error } = await supabase
     .from('categories')
     .select('*')
@@ -14,6 +14,13 @@ export const fetchCategories = async () => {
     throw error;
   }
   
+  // Se não houver categorias, retorna um array vazio
+  if (!data || data.length === 0) {
+    console.log("No categories found in Supabase");
+    return [];
+  }
+  
+  console.log("Categories fetched:", data);
   return data.map(category => category.name);
 };
 
@@ -392,7 +399,10 @@ export const migrateExistingData = async (
   iceFlavors: string[],
   alcoholOptions: AlcoholOption[]
 ) => {
+  console.log("Starting data migration to Supabase...");
+  
   // Migrate categories
+  console.log("Migrating categories...");
   for (let i = 0; i < categories.length; i++) {
     try {
       await supabase
@@ -401,6 +411,7 @@ export const migrateExistingData = async (
           name: categories[i],
           order_index: i
         }], { onConflict: 'name' });
+      console.log(`Category migrated: ${categories[i]}`);
     } catch (error) {
       console.error(`Error migrating category ${categories[i]}:`, error);
     }
@@ -411,12 +422,17 @@ export const migrateExistingData = async (
     .from('categories')
     .select('id, name');
     
-  const categoryMap = categoryData.reduce((map, category) => {
-    map[category.name] = category.id;
-    return map;
-  }, {});
+  const categoryMap = {};
+  if (categoryData) {
+    categoryData.forEach(category => {
+      categoryMap[category.name] = category.id;
+    });
+  }
+  
+  console.log("Category map:", categoryMap);
   
   // Migrate products
+  console.log("Migrating products...");
   for (const categoryName in products) {
     const categoryId = categoryMap[categoryName];
     
@@ -430,14 +446,18 @@ export const migrateExistingData = async (
               price: product.price,
               category_id: categoryId
             }], { onConflict: 'name, category_id' });
+          console.log(`Product migrated: ${product.name} in category ${categoryName}`);
         } catch (error) {
           console.error(`Error migrating product ${product.name}:`, error);
         }
       }
+    } else {
+      console.error(`Category ID not found for: ${categoryName}`);
     }
   }
   
   // Migrate bairros
+  console.log("Migrating bairros...");
   for (const bairro of bairros) {
     try {
       await supabase
@@ -446,12 +466,14 @@ export const migrateExistingData = async (
           nome: bairro.nome,
           taxa: bairro.taxa
         }], { onConflict: 'nome' });
+      console.log(`Bairro migrated: ${bairro.nome}`);
     } catch (error) {
       console.error(`Error migrating bairro ${bairro.nome}:`, error);
     }
   }
   
   // Migrate ice flavors
+  console.log("Migrating ice flavors...");
   for (const flavor of iceFlavors) {
     try {
       await supabase
@@ -459,12 +481,14 @@ export const migrateExistingData = async (
         .upsert([{
           name: flavor
         }], { onConflict: 'name' });
+      console.log(`Ice flavor migrated: ${flavor}`);
     } catch (error) {
       console.error(`Error migrating ice flavor ${flavor}:`, error);
     }
   }
   
   // Migrate alcohol options
+  console.log("Migrating alcohol options...");
   for (const option of alcoholOptions) {
     try {
       await supabase
@@ -473,10 +497,12 @@ export const migrateExistingData = async (
           name: option.name,
           extra_cost: option.extraCost
         }], { onConflict: 'name' });
+      console.log(`Alcohol option migrated: ${option.name}`);
     } catch (error) {
       console.error(`Error migrating alcohol option ${option.name}:`, error);
     }
   }
   
+  console.log("Data migration completed successfully!");
   return true;
 };

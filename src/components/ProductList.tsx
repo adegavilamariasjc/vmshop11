@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Minus } from 'lucide-react';
 import { Product } from '../types';
-import { loadProductsByCategory } from '../data/products';
+import { fetchProducts } from '../services/supabaseService';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProductListProps {
   category: string;
@@ -15,6 +16,7 @@ interface ProductListProps {
 const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct, onUpdateQuantity }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (category) {
@@ -25,17 +27,37 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
   const loadProductsData = async (categoryName: string) => {
     setIsLoading(true);
     try {
-      const data = await loadProductsByCategory(categoryName);
+      const data = await fetchProducts(categoryName);
       setProducts(data);
     } catch (error) {
       console.error("Error loading products:", error);
+      toast({
+        title: "Erro ao carregar produtos",
+        description: "Não foi possível carregar os produtos desta categoria",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   if (isLoading) {
-    return <div className="text-white text-center py-4">Carregando produtos...</div>;
+    return (
+      <div className="mb-4 pb-20">
+        <h2 className="text-lg font-semibold mb-3 text-white">{category}</h2>
+        <div className="animate-pulse space-y-4">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="flex justify-between items-center border-b border-gray-600 py-3">
+              <div>
+                <div className="h-4 bg-gray-300 rounded w-32 mb-2"></div>
+                <div className="h-3 bg-gray-300 rounded w-16"></div>
+              </div>
+              <div className="h-8 w-24 bg-gray-300 rounded"></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   if (products.length === 0) {

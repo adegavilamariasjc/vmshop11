@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -8,7 +9,7 @@ import ProductManager from '../components/admin/ProductManager';
 import CategoryManager from '../components/admin/CategoryManager';
 import BairroManager from '../components/admin/BairroManager';
 import Logo from '../components/Logo';
-import { migrateStaticDataToSupabase, categories, products, bairrosList as bairros } from '../data/products';
+import { migrateStaticDataToSupabase } from '../data/products';
 
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -49,13 +50,16 @@ const Admin = () => {
   const handleMigrateData = async () => {
     setIsMigrating(true);
     try {
-      await migrateStaticDataToSupabase();
-      setIsDataMigrated(true);
-      localStorage.setItem('dataMigrationComplete', 'true');
-      toast({
-        title: "Migração realizada com sucesso",
-        description: "Os dados foram migrados para o Supabase",
-      });
+      const result = await migrateStaticDataToSupabase();
+      
+      if (result) {
+        setIsDataMigrated(true);
+        localStorage.setItem('dataMigrationComplete', 'true');
+        toast({
+          title: "Migração realizada com sucesso",
+          description: "Os dados foram migrados para o Supabase",
+        });
+      }
     } catch (error) {
       console.error("Error migrating data:", error);
       toast({
