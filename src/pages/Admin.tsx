@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -9,7 +8,7 @@ import ProductManager from '../components/admin/ProductManager';
 import CategoryManager from '../components/admin/CategoryManager';
 import BairroManager from '../components/admin/BairroManager';
 import Logo from '../components/Logo';
-import { migrateStaticDataToSupabase, categories, products, bairros } from '../data/products';
+import { migrateStaticDataToSupabase, categories, products, bairrosList as bairros } from '../data/products';
 
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -19,14 +18,12 @@ const Admin = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if data migration has been done before
     const migrationDone = localStorage.getItem('dataMigrationComplete');
     setIsDataMigrated(migrationDone === 'true');
   }, []);
 
   const handleLogin = (password: string) => {
-    // Simple password authentication
-    if (password === "adega123") {  // You should change this to your own password
+    if (password === "adega123") {
       setIsAuthenticated(true);
       toast({
         title: "Login realizado com sucesso",

@@ -5,16 +5,16 @@ import {
   fetchBairros, 
   fetchIceFlavors, 
   fetchAlcoholOptions,
-  saveBairro,
-  updateBairro,
-  deleteBairro,
-  saveCategory,
-  updateCategory,
-  deleteCategory,
+  saveBairro as saveBairroService,
+  updateBairro as updateBairroService,
+  deleteBairro as deleteBairroService,
+  saveCategory as saveCategoryService,
+  updateCategory as updateCategoryService,
+  deleteCategory as deleteCategoryService,
   moveCategoryOrder,
-  saveProduct,
-  updateProduct,
-  deleteProduct,
+  saveProduct as saveProductService,
+  updateProduct as updateProductService,
+  deleteProduct as deleteProductService,
   migrateExistingData
 } from '../services/supabaseService';
 
@@ -616,12 +616,83 @@ export const products = {
   ]
 };
 
-export const fixedBairros: Bairro[] = bairros.map(bairro => {
-  if ('name' in bairro) {
-    return { nome: bairro.name, taxa: bairro.taxa };
-  }
-  return bairro;
-});
+export const bairrosList = [
+  { nome: "Selecione Um Bairro", taxa: 0 },
+  { nome: "Vila Maria", taxa: 3 },
+  { nome: "Jardim Bela Vista", taxa: 3 },
+  { nome: "Centro", taxa: 3 },
+  { nome: "Banhado", taxa: 5 },
+  { nome: "Vl. Guarani", taxa: 4 },
+  { nome: "Vila Nova São José", taxa: 4 },
+  { nome: "Monte Castelo", taxa: 4 },
+  { nome: "Vl. São Pedro", taxa: 5 },
+  { nome: "Vl Zizinha", taxa: 5 },
+  { nome: "Vl Teresinha", taxa: 5 },
+  { nome: "Vila Machado", taxa: 5 },
+  { nome: "Vila Industrial", taxa: 5 },
+  { nome: "Vila Guarani", taxa: 5 },
+  { nome: "Vila Cristina", taxa: 5 },
+  { nome: "São Dimas", taxa: 5 },
+  { nome: "Santana", taxa: 5 },
+  { nome: "Jd. Paulista", taxa: 5 },
+  { nome: "Jd. Oswaldo Cruz", taxa: 5 },
+  { nome: "Jd Augusta", taxa: 5 },
+  { nome: "Vl. Betania", taxa: 6 },
+  { nome: "Vl. Adyana", taxa: 6 },
+  { nome: "Vl. Candida", taxa: 6 },
+  { nome: "Jd. Sao Dimas", taxa: 6 },
+  { nome: "Jd. Maringa", taxa: 6 },
+  { nome: "Jd. Apolo", taxa: 6 },
+  { nome: "Jd Minas Gerais", taxa: 6 },
+  { nome: "Jd. Telespark", taxa: 7 },
+  { nome: "Vila Tesouro", taxa: 8 },
+  { nome: "Vila São Geraldo", taxa: 8 },
+  { nome: "Vila Paiva", taxa: 8 },
+  { nome: "Vila Ema", taxa: 8 },
+  { nome: "Jd. Das Colinas", taxa: 8 },
+  { nome: "Jardim Da Granja", taxa: 8 },
+  { nome: "Boa Vista", taxa: 8 },
+  { nome: "Altos De Santana", taxa: 8 },
+  { nome: "Aguas De Canindu", taxa: 8 },
+  { nome: "Motorama", taxa: 9 },
+  { nome: "Vista Verde", taxa: 10 },
+  { nome: "Residencial São Francisco", taxa: 10 },
+  { nome: "Parque Industrial", taxa: 10 },
+  { nome: "Esplanada Do Sol", taxa: 10 },
+  { nome: "Vila São Bento", taxa: 10 },
+  { nome: "Vale Do Sol", taxa: 12 },
+  { nome: "Urbanova", taxa: 12 },
+  { nome: "Satelite", taxa: 12 },
+  { nome: "Pararangaba", taxa: 12 },
+  { nome: "Novo Horizonte", taxa: 12 },
+  { nome: "Jd. Das Industrias", taxa: 12 },
+  { nome: "Jd. Portugal", taxa: 12 },
+  { nome: "Jd. Nova Republica", taxa: 12 },
+  { nome: "Jd. Morumbi", taxa: 12 },
+  { nome: "Jd. Colonial", taxa: 12 },
+  { nome: "Jd. Aquarius", taxa: 12 },
+  { nome: "Jd. America", taxa: 12 },
+  { nome: "Jd. Alvorada", taxa: 12 },
+  { nome: "Jardim Sao Vicente", taxa: 12 },
+  { nome: "D Pedro II", taxa: 12 },
+  { nome: "D Pedro I", taxa: 12 },
+  { nome: "Conj. 31 De Março", taxa: 12 },
+  { nome: "Campo Dos Alemaes", taxa: 12 },
+  { nome: "Bosque Dos Ypes", taxa: 12 },
+  { nome: "Bosque Dos Eucalipitos", taxa: 12 },
+  { nome: "Nova Michigan", taxa: 13 },
+  { nome: "Jd. Nova Michigan", taxa: 13 },
+  { nome: "Paraiso Do Sol", taxa: 15 },
+  { nome: "Campos De São Jose", taxa: 15 },
+  { nome: "Buquirinha II", taxa: 15 },
+  { nome: "Jd. Imperial", taxa: 15 },
+  { nome: "Jardim Santa Ines III", taxa: 16 },
+  { nome: "Jardim Jatoba", taxa: 16 },
+  { nome: "Interlagos", taxa: 16 },
+  { nome: "Galo Branco", taxa: 18 }
+];
+
+export const bairros = bairrosList;
 
 export const iceFlavors = ["Coco", "Melancia", "Maracujá", "Maçã Verde", "Morango", "Gelo de Água"];
 
@@ -674,7 +745,7 @@ export const loadBairros = async () => {
     return await fetchBairros();
   } catch (error) {
     console.error('Error loading bairros:', error);
-    return fixedBairros; // Fallback to static data with fixed structure
+    return bairrosList; // Fallback to static data
   }
 };
 
@@ -734,7 +805,7 @@ export const migrateStaticDataToSupabase = async () => {
     const result = await migrateExistingData(
       categories,
       products,
-      fixedBairros, // Use the fixed bairros array
+      bairrosList,
       iceFlavors,
       alcoholOptions
     );
@@ -769,15 +840,15 @@ const loadFromStorage = () => {
     const storedBairros = localStorage.getItem(BAIRROS_STORAGE_KEY);
     if (storedBairros) {
       const parsedBairros = JSON.parse(storedBairros);
-      bairros.length = 0; // Clear the array
-      bairros.push(...parsedBairros);
+      bairrosList.length = 0; // Clear the array
+      bairrosList.push(...parsedBairros);
     }
   } catch (error) {
     console.error('Error loading data from localStorage:', error);
   }
 };
 
-export const saveProducts = (updatedProducts: Record<string, any[]>) => {
+export const saveProductsToLocalStorage = (updatedProducts: Record<string, any[]>) => {
   try {
     localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(updatedProducts));
     Object.assign(products, updatedProducts);
@@ -786,7 +857,7 @@ export const saveProducts = (updatedProducts: Record<string, any[]>) => {
   }
 };
 
-export const saveCategories = (updatedCategories: string[]) => {
+export const saveCategoriesToLocalStorage = (updatedCategories: string[]) => {
   try {
     localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(updatedCategories));
     categories.length = 0; // Clear the array
@@ -796,19 +867,20 @@ export const saveCategories = (updatedCategories: string[]) => {
   }
 };
 
-export const saveBairros = (updatedBairros: Bairro[]) => {
+export const saveBairrosToLocalStorage = (updatedBairros: Bairro[]) => {
   try {
     localStorage.setItem(BAIRROS_STORAGE_KEY, JSON.stringify(updatedBairros));
-    bairros.length = 0; // Clear the array
-    bairros.push(...updatedBairros);
+    bairrosList.length = 0; // Clear the array
+    bairrosList.push(...updatedBairros);
   } catch (error) {
     console.error('Error saving bairros to localStorage:', error);
   }
 };
 
-loadFromStorage();
+export { 
+  saveProductsToLocalStorage as saveProducts,
+  saveCategoriesToLocalStorage as saveCategories, 
+  saveBairrosToLocalStorage as saveBairros 
+};
 
-// Provide aliases for backward compatibility
-export const saveProducts = saveProductsToLocalStorage;
-export const saveCategories = saveCategoriesToLocalStorage;
-export const saveBairros = saveBairrosToLocalStorage;
+loadFromStorage();
