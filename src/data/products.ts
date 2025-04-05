@@ -407,6 +407,54 @@ export const products = {
   ]
 };
 
+// Default alcohol options for use in components
+export const alcoholOptions = [
+  { name: "Vodka", extraCost: 0 },
+  { name: "Pinga", extraCost: 0 },
+  { name: "Jurupinga", extraCost: 10 },
+  { name: "Whisky", extraCost: 10 },
+  { name: "Gin", extraCost: 10 },
+  { name: "Saquê", extraCost: 10 }
+];
+
+// Default ice flavors for use in components
+export const iceFlavors = [
+  "Gelo de Água", 
+  "Coco", 
+  "Melancia", 
+  "Maracujá", 
+  "Maçã Verde", 
+  "Morango"
+];
+
+// Helper function to get maximum allowed ice based on category
+export const getMaxIce = (category: string): number => {
+  if (category.includes("Copão")) return 4;
+  if (category.includes("Combo")) return 8;
+  return 2; // Default for other categories
+};
+
+// Helper functions to determine if a product requires flavor/alcohol selection
+export const requiresFlavor = (category: string): boolean => {
+  return category.includes("Copão") || category.includes("Combo");
+};
+
+export const requiresAlcoholChoice = (category: string): boolean => {
+  return category.includes("Caipirinha") || category === "Batidas";
+};
+
+// Default bairros list for use in components
+export const bairrosList = [
+  { nome: "Centro", taxa: 5.00 },
+  { nome: "Jardim América", taxa: 7.00 },
+  { nome: "Vila Nova", taxa: 10.00 }
+];
+
+// Helper function for migrating existing data to Supabase (for Admin page)
+export const migrateStaticDataToSupabase = async () => {
+  return await migrateExistingData();
+};
+
 // Functions to interact with Supabase
 export const loadCategories = async () => {
   try {
@@ -433,7 +481,7 @@ export const loadBairros = async () => {
     return await fetchBairros();
   } catch (error) {
     console.error("Error loading bairros:", error);
-    return [];
+    return bairrosList;
   }
 };
 
@@ -442,7 +490,7 @@ export const loadIceFlavors = async () => {
     return await fetchIceFlavors();
   } catch (error) {
     console.error("Error loading ice flavors:", error);
-    return ["Gelo de Água", "Coco", "Melancia", "Maracujá", "Maçã Verde", "Morango"];
+    return iceFlavors;
   }
 };
 
@@ -451,14 +499,7 @@ export const loadAlcoholOptions = async () => {
     return await fetchAlcoholOptions();
   } catch (error) {
     console.error("Error loading alcohol options:", error);
-    return [
-      { name: "Vodka", extraCost: 0 },
-      { name: "Pinga", extraCost: 0 },
-      { name: "Jurupinga", extraCost: 10 },
-      { name: "Whisky", extraCost: 10 },
-      { name: "Gin", extraCost: 10 },
-      { name: "Saquê", extraCost: 10 }
-    ];
+    return alcoholOptions;
   }
 };
 
