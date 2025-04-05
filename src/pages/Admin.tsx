@@ -10,22 +10,57 @@ import CategoryManager from '../components/admin/CategoryManager';
 import BairroManager from '../components/admin/BairroManager';
 import Logo from '../components/Logo';
 import { migrateStaticDataToSupabase } from '../data/products';
+import { supabase } from '@/integrations/supabase/client';
 
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isDataMigrated, setIsDataMigrated] = useState(false);
   const [isMigrating, setIsMigrating] = useState(false);
+  const [isMigrationNeeded, setIsMigrationNeeded] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
     const migrationDone = localStorage.getItem('dataMigrationComplete');
     setIsDataMigrated(migrationDone === 'true');
+    
+    // Verificar se já existem dados no banco
+    checkIfMigrationNeeded();
   }, []);
 
-  const handleLogin = (password: string) => {
+  const checkIfMigrationNeeded = async () => {
+    try {
+      // Verificar se existem categorias cadastradas
+      const { data: categories, error: categoriesError } = await supabase
+        .from('categories')
+        .select('id')
+        .limit(1);
+      
+      if (categoriesError) {
+        console.error("Erro ao verificar categorias:", categoriesError);
+        return;
+      }
+      
+      // Se já existem dados, não precisamos migrar
+      if (categories && categories.length > 0) {
+        setIsMigrationNeeded(false);
+        setIsDataMigrated(true);
+        localStorage.setItem('dataMigrationComplete', 'true');
+      }
+    } catch (error) {
+      console.error("Erro ao verificar dados existentes:", error);
+    }
+  };
+
+  const handleLogin = async (password: string) => {
     if (password === "adega123") {
       setIsAuthenticated(true);
+      
+      // Se não há dados e o usuário nunca completou a migração, fazemos automaticamente
+      if (isMigrationNeeded && !isDataMigrated) {
+        await handleMigrateData();
+      }
+      
       toast({
         title: "Login realizado com sucesso",
         description: "Bem-vindo ao painel administrativo",
@@ -54,6 +89,7 @@ const Admin = () => {
       
       if (result) {
         setIsDataMigrated(true);
+        setIsMigrationNeeded(false);
         localStorage.setItem('dataMigrationComplete', 'true');
         toast({
           title: "Migração realizada com sucesso",
@@ -90,7 +126,7 @@ const Admin = () => {
                 <Logo />
               </div>
               <div className="flex items-center gap-4">
-                {!isDataMigrated && (
+                {isMigrationNeeded && !isDataMigrated && (
                   <Button 
                     variant="outline" 
                     onClick={handleMigrateData} 
@@ -111,7 +147,7 @@ const Admin = () => {
             <div className="mt-8">
               <h1 className="text-2xl font-bold text-white mb-6">Painel Administrativo</h1>
               
-              {!isDataMigrated && (
+              {isMigrationNeeded && !isDataMigrated && (
                 <div className="bg-yellow-600/20 border border-yellow-600 p-4 rounded-md mb-6">
                   <h2 className="text-yellow-500 font-bold mb-2">Migração necessária</h2>
                   <p className="text-white mb-4">

@@ -12,21 +12,39 @@ interface CategorySelectorProps {
 const CategorySelector: React.FC<CategorySelectorProps> = ({ activeCategory, onSelectCategory }) => {
   const [categories, setCategories] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
 
   useEffect(() => {
     loadCategoriesData();
-  }, []);
+  }, [retryCount]);
 
   const loadCategoriesData = async () => {
     setIsLoading(true);
     try {
       const data = await loadCategories();
-      setCategories(data);
       
-      // Se houver categorias, selecione a primeira automaticamente
-      if (data.length > 0 && !activeCategory) {
-        onSelectCategory(data[0]);
+      if (data && data.length > 0) {
+        setCategories(data);
+        
+        // Se houver categorias, selecione a primeira automaticamente
+        if (data.length > 0 && !activeCategory) {
+          onSelectCategory(data[0]);
+        }
+      } else {
+        console.log("Nenhuma categoria encontrada, tentando novamente em 2 segundos...");
+        // Se não encontrou categorias, tenta novamente após 2 segundos (até 3 tentativas no máximo)
+        if (retryCount < 3) {
+          setTimeout(() => {
+            setRetryCount(prev => prev + 1);
+          }, 2000);
+        } else {
+          toast({
+            title: "Erro ao carregar categorias",
+            description: "Tente acessar a área administrativa para configurar o sistema",
+            variant: "destructive",
+          });
+        }
       }
     } catch (error) {
       console.error("Error loading categories:", error);
