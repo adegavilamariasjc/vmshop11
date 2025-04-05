@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { Pencil, Trash, Plus, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Bairro } from '../../types';
-import { loadBairros, saveBairro, updateBairro, deleteBairro } from '../../data/products';
+import { loadBairros, saveBairro as saveBairroService, updateBairro as updateBairroService, deleteBairro as deleteBairroService } from '../../services/supabaseService';
 import { useToast } from '@/hooks/use-toast';
 
 const BairroManager: React.FC = () => {

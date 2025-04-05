@@ -616,81 +616,12 @@ export const products = {
   ]
 };
 
-export const bairros = [
-  { nome: "Selecione Um Bairro", taxa: 0 },
-  { nome: "Vila Maria", taxa: 3 },
-  { name: "Jardim Bela Vista", taxa: 3 },
-  { name: "Centro", taxa: 3 },
-  { name: "Banhado", taxa: 5 },
-  { name: "Vl. Guarani", taxa: 4 },
-  { name: "Vila Nova São José", taxa: 4 },
-  { name: "Monte Castelo", taxa: 4 },
-  { name: "Vl. São Pedro", taxa: 5 },
-  { name: "Vl Zizinha", taxa: 5 },
-  { name: "Vl Teresinha", taxa: 5 },
-  { name: "Vila Machado", taxa: 5 },
-  { name: "Vila Industrial", taxa: 5 },
-  { name: "Vila Guarani", taxa: 5 },
-  { name: "Vila Cristina", taxa: 5 },
-  { name: "São Dimas", taxa: 5 },
-  { name: "Santana", taxa: 5 },
-  { name: "Jd. Paulista", taxa: 5 },
-  { name: "Jd. Oswaldo Cruz", taxa: 5 },
-  { name: "Jd Augusta", taxa: 5 },
-  { name: "Vl. Betania", taxa: 6 },
-  { name: "Vl. Adyana", taxa: 6 },
-  { name: "Vl. Candida", taxa: 6 },
-  { name: "Jd. Sao Dimas", taxa: 6 },
-  { name: "Jd. Maringa", taxa: 6 },
-  { name: "Jd. Apolo", taxa: 6 },
-  { name: "Jd Minas Gerais", taxa: 6 },
-  { name: "Jd. Telespark", taxa: 7 },
-  { name: "Vila Tesouro", taxa: 8 },
-  { name: "Vila São Geraldo", taxa: 8 },
-  { name: "Vila Paiva", taxa: 8 },
-  { name: "Vila Ema", taxa: 8 },
-  { name: "Jd. Das Colinas", taxa: 8 },
-  { name: "Jardim Da Granja", taxa: 8 },
-  { name: "Boa Vista", taxa: 8 },
-  { name: "Altos De Santana", taxa: 8 },
-  { name: "Aguas De Canindu", taxa: 8 },
-  { name: "Motorama", taxa: 9 },
-  { name: "Vista Verde", taxa: 10 },
-  { name: "Residencial São Francisco", taxa: 10 },
-  { name: "Parque Industrial", taxa: 10 },
-  { name: "Esplanada Do Sol", taxa: 10 },
-  { name: "Vila São Bento", taxa: 10 },
-  { name: "Vale Do Sol", taxa: 12 },
-  { name: "Urbanova", taxa: 12 },
-  { name: "Satelite", taxa: 12 },
-  { name: "Pararangaba", taxa: 12 },
-  { name: "Novo Horizonte", taxa: 12 },
-  { name: "Jd. Das Industrias", taxa: 12 },
-  { name: "Jd. Portugal", taxa: 12 },
-  { name: "Jd. Nova Republica", taxa: 12 },
-  { name: "Jd. Morumbi", taxa: 12 },
-  { name: "Jd. Colonial", taxa: 12 },
-  { name: "Jd. Aquarius", taxa: 12 },
-  { name: "Jd. America", taxa: 12 },
-  { name: "Jd. Alvorada", taxa: 12 },
-  { name: "Jardim Sao Vicente", taxa: 12 },
-  { name: "D Pedro II", taxa: 12 },
-  { name: "D Pedro I", taxa: 12 },
-  { name: "Conj. 31 De Março", taxa: 12 },
-  { name: "Campo Dos Alemaes", taxa: 12 },
-  { name: "Bosque Dos Ypes", taxa: 12 },
-  { name: "Bosque Dos Eucalipitos", taxa: 12 },
-  { name: "Nova Michigan", taxa: 13 },
-  { name: "Jd. Nova Michigan", taxa: 13 },
-  { name: "Paraiso Do Sol", taxa: 15 },
-  { name: "Campos De São Jose", taxa: 15 },
-  { name: "Buquirinha II", taxa: 15 },
-  { name: "Jd. Imperial", taxa: 15 },
-  { name: "Jardim Santa Ines III", taxa: 16 },
-  { name: "Jardim Jatoba", taxa: 16 },
-  { name: "Interlagos", taxa: 16 },
-  { name: "Galo Branco", taxa: 18 }
-];
+export const fixedBairros: Bairro[] = bairros.map(bairro => {
+  if ('name' in bairro) {
+    return { nome: bairro.name, taxa: bairro.taxa };
+  }
+  return bairro;
+});
 
 export const iceFlavors = ["Coco", "Melancia", "Maracujá", "Maçã Verde", "Morango", "Gelo de Água"];
 
@@ -743,7 +674,7 @@ export const loadBairros = async () => {
     return await fetchBairros();
   } catch (error) {
     console.error('Error loading bairros:', error);
-    return bairros; // Fallback to static data
+    return fixedBairros; // Fallback to static data with fixed structure
   }
 };
 
@@ -765,35 +696,35 @@ export const loadAlcoholOptions = async () => {
   }
 };
 
-export const saveCategories = async (updatedCategories: string[]) => {
+export const saveCategoriesToDB = async (updatedCategories: string[]) => {
   try {
     await moveCategoryOrder(updatedCategories);
     return true;
   } catch (error) {
-    console.error('Error saving categories:', error);
+    console.error('Error saving categories to database:', error);
     return false;
   }
 };
 
-export const saveProducts = async (categoryName: string, updatedProducts: any[]) => {
+export const saveProductsToDB = async (categoryName: string, updatedProducts: any[]) => {
   try {
     // This would need to compare with existing products and update/delete/insert as needed
     // For simplicity, we'll just return true here
     return true;
   } catch (error) {
-    console.error('Error saving products:', error);
+    console.error('Error saving products to database:', error);
     return false;
   }
 };
 
-export const saveBairros = async (updatedBairros: Bairro[]) => {
+export const saveBairrosToDB = async (updatedBairros: Bairro[]) => {
   try {
     // In a real implementation, this would need to compare with existing bairros
     // and perform the appropriate operations (update/delete/insert)
     // For simplicity, we're just returning true here
     return true;
   } catch (error) {
-    console.error('Error saving bairros:', error);
+    console.error('Error saving bairros to database:', error);
     return false;
   }
 };
@@ -803,7 +734,7 @@ export const migrateStaticDataToSupabase = async () => {
     const result = await migrateExistingData(
       categories,
       products,
-      bairros,
+      fixedBairros, // Use the fixed bairros array
       iceFlavors,
       alcoholOptions
     );
@@ -876,3 +807,8 @@ export const saveBairros = (updatedBairros: Bairro[]) => {
 };
 
 loadFromStorage();
+
+// Provide aliases for backward compatibility
+export const saveProducts = saveProductsToLocalStorage;
+export const saveCategories = saveCategoriesToLocalStorage;
+export const saveBairros = saveBairrosToLocalStorage;

@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { Pencil, Trash, Plus, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Product } from '../../types';
-import { loadCategories, loadProductsByCategory, saveProduct, updateProduct, deleteProduct } from '../../data/products';
+import { loadCategories, loadProductsByCategory, saveProduct as saveProductService, updateProduct as updateProductService, deleteProduct as deleteProductService } from '../../services/supabaseService';
 import { useToast } from '@/hooks/use-toast';
 
 const ProductManager: React.FC = () => {

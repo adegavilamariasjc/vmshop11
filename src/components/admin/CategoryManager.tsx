@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Pencil, Trash, Plus, Save, MoveUp, MoveDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { loadCategories, saveCategory, updateCategory, deleteCategory, saveCategories } from '../../data/products';
+import { loadCategories, saveCategoriesToDB, saveCategory as saveCategoryService, updateCategory as updateCategoryService, deleteCategory as deleteCategoryService } from '../../data/products';
 import { useToast } from '@/hooks/use-toast';
 
 const CategoryManager: React.FC = () => {
@@ -55,7 +55,7 @@ const CategoryManager: React.FC = () => {
 
     setIsLoading(true);
     try {
-      await saveCategory(newCategory, categoriesList.length);
+      await saveCategoryService(newCategory, categoriesList.length);
       
       // Update local state
       const updatedCategories = [...categoriesList, newCategory];
@@ -104,7 +104,7 @@ const CategoryManager: React.FC = () => {
 
     setIsLoading(true);
     try {
-      await updateCategory(oldCategory, editedCategory, index);
+      await updateCategoryService(oldCategory, editedCategory, index);
       
       // Update local state
       const updatedCategories = [...categoriesList];
@@ -132,7 +132,7 @@ const CategoryManager: React.FC = () => {
     if (confirm('Tem certeza que deseja excluir esta categoria? Todos os produtos nela serão removidos também.')) {
       setIsLoading(true);
       try {
-        await deleteCategory(category);
+        await deleteCategoryService(category);
         
         // Update local state
         const updatedCategories = [...categoriesList];
@@ -167,7 +167,7 @@ const CategoryManager: React.FC = () => {
     
     setIsLoading(true);
     try {
-      await saveCategories(updatedCategories);
+      await saveCategoriesToDB(updatedCategories);
       
       // Update local state
       setCategoriesList(updatedCategories);
