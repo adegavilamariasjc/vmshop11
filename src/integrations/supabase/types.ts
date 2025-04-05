@@ -9,13 +9,113 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      alcohol_options: {
+        Row: {
+          extra_cost: number
+          id: number
+          name: string
+        }
+        Insert: {
+          extra_cost?: number
+          id?: number
+          name: string
+        }
+        Update: {
+          extra_cost?: number
+          id?: number
+          name?: string
+        }
+        Relationships: []
+      }
+      bairros: {
+        Row: {
+          id: number
+          nome: string
+          taxa: number
+        }
+        Insert: {
+          id?: number
+          nome: string
+          taxa: number
+        }
+        Update: {
+          id?: number
+          nome?: string
+          taxa?: number
+        }
+        Relationships: []
+      }
+      categories: {
+        Row: {
+          id: number
+          name: string
+          order_index: number
+        }
+        Insert: {
+          id?: number
+          name: string
+          order_index?: number
+        }
+        Update: {
+          id?: number
+          name?: string
+          order_index?: number
+        }
+        Relationships: []
+      }
+      ice_flavors: {
+        Row: {
+          id: number
+          name: string
+        }
+        Insert: {
+          id?: number
+          name: string
+        }
+        Update: {
+          id?: number
+          name?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          category_id: number | null
+          id: number
+          name: string
+          price: number
+        }
+        Insert: {
+          category_id?: number | null
+          id?: number
+          name: string
+          price: number
+        }
+        Update: {
+          category_id?: number | null
+          id?: number
+          name?: string
+          price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      migrate_initial_data: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

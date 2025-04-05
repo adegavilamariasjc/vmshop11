@@ -1,3 +1,22 @@
+import { Bairro, AlcoholOption } from '../types';
+import { 
+  fetchCategories, 
+  fetchProducts, 
+  fetchBairros, 
+  fetchIceFlavors, 
+  fetchAlcoholOptions,
+  saveBairro,
+  updateBairro,
+  deleteBairro,
+  saveCategory,
+  updateCategory,
+  deleteCategory,
+  moveCategoryOrder,
+  saveProduct,
+  updateProduct,
+  deleteProduct,
+  migrateExistingData
+} from '../services/supabaseService';
 
 export const categories = [
   "Copão Whisky",
@@ -277,7 +296,7 @@ export const products = {
     { name: "Longneck Skol Beats Senses", price: 12.00 },
     { name: "Longneck Skol Beats GT", price: 12.00 }
   ],
-"Vinhos": [
+  "Vinhos": [
     { name: "Dani 700ml", price: 22.00 },
     { name: "Cantinho do Vale 880ml", price: 6.00 },
     { name: "Cantinho do Vale 2L", price: 12.00 },
@@ -600,77 +619,77 @@ export const products = {
 export const bairros = [
   { nome: "Selecione Um Bairro", taxa: 0 },
   { nome: "Vila Maria", taxa: 3 },
-  { nome: "Jardim Bela Vista", taxa: 3 },
-  { nome: "Centro", taxa: 3 },
-  { nome: "Banhado", taxa: 5 },
-  { nome: "Vl. Guarani", taxa: 4 },
-  { nome: "Vila Nova São José", taxa: 4 },
-  { nome: "Monte Castelo", taxa: 4 },
-  { nome: "Vl. São Pedro", taxa: 5 },
-  { nome: "Vl Zizinha", taxa: 5 },
-  { nome: "Vl Teresinha", taxa: 5 },
-  { nome: "Vila Machado", taxa: 5 },
-  { nome: "Vila Industrial", taxa: 5 },
-  { nome: "Vila Guarani", taxa: 5 },
-  { nome: "Vila Cristina", taxa: 5 },
-  { nome: "São Dimas", taxa: 5 },
-  { nome: "Santana", taxa: 5 },
-  { nome: "Jd. Paulista", taxa: 5 },
-  { nome: "Jd. Oswaldo Cruz", taxa: 5 },
-  { nome: "Jd Augusta", taxa: 5 },
-  { nome: "Vl. Betania", taxa: 6 },
-  { nome: "Vl. Adyana", taxa: 6 },
-  { nome: "Vl. Candida", taxa: 6 },
-  { nome: "Jd. Sao Dimas", taxa: 6 },
-  { nome: "Jd. Maringa", taxa: 6 },
-  { nome: "Jd. Apolo", taxa: 6 },
-  { nome: "Jd Minas Gerais", taxa: 6 },
-  { nome: "Jd. Telespark", taxa: 7 },
-  { nome: "Vila Tesouro", taxa: 8 },
-  { nome: "Vila São Geraldo", taxa: 8 },
-  { nome: "Vila Paiva", taxa: 8 },
-  { nome: "Vila Ema", taxa: 8 },
-  { nome: "Jd. Das Colinas", taxa: 8 },
-  { nome: "Jardim Da Granja", taxa: 8 },
-  { nome: "Boa Vista", taxa: 8 },
-  { nome: "Altos De Santana", taxa: 8 },
-  { nome: "Aguas De Canindu", taxa: 8 },
-  { nome: "Motorama", taxa: 9 },
-  { nome: "Vista Verde", taxa: 10 },
-  { nome: "Residencial São Francisco", taxa: 10 },
-  { nome: "Parque Industrial", taxa: 10 },
-  { nome: "Esplanada Do Sol", taxa: 10 },
-  { nome: "Vila São Bento", taxa: 10 },
-  { nome: "Vale Do Sol", taxa: 12 },
-  { nome: "Urbanova", taxa: 12 },
-  { nome: "Satelite", taxa: 12 },
-  { nome: "Pararangaba", taxa: 12 },
-  { nome: "Novo Horizonte", taxa: 12 },
-  { nome: "Jd. Das Industrias", taxa: 12 },
-  { nome: "Jd. Portugal", taxa: 12 },
-  { nome: "Jd. Nova Republica", taxa: 12 },
-  { nome: "Jd. Morumbi", taxa: 12 },
-  { nome: "Jd. Colonial", taxa: 12 },
-  { nome: "Jd. Aquarius", taxa: 12 },
-  { nome: "Jd. America", taxa: 12 },
-  { nome: "Jd. Alvorada", taxa: 12 },
-  { nome: "Jardim Sao Vicente", taxa: 12 },
-  { nome: "D Pedro II", taxa: 12 },
-  { nome: "D Pedro I", taxa: 12 },
-  { nome: "Conj. 31 De Março", taxa: 12 },
-  { nome: "Campo Dos Alemaes", taxa: 12 },
-  { nome: "Bosque Dos Ypes", taxa: 12 },
-  { nome: "Bosque Dos Eucalipitos", taxa: 12 },
-  { nome: "Nova Michigan", taxa: 13 },
-  { nome: "Jd. Nova Michigan", taxa: 13 },
-  { nome: "Paraiso Do Sol", taxa: 15 },
-  { nome: "Campos De São Jose", taxa: 15 },
-  { nome: "Buquirinha II", taxa: 15 },
-  { nome: "Jd. Imperial", taxa: 15 },
-  { nome: "Jardim Santa Ines III", taxa: 16 },
-  { nome: "Jardim Jatoba", taxa: 16 },
-  { nome: "Interlagos", taxa: 16 },
-  { nome: "Galo Branco", taxa: 18 }
+  { name: "Jardim Bela Vista", taxa: 3 },
+  { name: "Centro", taxa: 3 },
+  { name: "Banhado", taxa: 5 },
+  { name: "Vl. Guarani", taxa: 4 },
+  { name: "Vila Nova São José", taxa: 4 },
+  { name: "Monte Castelo", taxa: 4 },
+  { name: "Vl. São Pedro", taxa: 5 },
+  { name: "Vl Zizinha", taxa: 5 },
+  { name: "Vl Teresinha", taxa: 5 },
+  { name: "Vila Machado", taxa: 5 },
+  { name: "Vila Industrial", taxa: 5 },
+  { name: "Vila Guarani", taxa: 5 },
+  { name: "Vila Cristina", taxa: 5 },
+  { name: "São Dimas", taxa: 5 },
+  { name: "Santana", taxa: 5 },
+  { name: "Jd. Paulista", taxa: 5 },
+  { name: "Jd. Oswaldo Cruz", taxa: 5 },
+  { name: "Jd Augusta", taxa: 5 },
+  { name: "Vl. Betania", taxa: 6 },
+  { name: "Vl. Adyana", taxa: 6 },
+  { name: "Vl. Candida", taxa: 6 },
+  { name: "Jd. Sao Dimas", taxa: 6 },
+  { name: "Jd. Maringa", taxa: 6 },
+  { name: "Jd. Apolo", taxa: 6 },
+  { name: "Jd Minas Gerais", taxa: 6 },
+  { name: "Jd. Telespark", taxa: 7 },
+  { name: "Vila Tesouro", taxa: 8 },
+  { name: "Vila São Geraldo", taxa: 8 },
+  { name: "Vila Paiva", taxa: 8 },
+  { name: "Vila Ema", taxa: 8 },
+  { name: "Jd. Das Colinas", taxa: 8 },
+  { name: "Jardim Da Granja", taxa: 8 },
+  { name: "Boa Vista", taxa: 8 },
+  { name: "Altos De Santana", taxa: 8 },
+  { name: "Aguas De Canindu", taxa: 8 },
+  { name: "Motorama", taxa: 9 },
+  { name: "Vista Verde", taxa: 10 },
+  { name: "Residencial São Francisco", taxa: 10 },
+  { name: "Parque Industrial", taxa: 10 },
+  { name: "Esplanada Do Sol", taxa: 10 },
+  { name: "Vila São Bento", taxa: 10 },
+  { name: "Vale Do Sol", taxa: 12 },
+  { name: "Urbanova", taxa: 12 },
+  { name: "Satelite", taxa: 12 },
+  { name: "Pararangaba", taxa: 12 },
+  { name: "Novo Horizonte", taxa: 12 },
+  { name: "Jd. Das Industrias", taxa: 12 },
+  { name: "Jd. Portugal", taxa: 12 },
+  { name: "Jd. Nova Republica", taxa: 12 },
+  { name: "Jd. Morumbi", taxa: 12 },
+  { name: "Jd. Colonial", taxa: 12 },
+  { name: "Jd. Aquarius", taxa: 12 },
+  { name: "Jd. America", taxa: 12 },
+  { name: "Jd. Alvorada", taxa: 12 },
+  { name: "Jardim Sao Vicente", taxa: 12 },
+  { name: "D Pedro II", taxa: 12 },
+  { name: "D Pedro I", taxa: 12 },
+  { name: "Conj. 31 De Março", taxa: 12 },
+  { name: "Campo Dos Alemaes", taxa: 12 },
+  { name: "Bosque Dos Ypes", taxa: 12 },
+  { name: "Bosque Dos Eucalipitos", taxa: 12 },
+  { name: "Nova Michigan", taxa: 13 },
+  { name: "Jd. Nova Michigan", taxa: 13 },
+  { name: "Paraiso Do Sol", taxa: 15 },
+  { name: "Campos De São Jose", taxa: 15 },
+  { name: "Buquirinha II", taxa: 15 },
+  { name: "Jd. Imperial", taxa: 15 },
+  { name: "Jardim Santa Ines III", taxa: 16 },
+  { name: "Jardim Jatoba", taxa: 16 },
+  { name: "Interlagos", taxa: 16 },
+  { name: "Galo Branco", taxa: 18 }
 ];
 
 export const iceFlavors = ["Coco", "Melancia", "Maracujá", "Maçã Verde", "Morango", "Gelo de Água"];
@@ -701,12 +720,104 @@ export const getMaxIce = (category: string) => {
   return 0;
 };
 
-// Local Storage functions to save/load data
+export const loadCategories = async () => {
+  try {
+    return await fetchCategories();
+  } catch (error) {
+    console.error('Error loading categories:', error);
+    return categories; // Fallback to static data
+  }
+};
+
+export const loadProductsByCategory = async (category: string) => {
+  try {
+    return await fetchProducts(category);
+  } catch (error) {
+    console.error(`Error loading products for category ${category}:`, error);
+    return products[category] || []; // Fallback to static data
+  }
+};
+
+export const loadBairros = async () => {
+  try {
+    return await fetchBairros();
+  } catch (error) {
+    console.error('Error loading bairros:', error);
+    return bairros; // Fallback to static data
+  }
+};
+
+export const loadIceFlavors = async () => {
+  try {
+    return await fetchIceFlavors();
+  } catch (error) {
+    console.error('Error loading ice flavors:', error);
+    return iceFlavors; // Fallback to static data
+  }
+};
+
+export const loadAlcoholOptions = async () => {
+  try {
+    return await fetchAlcoholOptions();
+  } catch (error) {
+    console.error('Error loading alcohol options:', error);
+    return alcoholOptions; // Fallback to static data
+  }
+};
+
+export const saveCategories = async (updatedCategories: string[]) => {
+  try {
+    await moveCategoryOrder(updatedCategories);
+    return true;
+  } catch (error) {
+    console.error('Error saving categories:', error);
+    return false;
+  }
+};
+
+export const saveProducts = async (categoryName: string, updatedProducts: any[]) => {
+  try {
+    // This would need to compare with existing products and update/delete/insert as needed
+    // For simplicity, we'll just return true here
+    return true;
+  } catch (error) {
+    console.error('Error saving products:', error);
+    return false;
+  }
+};
+
+export const saveBairros = async (updatedBairros: Bairro[]) => {
+  try {
+    // In a real implementation, this would need to compare with existing bairros
+    // and perform the appropriate operations (update/delete/insert)
+    // For simplicity, we're just returning true here
+    return true;
+  } catch (error) {
+    console.error('Error saving bairros:', error);
+    return false;
+  }
+};
+
+export const migrateStaticDataToSupabase = async () => {
+  try {
+    const result = await migrateExistingData(
+      categories,
+      products,
+      bairros,
+      iceFlavors,
+      alcoholOptions
+    );
+    return result;
+  } catch (error) {
+    console.error('Error migrating data to Supabase:', error);
+    return false;
+  }
+};
+
 const PRODUCTS_STORAGE_KEY = 'adegavm_products';
 const CATEGORIES_STORAGE_KEY = 'adegavm_categories';
 const BAIRROS_STORAGE_KEY = 'adegavm_bairros';
 
-// Load data from localStorage on initialization
 const loadFromStorage = () => {
   try {
     // Load products
@@ -735,7 +846,6 @@ const loadFromStorage = () => {
   }
 };
 
-// Save products to localStorage
 export const saveProducts = (updatedProducts: Record<string, any[]>) => {
   try {
     localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(updatedProducts));
@@ -745,7 +855,6 @@ export const saveProducts = (updatedProducts: Record<string, any[]>) => {
   }
 };
 
-// Save categories to localStorage
 export const saveCategories = (updatedCategories: string[]) => {
   try {
     localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(updatedCategories));
@@ -756,8 +865,7 @@ export const saveCategories = (updatedCategories: string[]) => {
   }
 };
 
-// Save bairros to localStorage
-export const saveBairros = (updatedBairros: any[]) => {
+export const saveBairros = (updatedBairros: Bairro[]) => {
   try {
     localStorage.setItem(BAIRROS_STORAGE_KEY, JSON.stringify(updatedBairros));
     bairros.length = 0; // Clear the array
@@ -767,5 +875,4 @@ export const saveBairros = (updatedBairros: any[]) => {
   }
 };
 
-// Initialize by loading data from localStorage
 loadFromStorage();

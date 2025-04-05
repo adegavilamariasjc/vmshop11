@@ -1,10 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCart } from '../hooks/useCart';
 import { AnimatePresence } from 'framer-motion';
-import { bairros, gerarCodigoPedido } from '../data/products';
+import { loadBairros, gerarCodigoPedido } from '../data/products';
 import { formatWhatsAppMessage } from '../utils/formatWhatsApp';
-import { FormData } from '../types';
+import { FormData, Bairro } from '../types';
 import PageLayout from '../components/PageLayout';
 import ProductSelectionView from '../components/ProductSelectionView';
 import CheckoutView from '../components/CheckoutView';
@@ -36,6 +36,7 @@ const Index = () => {
   } = useCart();
 
   const [codigoPedido] = useState(gerarCodigoPedido());
+  const [neighborhoodOptions, setNeighborhoodOptions] = useState<Bairro[]>([]);
   const [form, setForm] = useState<FormData>({
     nome: "",
     endereco: "",
@@ -44,10 +45,32 @@ const Index = () => {
     referencia: "",
     observacao: "",
     whatsapp: "",
-    bairro: bairros[0],
+    bairro: { nome: "Selecione Um Bairro", taxa: 0 },
     pagamento: "",
     troco: ""
   });
+
+  useEffect(() => {
+    loadNeighborhoodOptions();
+  }, []);
+
+  const loadNeighborhoodOptions = async () => {
+    try {
+      const bairros = await loadBairros();
+      setNeighborhoodOptions(bairros);
+      
+      // Update the form with the default bairro
+      if (bairros.length > 0) {
+        const defaultBairro = bairros.find(b => b.nome === "Selecione Um Bairro") || bairros[0];
+        setForm(prev => ({
+          ...prev,
+          bairro: defaultBairro
+        }));
+      }
+    } catch (error) {
+      console.error("Error loading neighborhood options:", error);
+    }
+  };
 
   const enviarPedidoWhatsApp = () => {
     if (cart.length === 0) {

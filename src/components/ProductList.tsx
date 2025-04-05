@@ -1,9 +1,9 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Minus } from 'lucide-react';
 import { Product } from '../types';
-import { products } from '../data/products';
+import { loadProductsByCategory } from '../data/products';
 
 interface ProductListProps {
   category: string;
@@ -13,11 +13,40 @@ interface ProductListProps {
 }
 
 const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct, onUpdateQuantity }) => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (category) {
+      loadProductsData(category);
+    }
+  }, [category]);
+
+  const loadProductsData = async (categoryName: string) => {
+    setIsLoading(true);
+    try {
+      const data = await loadProductsByCategory(categoryName);
+      setProducts(data);
+    } catch (error) {
+      console.error("Error loading products:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return <div className="text-white text-center py-4">Carregando produtos...</div>;
+  }
+
+  if (products.length === 0) {
+    return <div className="text-white text-center py-4">Nenhum produto encontrado nesta categoria.</div>;
+  }
+
   return (
     <div className="mb-4 pb-20">
       <h2 className="text-lg font-semibold mb-3 text-white">{category}</h2>
       
-      {products[category]?.map((item) => {
+      {products.map((item) => {
         const cartItem = cart.find(p => 
           p.name === item.name && 
           p.category === category &&

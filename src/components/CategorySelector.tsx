@@ -1,7 +1,7 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { categories } from '../data/products';
+import { loadCategories } from '../data/products';
 
 interface CategorySelectorProps {
   activeCategory: string | null;
@@ -9,6 +9,21 @@ interface CategorySelectorProps {
 }
 
 const CategorySelector: React.FC<CategorySelectorProps> = ({ activeCategory, onSelectCategory }) => {
+  const [categories, setCategories] = useState<string[]>([]);
+
+  useEffect(() => {
+    loadCategoriesData();
+  }, []);
+
+  const loadCategoriesData = async () => {
+    try {
+      const data = await loadCategories();
+      setCategories(data);
+    } catch (error) {
+      console.error("Error loading categories:", error);
+    }
+  };
+
   return (
     <div className="flex overflow-x-auto mb-4 pb-2 gap-2">
       {categories.map(category => (
