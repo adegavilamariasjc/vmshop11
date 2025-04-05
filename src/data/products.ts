@@ -1,3 +1,4 @@
+
 import { Bairro, AlcoholOption, Product } from '../types';
 import { 
   fetchCategories, 
@@ -402,4 +403,110 @@ export const products = {
     { name: "Abacaxi 43 - Licor 43, limão e abacaxi", price: 38.00 },
     { name: "Summer 43 - Licor 43, pessego e morango", price: 45.00 },
     { name: "Morty 43 - Licor 43, maracuja e morango", price: 45.00 },
-    { name: "Limão 43 - Licor 43, limão", price: 38.00
+    { name: "Limão 43 - Licor 43, limão", price: 38.00 }
+  ]
+};
+
+// Functions to interact with Supabase
+export const loadCategories = async () => {
+  try {
+    return await fetchCategories();
+  } catch (error) {
+    console.error("Error loading categories:", error);
+    // Fallback to local data if API fails
+    return categories;
+  }
+};
+
+export const loadProductsByCategory = async (category: string) => {
+  try {
+    return await fetchProducts(category);
+  } catch (error) {
+    console.error("Error loading products:", error);
+    // Fallback to local data if API fails
+    return products[category] || [];
+  }
+};
+
+export const loadBairros = async () => {
+  try {
+    return await fetchBairros();
+  } catch (error) {
+    console.error("Error loading bairros:", error);
+    return [];
+  }
+};
+
+export const loadIceFlavors = async () => {
+  try {
+    return await fetchIceFlavors();
+  } catch (error) {
+    console.error("Error loading ice flavors:", error);
+    return ["Gelo de Água", "Coco", "Melancia", "Maracujá", "Maçã Verde", "Morango"];
+  }
+};
+
+export const loadAlcoholOptions = async () => {
+  try {
+    return await fetchAlcoholOptions();
+  } catch (error) {
+    console.error("Error loading alcohol options:", error);
+    return [
+      { name: "Vodka", extraCost: 0 },
+      { name: "Pinga", extraCost: 0 },
+      { name: "Jurupinga", extraCost: 10 },
+      { name: "Whisky", extraCost: 10 },
+      { name: "Gin", extraCost: 10 },
+      { name: "Saquê", extraCost: 10 }
+    ];
+  }
+};
+
+// Export the CRUD functions for components to use
+export const saveBairro = async (bairro: Bairro) => {
+  return await saveBairroService(bairro);
+};
+
+export const updateBairro = async (oldNome: string, bairro: Bairro) => {
+  return await updateBairroService(oldNome, bairro);
+};
+
+export const deleteBairro = async (nome: string) => {
+  return await deleteBairroService(nome);
+};
+
+export const saveCategory = async (name: string, index: number) => {
+  return await saveCategoryService(name, index);
+};
+
+export const updateCategory = async (oldName: string, newName: string, index: number) => {
+  return await updateCategoryService(oldName, newName, index);
+};
+
+export const deleteCategory = async (name: string) => {
+  return await deleteCategoryService(name);
+};
+
+export const saveProduct = async (product: Product) => {
+  return await saveProductService(product);
+};
+
+export const updateProduct = async (product: Product, oldName: string) => {
+  return await updateProductService(product, oldName);
+};
+
+export const deleteProduct = async (product: Pick<Product, 'name' | 'category'>) => {
+  return await deleteProductService(product);
+};
+
+// Helper function for generating order codes
+export const gerarCodigoPedido = () => {
+  const data = new Date();
+  const dia = data.getDate().toString().padStart(2, '0');
+  const mes = (data.getMonth() + 1).toString().padStart(2, '0');
+  const ano = data.getFullYear().toString().slice(-2);
+  const horas = data.getHours().toString().padStart(2, '0');
+  const minutos = data.getMinutes().toString().padStart(2, '0');
+  
+  return `${dia}${mes}${ano}-${horas}${minutos}`;
+};
