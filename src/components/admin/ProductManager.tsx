@@ -1,36 +1,94 @@
 
 import React, { useState, useEffect } from 'react';
-import { Pencil, Trash, Plus, Save } from 'lucide-react';
+import { Pencil, Trash, Plus, Save, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Product } from '../../types';
-import { products, categories, saveProducts } from '../../data/products';
+import { 
+  fetchCategories, fetchProducts, addProduct, updateProduct, deleteProduct,
+  SupabaseCategory, SupabaseProduct
+} from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 
 const ProductManager: React.FC = () => {
   const { toast } = useToast();
-  const [selectedCategory, setSelectedCategory] = useState<string>(categories[0]);
-  const [productsList, setProductsList] = useState<Product[]>([]);
-  const [editMode, setEditMode] = useState<string | null>(null);
-  const [newProduct, setNewProduct] = useState<Product>({
+  const [categories, setCategories] = useState<SupabaseCategory[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+  const [productsList, setProductsList] = useState<SupabaseProduct[]>([]);
+  const [editMode, setEditMode] = useState<number | null>(null);
+  const [newProduct, setNewProduct] = useState<{name: string; price: number}>({
     name: "",
     price: 0
   });
-  const [editedProduct, setEditedProduct] = useState<Product>({
+  const [editedProduct, setEditedProduct] = useState<{name: string; price: number}>({
     name: "",
     price: 0
   });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    if (selectedCategory && products[selectedCategory]) {
-      setProductsList([...products[selectedCategory]]);
+    loadCategories();
+  }, []);
+
+  useEffect(() => {
+    if (selectedCategoryId) {
+      loadProducts(selectedCategoryId);
     } else {
       setProductsList([]);
     }
-  }, [selectedCategory]);
+  }, [selectedCategoryId]);
 
-  const handleAddProduct = () => {
+  const loadCategories = async () => {
+    setIsLoading(true);
+    try {
+      const fetchedCategories = await fetchCategories();
+      setCategories(fetchedCategories);
+      
+      // Selecionar primeira categoria por padrão se houver
+      if (fetchedCategories.length > 0 && !selectedCategoryId) {
+        setSelectedCategoryId(fetchedCategories[0].id);
+      } else {
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error("Erro ao carregar categorias:", error);
+      toast({
+        title: "Erro ao carregar dados",
+        description: "Não foi possível carregar as categorias do banco de dados.",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+    }
+  };
+
+  const loadProducts = async (categoryId: number) => {
+    setIsLoading(true);
+    try {
+      const fetchedProducts = await fetchProducts(categoryId);
+      setProductsList(fetchedProducts);
+    } catch (error) {
+      console.error("Erro ao carregar produtos:", error);
+      toast({
+        title: "Erro ao carregar dados",
+        description: "Não foi possível carregar os produtos do banco de dados.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAddProduct = async () => {
+    if (!selectedCategoryId) {
+      toast({
+        title: "Categoria não selecionada",
+        description: "Por favor, selecione uma categoria primeiro",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!newProduct.name || newProduct.price <= 0) {
       toast({
         title: "Dados inválidos",
@@ -40,28 +98,51 @@ const ProductManager: React.FC = () => {
       return;
     }
 
-    const updatedProducts = {...products};
-    updatedProducts[selectedCategory] = [...(updatedProducts[selectedCategory] || []), newProduct];
-    
-    // Save to local storage
-    saveProducts(updatedProducts);
-    
-    // Update local state
-    setProductsList([...productsList, newProduct]);
-    setNewProduct({ name: "", price: 0 });
-    
-    toast({
-      title: "Produto adicionado",
-      description: `${newProduct.name} foi adicionado com sucesso`
+    setIsSaving(true);
+
+    try {
+      const addedProduct = await addProduct({
+        name: newProduct.name,
+        price: newProduct.price,
+        category_id: selectedCategoryId
+      });
+
+      if (addedProduct) {
+        setProductsList([...productsList, addedProduct]);
+        setNewProduct({ name: "", price: 0 });
+        
+        toast({
+          title: "Produto adicionado",
+          description: `${newProduct.name} foi adicionado com sucesso`
+        });
+      } else {
+        toast({
+          title: "Erro ao adicionar",
+          description: "Não foi possível adicionar o produto ao banco de dados.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao adicionar produto:", error);
+      toast({
+        title: "Erro ao adicionar",
+        description: "Ocorreu um erro ao adicionar o produto.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleEditProduct = (product: SupabaseProduct) => {
+    setEditedProduct({
+      name: product.name,
+      price: product.price
     });
+    setEditMode(product.id);
   };
 
-  const handleEditProduct = (product: Product, index: number) => {
-    setEditedProduct({...product});
-    setEditMode(`${index}-${product.name}`);
-  };
-
-  const handleSaveEdit = (index: number) => {
+  const handleSaveEdit = async (productId: number) => {
     if (!editedProduct.name || editedProduct.price <= 0) {
       toast({
         title: "Dados inválidos",
@@ -71,43 +152,81 @@ const ProductManager: React.FC = () => {
       return;
     }
 
-    const updatedProductsList = [...productsList];
-    updatedProductsList[index] = editedProduct;
-    
-    const updatedProducts = {...products};
-    updatedProducts[selectedCategory] = updatedProductsList;
-    
-    // Save to local storage
-    saveProducts(updatedProducts);
-    
-    // Update local state
-    setProductsList(updatedProductsList);
-    setEditMode(null);
-    
-    toast({
-      title: "Produto atualizado",
-      description: `${editedProduct.name} foi atualizado com sucesso`
-    });
+    setIsSaving(true);
+
+    try {
+      const success = await updateProduct(productId, {
+        name: editedProduct.name,
+        price: editedProduct.price
+      });
+
+      if (success) {
+        // Atualizar localmente
+        setProductsList(productsList.map(p => 
+          p.id === productId 
+            ? {...p, name: editedProduct.name, price: editedProduct.price} 
+            : p
+        ));
+        
+        setEditMode(null);
+        
+        toast({
+          title: "Produto atualizado",
+          description: `${editedProduct.name} foi atualizado com sucesso`
+        });
+      } else {
+        toast({
+          title: "Erro ao atualizar",
+          description: "Não foi possível atualizar o produto no banco de dados.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao atualizar produto:", error);
+      toast({
+        title: "Erro ao atualizar",
+        description: "Ocorreu um erro ao atualizar o produto.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleDeleteProduct = (index: number) => {
-    if (confirm('Tem certeza que deseja excluir este produto?')) {
-      const updatedProductsList = [...productsList];
-      updatedProductsList.splice(index, 1);
-      
-      const updatedProducts = {...products};
-      updatedProducts[selectedCategory] = updatedProductsList;
-      
-      // Save to local storage
-      saveProducts(updatedProducts);
-      
-      // Update local state
-      setProductsList(updatedProductsList);
-      
+  const handleDeleteProduct = async (productId: number) => {
+    if (!confirm('Tem certeza que deseja excluir este produto?')) {
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const success = await deleteProduct(productId);
+
+      if (success) {
+        // Atualizar localmente
+        setProductsList(productsList.filter(p => p.id !== productId));
+        
+        toast({
+          title: "Produto excluído",
+          description: "O produto foi excluído com sucesso"
+        });
+      } else {
+        toast({
+          title: "Erro ao excluir",
+          description: "Não foi possível excluir o produto do banco de dados.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao excluir produto:", error);
       toast({
-        title: "Produto excluído",
-        description: "O produto foi excluído com sucesso"
+        title: "Erro ao excluir",
+        description: "Ocorreu um erro ao excluir o produto.",
+        variant: "destructive",
       });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -116,14 +235,18 @@ const ProductManager: React.FC = () => {
       <h2 className="text-xl font-bold text-white mb-4">Gerenciar Produtos</h2>
       
       <div className="mb-6">
-        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+        <Select 
+          value={selectedCategoryId?.toString() || ""} 
+          onValueChange={(value) => setSelectedCategoryId(Number(value))}
+          disabled={isLoading || categories.length === 0}
+        >
           <SelectTrigger className="bg-gray-900 border-gray-600 text-white">
             <SelectValue placeholder="Selecione uma categoria" />
           </SelectTrigger>
           <SelectContent>
             {categories.map(category => (
-              <SelectItem key={category} value={category}>
-                {category}
+              <SelectItem key={category.id} value={category.id.toString()}>
+                {category.name}
               </SelectItem>
             ))}
           </SelectContent>
@@ -139,6 +262,7 @@ const ProductManager: React.FC = () => {
             value={newProduct.name}
             onChange={e => setNewProduct({...newProduct, name: e.target.value})}
             className="bg-gray-800 border-gray-700 text-white"
+            disabled={!selectedCategoryId || isSaving}
           />
           <Input
             type="number"
@@ -146,12 +270,23 @@ const ProductManager: React.FC = () => {
             value={newProduct.price || ''}
             onChange={e => setNewProduct({...newProduct, price: parseFloat(e.target.value) || 0})}
             className="bg-gray-800 border-gray-700 text-white md:w-32"
+            disabled={!selectedCategoryId || isSaving}
           />
           <Button 
             onClick={handleAddProduct}
             className="bg-green-600 hover:bg-green-700 text-white flex gap-1 items-center"
+            disabled={!selectedCategoryId || isSaving}
           >
-            <Plus size={16} /> Adicionar
+            {isSaving ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Salvando...
+              </>
+            ) : (
+              <>
+                <Plus size={16} /> Adicionar
+              </>
+            )}
           </Button>
         </div>
       </div>
@@ -161,7 +296,15 @@ const ProductManager: React.FC = () => {
         <h3 className="text-lg font-semibold text-white">Lista de Produtos</h3>
         
         <div className="bg-gray-900/50 rounded-md overflow-hidden">
-          {productsList.length > 0 ? (
+          {isLoading ? (
+            <div className="p-8 flex justify-center items-center">
+              <Loader2 className="h-8 w-8 animate-spin text-white/70" />
+            </div>
+          ) : !selectedCategoryId ? (
+            <div className="p-4 text-center text-gray-400">
+              Selecione uma categoria para ver seus produtos
+            </div>
+          ) : productsList.length > 0 ? (
             <table className="w-full text-white">
               <thead className="bg-gray-800">
                 <tr>
@@ -171,26 +314,28 @@ const ProductManager: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {productsList.map((product, index) => (
-                  <tr key={`${index}-${product.name}`} className="border-t border-gray-700">
+                {productsList.map((product) => (
+                  <tr key={product.id} className="border-t border-gray-700">
                     <td className="p-3">
-                      {editMode === `${index}-${product.name}` ? (
+                      {editMode === product.id ? (
                         <Input
                           value={editedProduct.name}
                           onChange={e => setEditedProduct({...editedProduct, name: e.target.value})}
                           className="bg-gray-800 border-gray-700 text-white"
+                          disabled={isSaving}
                         />
                       ) : (
                         product.name
                       )}
                     </td>
                     <td className="p-3 text-right">
-                      {editMode === `${index}-${product.name}` ? (
+                      {editMode === product.id ? (
                         <Input
                           type="number"
                           value={editedProduct.price || 0}
                           onChange={e => setEditedProduct({...editedProduct, price: parseFloat(e.target.value) || 0})}
                           className="bg-gray-800 border-gray-700 text-white w-24 ml-auto"
+                          disabled={isSaving}
                         />
                       ) : (
                         `R$ ${product.price.toFixed(2)}`
@@ -198,27 +343,34 @@ const ProductManager: React.FC = () => {
                     </td>
                     <td className="p-3 text-right">
                       <div className="flex gap-2 justify-end">
-                        {editMode === `${index}-${product.name}` ? (
+                        {editMode === product.id ? (
                           <Button 
-                            onClick={() => handleSaveEdit(index)}
+                            onClick={() => handleSaveEdit(product.id)}
                             size="sm"
                             className="bg-green-600 hover:bg-green-700"
+                            disabled={isSaving}
                           >
-                            <Save size={16} />
+                            {isSaving ? (
+                              <Loader2 size={16} className="animate-spin" />
+                            ) : (
+                              <Save size={16} />
+                            )}
                           </Button>
                         ) : (
                           <Button 
-                            onClick={() => handleEditProduct(product, index)}
+                            onClick={() => handleEditProduct(product)}
                             size="sm"
                             className="bg-blue-600 hover:bg-blue-700"
+                            disabled={isSaving}
                           >
                             <Pencil size={16} />
                           </Button>
                         )}
                         <Button 
-                          onClick={() => handleDeleteProduct(index)}
+                          onClick={() => handleDeleteProduct(product.id)}
                           size="sm"
                           className="bg-red-600 hover:bg-red-700"
+                          disabled={isSaving}
                         >
                           <Trash size={16} />
                         </Button>

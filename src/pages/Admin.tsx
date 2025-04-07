@@ -9,9 +9,13 @@ import ProductManager from '../components/admin/ProductManager';
 import CategoryManager from '../components/admin/CategoryManager';
 import BairroManager from '../components/admin/BairroManager';
 import Logo from '../components/Logo';
+import { bairros, categories, products } from '../data/products';
+import { migrateDataToSupabase } from '@/lib/supabase';
+import { Loader2 } from 'lucide-react';
 
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isMigrating, setIsMigrating] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -40,6 +44,44 @@ const Admin = () => {
     });
   };
 
+  const handleMigrateData = async () => {
+    if (!confirm("Esta operação irá migrar todos os dados locais para o Supabase. Os dados existentes no Supabase serão apagados. Deseja continuar?")) {
+      return;
+    }
+
+    setIsMigrating(true);
+    
+    try {
+      const success = await migrateDataToSupabase(
+        categories,
+        products,
+        bairros.map(b => ({ nome: b.nome, taxa: b.taxa }))
+      );
+
+      if (success) {
+        toast({
+          title: "Migração concluída",
+          description: "Todos os dados foram migrados com sucesso para o Supabase.",
+        });
+      } else {
+        toast({
+          title: "Erro na migração",
+          description: "Ocorreu um erro durante a migração dos dados.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao migrar dados:", error);
+      toast({
+        title: "Erro na migração",
+        description: "Ocorreu um erro durante a migração dos dados.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsMigrating(false);
+    }
+  };
+
   return (
     <div
       className="min-h-screen w-full bg-fixed"
@@ -58,6 +100,20 @@ const Admin = () => {
                 <Logo />
               </div>
               <div className="flex items-center gap-4">
+                <Button 
+                  onClick={handleMigrateData}
+                  disabled={isMigrating}
+                  className="bg-yellow-600 hover:bg-yellow-700"
+                >
+                  {isMigrating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Migrando...
+                    </>
+                  ) : (
+                    "Migrar Dados para Supabase"
+                  )}
+                </Button>
                 <Button 
                   variant="destructive" 
                   onClick={handleLogout}
