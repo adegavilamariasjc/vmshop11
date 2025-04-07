@@ -1,9 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 import AdminLogin from '../components/admin/AdminLogin';
 import ProductManager from '../components/admin/ProductManager';
 import CategoryManager from '../components/admin/CategoryManager';
@@ -16,8 +18,19 @@ import { Loader2 } from 'lucide-react';
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isMigrating, setIsMigrating] = useState(false);
+  const [supabaseConfigured, setSupabaseConfigured] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if Supabase is configured by checking environment variables
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseAnonKey) {
+      setSupabaseConfigured(false);
+    }
+  }, []);
 
   const handleLogin = (password: string) => {
     // Simple password authentication
@@ -102,7 +115,7 @@ const Admin = () => {
               <div className="flex items-center gap-4">
                 <Button 
                   onClick={handleMigrateData}
-                  disabled={isMigrating}
+                  disabled={isMigrating || !supabaseConfigured}
                   className="bg-yellow-600 hover:bg-yellow-700"
                 >
                   {isMigrating ? (
@@ -122,6 +135,18 @@ const Admin = () => {
                 </Button>
               </div>
             </div>
+            
+            {!supabaseConfigured && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Configuração incompleta</AlertTitle>
+                <AlertDescription>
+                  As variáveis de ambiente do Supabase não estão configuradas. 
+                  O painel administrativo funcionará em modo offline e os dados não serão salvos no banco de dados.
+                </AlertDescription>
+              </Alert>
+            )}
+            
             <div className="mt-8">
               <h1 className="text-2xl font-bold text-white mb-6">Painel Administrativo</h1>
               

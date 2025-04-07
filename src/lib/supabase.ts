@@ -1,10 +1,56 @@
-
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+// Check for environment variables and provide better error messages
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Throw a more helpful error if the environment variables are missing
+if (!supabaseUrl) {
+  console.error('VITE_SUPABASE_URL environment variable is not set');
+}
+
+if (!supabaseAnonKey) {
+  console.error('VITE_SUPABASE_ANON_KEY environment variable is not set');
+}
+
+// Create a mock client if we're in development and missing credentials
+const createMockClient = () => {
+  console.warn('Using mock Supabase client. Database operations will not work.');
+  
+  // Return a mock client that logs operations but doesn't actually connect to Supabase
+  return {
+    from: (table: string) => ({
+      select: () => {
+        console.log(`Mock: Selecting from ${table}`);
+        return { data: [], error: null };
+      },
+      insert: () => {
+        console.log(`Mock: Inserting into ${table}`);
+        return { data: null, error: null };
+      },
+      update: () => {
+        console.log(`Mock: Updating ${table}`);
+        return { data: null, error: null };
+      },
+      delete: () => {
+        console.log(`Mock: Deleting from ${table}`);
+        return { data: null, error: null };
+      },
+      eq: () => ({
+        order: () => ({ data: [], error: null }),
+        select: () => ({ data: [], error: null }),
+      }),
+      order: () => ({ data: [], error: null }),
+      single: () => ({ data: null, error: null }),
+      neq: () => ({ data: [], error: null }),
+    }),
+  };
+};
+
+// Create either a real client or a mock client
+export const supabase = supabaseUrl && supabaseAnonKey 
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : createMockClient() as any;
 
 // Tipos para as tabelas
 export type SupabaseProduct = {
@@ -31,18 +77,23 @@ export type SupabaseBairro = {
 
 // Funções para produtos
 export const fetchProducts = async (categoryId: number): Promise<SupabaseProduct[]> => {
-  const { data, error } = await supabase
-    .from('products')
-    .select('*')
-    .eq('category_id', categoryId)
-    .order('name');
-  
-  if (error) {
-    console.error('Erro ao buscar produtos:', error);
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('category_id', categoryId)
+      .order('name');
+    
+    if (error) {
+      console.error('Erro ao buscar produtos:', error);
+      return [];
+    }
+    
+    return data || [];
+  } catch (err) {
+    console.error('Erro ao buscar produtos:', err);
     return [];
   }
-  
-  return data || [];
 };
 
 export const fetchAllProducts = async (): Promise<SupabaseProduct[]> => {
@@ -224,6 +275,11 @@ export const migrateDataToSupabase = async (
   localProducts: Record<string, { name: string; price: number }[]>,
   localBairros: { nome: string; taxa: number }[]
 ): Promise<boolean> => {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('Não é possível migrar dados: credenciais do Supabase não configuradas');
+    return false;
+  }
+
   try {
     // Limpar tabelas existentes para migração fresca
     await supabase.from('products').delete().neq('id', 0);
