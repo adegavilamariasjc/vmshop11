@@ -1,17 +1,9 @@
+
 import { createClient } from '@supabase/supabase-js';
 
 // Check for environment variables and provide better error messages
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-// Throw a more helpful error if the environment variables are missing
-if (!supabaseUrl) {
-  console.error('VITE_SUPABASE_URL environment variable is not set');
-}
-
-if (!supabaseAnonKey) {
-  console.error('VITE_SUPABASE_ANON_KEY environment variable is not set');
-}
 
 // Create a mock client if we're in development and missing credentials
 const createMockClient = () => {
@@ -47,10 +39,19 @@ const createMockClient = () => {
   };
 };
 
-// Create either a real client or a mock client
-export const supabase = supabaseUrl && supabaseAnonKey 
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : createMockClient() as any;
+// Create either a real client or a mock client based on whether credentials are available
+export const supabase = (!supabaseUrl || !supabaseAnonKey) 
+  ? createMockClient() as any
+  : createClient(supabaseUrl, supabaseAnonKey);
+
+// Log a warning if credentials are missing
+if (!supabaseUrl) {
+  console.error('VITE_SUPABASE_URL environment variable is not set');
+}
+
+if (!supabaseAnonKey) {
+  console.error('VITE_SUPABASE_ANON_KEY environment variable is not set');
+}
 
 // Tipos para as tabelas
 export type SupabaseProduct = {
