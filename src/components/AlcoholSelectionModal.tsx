@@ -3,7 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { Product, AlcoholOption } from '../types';
-import { alcoholOptions } from '../data/ice-and-alcohol';
+import { alcoholOptions } from '../data/products';
 
 interface AlcoholSelectionModalProps {
   isOpen: boolean;

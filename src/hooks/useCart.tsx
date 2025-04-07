@@ -1,16 +1,18 @@
+
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Product, 
-  AlcoholOption
+  AlcoholOption, 
+  FormData, 
+  Bairro 
 } from '../types';
 import { 
   requiresFlavor, 
   requiresAlcoholChoice, 
-  loadIceFlavors,
-  loadAlcoholOptions,
+  iceFlavors, 
   getMaxIce 
-} from '../data/ice-and-alcohol';
+} from '../data/products';
 
 export const useCart = () => {
   const { toast } = useToast();
@@ -23,31 +25,6 @@ export const useCart = () => {
   const [selectedProductForAlcohol, setSelectedProductForAlcohol] = useState<Product | null>(null);
   const [selectedIce, setSelectedIce] = useState<Record<string, number>>({});
   const [selectedAlcohol, setSelectedAlcohol] = useState<AlcoholOption | null>(null);
-  const [iceFlavors, setIceFlavors] = useState<string[]>([]);
-  const [alcoholOptions, setAlcoholOptions] = useState<AlcoholOption[]>([]);
-
-  useEffect(() => {
-    loadAvailableIceFlavors();
-    loadAvailableAlcoholOptions();
-  }, []);
-
-  const loadAvailableIceFlavors = async () => {
-    try {
-      const flavors = await loadIceFlavors();
-      setIceFlavors(flavors);
-    } catch (error) {
-      console.error('Error loading ice flavors:', error);
-    }
-  };
-
-  const loadAvailableAlcoholOptions = async () => {
-    try {
-      const options = await loadAlcoholOptions();
-      setAlcoholOptions(options);
-    } catch (error) {
-      console.error('Error loading alcohol options:', error);
-    }
-  };
 
   useEffect(() => {
     if (selectedProductForFlavor) {
@@ -55,7 +32,7 @@ export const useCart = () => {
       iceFlavors.forEach(flavor => { initialIce[flavor] = 0; });
       setSelectedIce(initialIce);
     }
-  }, [selectedProductForFlavor, iceFlavors]);
+  }, [selectedProductForFlavor]);
 
   const handleSelectCategory = (category: string) => {
     setActiveCategory(activeCategory === category ? null : category);

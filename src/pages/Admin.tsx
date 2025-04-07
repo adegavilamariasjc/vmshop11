@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -9,58 +9,16 @@ import ProductManager from '../components/admin/ProductManager';
 import CategoryManager from '../components/admin/CategoryManager';
 import BairroManager from '../components/admin/BairroManager';
 import Logo from '../components/Logo';
-import { migrateStaticDataToSupabase } from '../data/products';
-import { supabase } from '@/integrations/supabase/client';
 
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isDataMigrated, setIsDataMigrated] = useState(false);
-  const [isMigrating, setIsMigrating] = useState(false);
-  const [isMigrationNeeded, setIsMigrationNeeded] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const migrationDone = localStorage.getItem('dataMigrationComplete');
-    setIsDataMigrated(migrationDone === 'true');
-    
-    // Verificar se já existem dados no banco
-    checkIfMigrationNeeded();
-  }, []);
-
-  const checkIfMigrationNeeded = async () => {
-    try {
-      // Verificar se existem categorias cadastradas
-      const { data: categories, error: categoriesError } = await supabase
-        .from('categories')
-        .select('id')
-        .limit(1);
-      
-      if (categoriesError) {
-        console.error("Erro ao verificar categorias:", categoriesError);
-        return;
-      }
-      
-      // Se já existem dados, não precisamos migrar
-      if (categories && categories.length > 0) {
-        setIsMigrationNeeded(false);
-        setIsDataMigrated(true);
-        localStorage.setItem('dataMigrationComplete', 'true');
-      }
-    } catch (error) {
-      console.error("Erro ao verificar dados existentes:", error);
-    }
-  };
-
-  const handleLogin = async (password: string) => {
-    if (password === "adega123") {
+  const handleLogin = (password: string) => {
+    // Simple password authentication
+    if (password === "adega123") {  // You should change this to your own password
       setIsAuthenticated(true);
-      
-      // Se não há dados e o usuário nunca completou a migração, fazemos automaticamente
-      if (isMigrationNeeded && !isDataMigrated) {
-        await handleMigrateData();
-      }
-      
       toast({
         title: "Login realizado com sucesso",
         description: "Bem-vindo ao painel administrativo",
@@ -82,32 +40,6 @@ const Admin = () => {
     });
   };
 
-  const handleMigrateData = async () => {
-    setIsMigrating(true);
-    try {
-      const result = await migrateStaticDataToSupabase();
-      
-      if (result) {
-        setIsDataMigrated(true);
-        setIsMigrationNeeded(false);
-        localStorage.setItem('dataMigrationComplete', 'true');
-        toast({
-          title: "Migração realizada com sucesso",
-          description: "Os dados foram migrados para o Supabase",
-        });
-      }
-    } catch (error) {
-      console.error("Error migrating data:", error);
-      toast({
-        title: "Erro na migração",
-        description: "Não foi possível migrar os dados. Por favor, tente novamente.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsMigrating(false);
-    }
-  };
-
   return (
     <div
       className="min-h-screen w-full bg-fixed"
@@ -126,16 +58,6 @@ const Admin = () => {
                 <Logo />
               </div>
               <div className="flex items-center gap-4">
-                {isMigrationNeeded && !isDataMigrated && (
-                  <Button 
-                    variant="outline" 
-                    onClick={handleMigrateData} 
-                    disabled={isMigrating}
-                    className="bg-yellow-600 hover:bg-yellow-700 text-white border-none"
-                  >
-                    {isMigrating ? "Migrando dados..." : "Migrar dados estáticos"}
-                  </Button>
-                )}
                 <Button 
                   variant="destructive" 
                   onClick={handleLogout}
@@ -146,23 +68,6 @@ const Admin = () => {
             </div>
             <div className="mt-8">
               <h1 className="text-2xl font-bold text-white mb-6">Painel Administrativo</h1>
-              
-              {isMigrationNeeded && !isDataMigrated && (
-                <div className="bg-yellow-600/20 border border-yellow-600 p-4 rounded-md mb-6">
-                  <h2 className="text-yellow-500 font-bold mb-2">Migração necessária</h2>
-                  <p className="text-white mb-4">
-                    Para começar a usar o painel administrativo com o banco de dados real, 
-                    primeiro é necessário migrar os dados estáticos para o Supabase.
-                  </p>
-                  <Button 
-                    onClick={handleMigrateData} 
-                    disabled={isMigrating}
-                    className="bg-yellow-600 hover:bg-yellow-700 text-white"
-                  >
-                    {isMigrating ? "Migrando dados..." : "Migrar dados agora"}
-                  </Button>
-                </div>
-              )}
               
               <Tabs defaultValue="produtos" className="w-full">
                 <TabsList className="grid grid-cols-3 mb-8">

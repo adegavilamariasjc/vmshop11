@@ -3,7 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Minus, X } from 'lucide-react';
 import { Product } from '../types';
-import { iceFlavors, getMaxIce } from '../data/ice-and-alcohol';
+import { iceFlavors, getMaxIce } from '../data/products';
 
 interface FlavorSelectionModalProps {
   isOpen: boolean;

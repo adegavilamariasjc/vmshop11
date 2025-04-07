@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Pencil, Trash, Plus, Save, MoveUp, MoveDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { loadCategories, saveCategory, updateCategory, deleteCategory, moveCategoryOrder } from '../../data/products';
+import { categories, saveCategories, products, saveProducts } from '../../data/products';
 import { useToast } from '@/hooks/use-toast';
 
 const CategoryManager: React.FC = () => {
@@ -12,30 +12,12 @@ const CategoryManager: React.FC = () => {
   const [newCategory, setNewCategory] = useState("");
   const [editMode, setEditMode] = useState<string | null>(null);
   const [editedCategory, setEditedCategory] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    loadCategoriesData();
+    setCategoriesList([...categories]);
   }, []);
 
-  const loadCategoriesData = async () => {
-    setIsLoading(true);
-    try {
-      const data = await loadCategories();
-      setCategoriesList(data);
-    } catch (error) {
-      console.error("Error loading categories:", error);
-      toast({
-        title: "Erro ao carregar categorias",
-        description: "Não foi possível carregar as categorias. Por favor, tente novamente.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleAddCategory = async () => {
+  const handleAddCategory = () => {
     if (!newCategory.trim()) {
       toast({
         title: "Campo vazio",
@@ -54,29 +36,24 @@ const CategoryManager: React.FC = () => {
       return;
     }
 
-    setIsLoading(true);
-    try {
-      await saveCategory(newCategory, categoriesList.length);
-      
-      // Update local state
-      const updatedCategories = [...categoriesList, newCategory];
-      setCategoriesList(updatedCategories);
-      setNewCategory("");
-      
-      toast({
-        title: "Categoria adicionada",
-        description: `${newCategory} foi adicionada com sucesso`
-      });
-    } catch (error) {
-      console.error("Error adding category:", error);
-      toast({
-        title: "Erro ao adicionar categoria",
-        description: "Não foi possível adicionar a categoria. Por favor, tente novamente.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    const updatedCategories = [...categoriesList, newCategory];
+    
+    // Create empty product array for new category
+    const updatedProducts = {...products};
+    updatedProducts[newCategory] = [];
+    
+    // Save to local storage
+    saveCategories(updatedCategories);
+    saveProducts(updatedProducts);
+    
+    // Update local state
+    setCategoriesList(updatedCategories);
+    setNewCategory("");
+    
+    toast({
+      title: "Categoria adicionada",
+      description: `${newCategory} foi adicionada com sucesso`
+    });
   };
 
   const handleEditCategory = (category: string) => {
@@ -84,7 +61,7 @@ const CategoryManager: React.FC = () => {
     setEditMode(category);
   };
 
-  const handleSaveEdit = async (oldCategory: string, index: number) => {
+  const handleSaveEdit = (oldCategory: string, index: number) => {
     if (!editedCategory.trim()) {
       toast({
         title: "Campo vazio",
@@ -103,61 +80,56 @@ const CategoryManager: React.FC = () => {
       return;
     }
 
-    setIsLoading(true);
-    try {
-      await updateCategory(oldCategory, editedCategory, index);
+    // Update category list
+    const updatedCategories = [...categoriesList];
+    updatedCategories[index] = editedCategory;
+    
+    // Update products with new category name
+    const updatedProducts = {...products};
+    if (oldCategory !== editedCategory) {
+      updatedProducts[editedCategory] = updatedProducts[oldCategory] || [];
+      delete updatedProducts[oldCategory];
+    }
+    
+    // Save to local storage
+    saveCategories(updatedCategories);
+    saveProducts(updatedProducts);
+    
+    // Update local state
+    setCategoriesList(updatedCategories);
+    setEditMode(null);
+    
+    toast({
+      title: "Categoria atualizada",
+      description: `A categoria foi atualizada com sucesso`
+    });
+  };
+
+  const handleDeleteCategory = (category: string, index: number) => {
+    if (confirm('Tem certeza que deseja excluir esta categoria? Todos os produtos nela serão removidos também.')) {
+      // Update category list
+      const updatedCategories = [...categoriesList];
+      updatedCategories.splice(index, 1);
+      
+      // Remove category from products
+      const updatedProducts = {...products};
+      delete updatedProducts[category];
+      
+      // Save to local storage
+      saveCategories(updatedCategories);
+      saveProducts(updatedProducts);
       
       // Update local state
-      const updatedCategories = [...categoriesList];
-      updatedCategories[index] = editedCategory;
       setCategoriesList(updatedCategories);
-      setEditMode(null);
       
       toast({
-        title: "Categoria atualizada",
-        description: `A categoria foi atualizada com sucesso`
+        title: "Categoria excluída",
+        description: "A categoria foi excluída com sucesso"
       });
-    } catch (error) {
-      console.error("Error updating category:", error);
-      toast({
-        title: "Erro ao atualizar categoria",
-        description: "Não foi possível atualizar a categoria. Por favor, tente novamente.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  const handleDeleteCategory = async (category: string, index: number) => {
-    if (confirm('Tem certeza que deseja excluir esta categoria? Todos os produtos nela serão removidos também.')) {
-      setIsLoading(true);
-      try {
-        await deleteCategory(category);
-        
-        // Update local state
-        const updatedCategories = [...categoriesList];
-        updatedCategories.splice(index, 1);
-        setCategoriesList(updatedCategories);
-        
-        toast({
-          title: "Categoria excluída",
-          description: "A categoria foi excluída com sucesso"
-        });
-      } catch (error) {
-        console.error("Error deleting category:", error);
-        toast({
-          title: "Erro ao excluir categoria",
-          description: "Não foi possível excluir a categoria. Por favor, tente novamente.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    }
-  };
-
-  const moveCategory = async (index: number, direction: 'up' | 'down') => {
+  const moveCategory = (index: number, direction: 'up' | 'down') => {
     if ((direction === 'up' && index === 0) || (direction === 'down' && index === categoriesList.length - 1)) {
       return;
     }
@@ -166,22 +138,11 @@ const CategoryManager: React.FC = () => {
     const updatedCategories = [...categoriesList];
     [updatedCategories[index], updatedCategories[newIndex]] = [updatedCategories[newIndex], updatedCategories[index]];
     
-    setIsLoading(true);
-    try {
-      await moveCategoryOrder(updatedCategories);
-      
-      // Update local state
-      setCategoriesList(updatedCategories);
-    } catch (error) {
-      console.error("Error moving category:", error);
-      toast({
-        title: "Erro ao mover categoria",
-        description: "Não foi possível mover a categoria. Por favor, tente novamente.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    // Save to local storage
+    saveCategories(updatedCategories);
+    
+    // Update local state
+    setCategoriesList(updatedCategories);
   };
 
   return (
@@ -197,12 +158,10 @@ const CategoryManager: React.FC = () => {
             value={newCategory}
             onChange={e => setNewCategory(e.target.value)}
             className="bg-gray-800 border-gray-700 text-white"
-            disabled={isLoading}
           />
           <Button 
             onClick={handleAddCategory}
             className="bg-green-600 hover:bg-green-700 text-white flex gap-1 items-center"
-            disabled={isLoading}
           >
             <Plus size={16} /> Adicionar
           </Button>
@@ -214,15 +173,12 @@ const CategoryManager: React.FC = () => {
         <h3 className="text-lg font-semibold text-white">Lista de Categorias</h3>
         
         <div className="bg-gray-900/50 rounded-md overflow-hidden">
-          {isLoading ? (
-            <div className="p-4 text-center text-gray-400">
-              Carregando categorias...
-            </div>
-          ) : categoriesList.length > 0 ? (
+          {categoriesList.length > 0 ? (
             <table className="w-full text-white">
               <thead className="bg-gray-800">
                 <tr>
                   <th className="p-3 text-left">Nome</th>
+                  <th className="p-3 text-right">Produtos</th>
                   <th className="p-3 text-right">Ações</th>
                 </tr>
               </thead>
@@ -235,18 +191,20 @@ const CategoryManager: React.FC = () => {
                           value={editedCategory}
                           onChange={e => setEditedCategory(e.target.value)}
                           className="bg-gray-800 border-gray-700 text-white"
-                          disabled={isLoading}
                         />
                       ) : (
                         category
                       )}
                     </td>
                     <td className="p-3 text-right">
+                      {products[category] ? products[category].length : 0}
+                    </td>
+                    <td className="p-3 text-right">
                       <div className="flex gap-2 justify-end">
                         <Button 
                           onClick={() => moveCategory(index, 'up')}
                           size="sm"
-                          disabled={index === 0 || isLoading}
+                          disabled={index === 0}
                           className="bg-gray-600 hover:bg-gray-700 disabled:bg-gray-800"
                         >
                           <MoveUp size={16} />
@@ -254,7 +212,7 @@ const CategoryManager: React.FC = () => {
                         <Button 
                           onClick={() => moveCategory(index, 'down')}
                           size="sm"
-                          disabled={index === categoriesList.length - 1 || isLoading}
+                          disabled={index === categoriesList.length - 1}
                           className="bg-gray-600 hover:bg-gray-700 disabled:bg-gray-800"
                         >
                           <MoveDown size={16} />
@@ -265,7 +223,6 @@ const CategoryManager: React.FC = () => {
                             onClick={() => handleSaveEdit(category, index)}
                             size="sm"
                             className="bg-green-600 hover:bg-green-700"
-                            disabled={isLoading}
                           >
                             <Save size={16} />
                           </Button>
@@ -274,7 +231,6 @@ const CategoryManager: React.FC = () => {
                             onClick={() => handleEditCategory(category)}
                             size="sm"
                             className="bg-blue-600 hover:bg-blue-700"
-                            disabled={isLoading}
                           >
                             <Pencil size={16} />
                           </Button>
@@ -283,7 +239,6 @@ const CategoryManager: React.FC = () => {
                           onClick={() => handleDeleteCategory(category, index)}
                           size="sm"
                           className="bg-red-600 hover:bg-red-700"
-                          disabled={isLoading}
                         >
                           <Trash size={16} />
                         </Button>

@@ -1,98 +1,770 @@
 
-import { Bairro, AlcoholOption, Product } from '../types';
-import { 
-  fetchProducts, 
-  saveProduct as saveProductService,
-  updateProduct as updateProductService,
-  deleteProduct as deleteProductService,
-  migrateExistingData
-} from '../services/supabaseService';
+export const categories = [
+  "Copão Whisky",
+  "Copão Vodka",
+  "Copão Gin",
+  "Combos Whisky",
+  "Combos Vodka",
+  "Combos Gin",
+  "Cervejas",
+  "Vinhos",
+  "Refrigerantes",
+  "Energéticos",
+  "Corotes",
+  "Caipirinhas",
+  "Drinks 43",
+  "Drinks Gourmet",
+  "Batidas",
+  "Batidas Kids 0%",
+  "Ices",
+  "Gelos",
+  "Água",
+  "Gins",
+  "Vodkas",
+  "Whiskys",
+  "Licores",
+  "Sucos",
+  "Doces",
+  "Tabacaria",
+  "Diversos"
+];
 
-// Import from the new modular files
-import { categories } from './categories';
-import { products } from './products-data';
-import { otherCategoryProducts } from './products-other-categories';
-import { bairrosList } from './bairros';
-import { 
-  iceFlavors, 
-  alcoholOptions, 
-  getMaxIce, 
-  requiresFlavor, 
-  requiresAlcoholChoice,
-  loadIceFlavors,
-  loadAlcoholOptions
-} from './ice-and-alcohol';
+export const products = {
+  "Copão Whisky": [
+    { name: "Copão Master Gold Tradicional", price: 8.00 },
+    { name: "Copão Master Gold Fusion", price: 10.00 },
+    { name: "Copão Master Gold Red Bull", price: 18.00 },
+    { name: "Copão Master Gold Monster", price: 21.00 },
+    { name: "Copão Passport Tradicional", price: 15.00 },
+    { name: "Copão Passport Fusion", price: 18.00 },
+    { name: "Copão Passport Red Bull", price: 25.00 },
+    { name: "Copão Passport Monster", price: 28.00 },
+    { name: "Copão Passport Mel Tradicional", price: 15.00 },
+    { name: "Copão Passport Mel Fusion", price: 18.00 },
+    { name: "Copão Passport Mel Red Bull", price: 25.00 },
+    { name: "Copão Passport Mel Monster", price: 28.00 },
+    { name: "Copão White Horse Tradicional", price: 20.00 },
+    { name: "Copão White Horse Fusion", price: 23.00 },
+    { name: "Copão White Horse Red Bull", price: 30.00 },
+    { name: "Copão White Horse Monster", price: 33.00 },
+    { name: "Copão Ballantine's Tradicional", price: 20.00 },
+    { name: "Copão Ballantine's Fusion", price: 23.00 },
+    { name: "Copão Ballantine's Red Bull", price: 30.00 },
+    { name: "Copão Ballantine's Monster", price: 33.00 },
+    { name: "Copão Red Label Fusion", price: 25.00 },
+    { name: "Copão Red Label Red Bull", price: 35.00 },
+    { name: "Copão Red Label Monster", price: 38.00 },
+    { name: "Copão Black Label Fusion", price: 45.00 },
+    { name: "Copão Black Label Red Bull", price: 55.00 },
+    { name: "Copão Black Label Monster", price: 58.00 },
+    { name: "Copão Jack Daniel's Fusion", price: 35.00 },
+    { name: "Copão Jack Daniel's Red Bull", price: 45.00 },
+    { name: "Copão Jack Daniel's Monster", price: 48.00 },
+    { name: "Copão Jack Daniel's Mel Fusion", price: 35.00 },
+    { name: "Copão Jack Daniel's Mel Red Bull", price: 45.00 },
+    { name: "Copão Jack Daniel's Mel Monster", price: 48.00 },
+    { name: "Copão Jack Daniel's Maçã Fusion", price: 35.00 },
+    { name: "Copão Jack Daniel's Maçã Red Bull", price: 45.00 },
+    { name: "Copão Jack Daniel's Maçã Monster", price: 48.00 },
+    { name: "Copão Jack Daniel's Canela Fusion", price: 35.00 },
+    { name: "Copão Jack Daniel's Canela Red Bull", price: 45.00 },
+    { name: "Copão Jack Daniel's Canela Monster", price: 48.00 },
+    { name: "Copão Buchanan's Fusion", price: 45.00 },
+    { name: "Copão Buchanan's Red Bull", price: 55.00 },
+    { name: "Copão Buchanan's Monster", price: 58.00 }
+  ],
+  "Copão Vodka": [
+    { name: "Copão Master Black Tradicional", price: 8.00 },
+    { name: "Copão Master Black Baly", price: 10.00 },
+    { name: "Copão Master Black Red Bull", price: 20.00 },
+    { name: "Copão Master Black Monster", price: 23.00 },
+    { name: "Copão Askov Tradicional", price: 10.00 },
+    { name: "Copão Askov Baly", price: 12.00 },
+    { name: "Copão Askov Red Bull", price: 22.00 },
+    { name: "Copão Askov Monster", price: 31.00 },
+    { name: "Copão Smirnoff Tradicional", price: 15.00 },
+    { name: "Copão Smirnoff Baly", price: 17.00 },
+    { name: "Copão Smirnoff Red Bull", price: 25.00 },
+    { name: "Copão Smirnoff Monster", price: 31.00 },
+    { name: "Copão Smirnoff Melancia Baly", price: 25.00 },
+    { name: "Copão Smirnoff Melancia Red Bull", price: 35.00 },
+    { name: "Copão Smirnoff Melancia Monster", price: 38.00 },
+    { name: "Copão Smirnoff Maracujá Baly", price: 25.00 },
+    { name: "Copão Smirnoff Maracujá Red Bull", price: 35.00 },
+    { name: "Copão Smirnoff Maracujá Monster", price: 38.00 },
+    { name: "Copão Absolut Baly", price: 25.00 },
+    { name: "Copão Absolut Red Bull", price: 35.00 },
+    { name: "Copão Absolut Monster", price: 41.00 },
+    { name: "Copão Ciroc Baly", price: 45.00 },
+    { name: "Copão Ciroc Red Bull", price: 55.00 },
+    { name: "Copão Ciroc Monster", price: 58.00 },
+    { name: "Copão Ciroc Redberry Baly", price: 45.00 },
+    { name: "Copão Ciroc Redberry Red Bull", price: 55.00 },
+    { name: "Copão Ciroc Redberry Monster", price: 58.00 }
+  ],
+  "Copão Gin": [
+    { name: "Copão Intencion Tradicional", price: 15.00 },
+    { name: "Copão Intencion Baly", price: 15.00 },
+    { name: "Copão Intencion Red Bull", price: 25.00 },
+    { name: "Copão Intencion Monster", price: 28.00 },
+    { name: "Copão Ópera Tradicional", price: 15.00 },
+    { name: "Copão Ópera Baly", price: 15.00 },
+    { name: "Copão Ópera Red Bull", price: 25.00 },
+    { name: "Copão Ópera Monster", price: 28.00 },
+    { name: "Copão Rocks Tradicional", price: 20.00 },
+    { name: "Copão Rocks Baly", price: 20.00 },
+    { name: "Copão Rocks Red Bull", price: 30.00 },
+    { name: "Copão Rocks Monster", price: 33.00 },
+    { name: "Copão Rocks Strawberry Tradicional", price: 20.00 },
+    { name: "Copão Rocks Strawberry Baly", price: 20.00 },
+    { name: "Copão Rocks Strawberry Red Bull", price: 30.00 },
+    { name: "Copão Rocks Strawberry Monster", price: 33.00 },
+    { name: "Copão Gordons Baly", price: 25.00 },
+    { name: "Copão Gordons Red Bull", price: 35.00 },
+    { name: "Copão Gordons Monster", price: 38.00 },
+    { name: "Copão Beefeater Baly", price: 30.00 },
+    { name: "Copão Beefeater Red Bull", price: 40.00 },
+    { name: "Copão Beefeater Monster", price: 43.00 },
+    { name: "Copão Tanqueray Baly", price: 35.00 },
+    { name: "Copão Tanqueray Red Bull", price: 45.00 },
+    { name: "Copão Tanqueray Monster", price: 48.00 },
+    { name: "Copão Tanqueray Royale Baly", price: 35.00 },
+    { name: "Copão Tanqueray Royale Red Bull", price: 45.00 },
+    { name: "Copão Tanqueray Royale Monster", price: 48.00 },
+    { name: "Copão Tanqueray Sevilla Baly", price: 35.00 },
+    { name: "Copão Tanqueray Sevilla Red Bull", price: 45.00 },
+    { name: "Copão Tanqueray Sevilla Monster", price: 48.00 }
+  ],
+  "Combos Whisky": [
+    { name: "Combo Master Gold e Tradicional", price: 45.00 },
+    { name: "Combo Master Gold e Fusion", price: 55.00 },
+    { name: "Combo Master Gold e Red Bull", price: 85.00 },
+    { name: "Combo Master Gold e Monster", price: 95.00 },
+    { name: "Combo Passport e Tradicional", price: 80.00 },
+    { name: "Combo Passport e Fusion", price: 90.00 },
+    { name: "Combo Passport e Red Bull", price: 120.00 },
+    { name: "Combo Passport e Monster", price: 135.00 },
+    { name: "Combo Passport Mel e Tradicional", price: 80.00 },
+    { name: "Combo Passport Mel e Fusion", price: 90.00 },
+    { name: "Combo Passport Mel e Red Bull", price: 120.00 },
+    { name: "Combo Passport Mel e Monster", price: 135.00 },
+    { name: "Combo White Horse e Tradicional", price: 110.00 },
+    { name: "Combo White Horse e Fusion", price: 120.00 },
+    { name: "Combo White Horse e Red Bull", price: 150.00 },
+    { name: "Combo White Horse e Monster", price: 165.00 },
+    { name: "Combo Ballantine's e Tradicional", price: 115.00 },
+    { name: "Combo Ballantine's e Fusion", price: 125.00 },
+    { name: "Combo Ballantine's e Red Bull", price: 155.00 },
+    { name: "Combo Ballantine's e Monster", price: 170.00 },
+    { name: "Combo Red Label e Tradicional", price: 135.00 },
+    { name: "Combo Red Label e Fusion", price: 145.00 },
+    { name: "Combo Red Label e Red Bull", price: 175.00 },
+    { name: "Combo Red Label e Monster", price: 190.00 },
+    { name: "Combo Black Label e Tradicional", price: 225.00 },
+    { name: "Combo Black Label e Fusion", price: 235.00 },
+    { name: "Combo Black Label e Red Bull", price: 265.00 },
+    { name: "Combo Black Label e Monster", price: 280.00 },
+    { name: "Combo Jack Daniel's e Tradicional", price: 185.00 },
+    { name: "Combo Jack Daniel's e Fusion", price: 195.00 },
+    { name: "Combo Jack Daniel's e Red Bull", price: 225.00 },
+    { name: "Combo Jack Daniel's e Monster", price: 240.00 },
+    { name: "Combo Jack Daniel's Mel e Tradicional", price: 185.00 },
+    { name: "Combo Jack Daniel's Mel e Fusion", price: 195.00 },
+    { name: "Combo Jack Daniel's Mel e Red Bull", price: 225.00 },
+    { name: "Combo Jack Daniel's Mel e Monster", price: 240.00 },
+    { name: "Combo Jack Daniel's Maçã e Tradicional", price: 185.00 },
+    { name: "Combo Jack Daniel's Maçã e Fusion", price: 195.00 },
+    { name: "Combo Jack Daniel's Maçã e Red Bull", price: 225.00 },
+    { name: "Combo Jack Daniel's Maçã e Monster", price: 260.00 },
+    { name: "Combo Jack Daniel's Canela e Tradicional", price: 185.00 },
+    { name: "Combo Jack Daniel's Canela e Fusion", price: 195.00 },
+    { name: "Combo Jack Daniel's Canela e Red Bull", price: 225.00 },
+    { name: "Combo Jack Daniel's Canela e Monster", price: 260.00 },
+    { name: "Combo Buchanan's e Tradicional", price: 221.00 },
+    { name: "Combo Buchanan's e Fusion", price: 245.00 },
+    { name: "Combo Buchanan's e Red Bull", price: 261.00 },
+    { name: "Combo Buchanan's e Monster", price: 276.00 }
+  ],
+  "Combos Vodka": [
+    { name: "Combo Master Black e Tradicional", price: 40.00 },
+    { name: "Combo Master Black e Baly", price: 45.00 },
+    { name: "Combo Master Black e Red Bull", price: 90.00 },
+    { name: "Combo Master Black e Monster", price: 105.00 },
+    { name: "Combo Askov e Tradicional", price: 44.00 },
+    { name: "Combo Askov e Baly", price: 49.00 },
+    { name: "Combo Askov e Red Bull", price: 94.00 },
+    { name: "Combo Askov e Monster", price: 109.00 },
+    { name: "Combo Smirnoff e Tradicional", price: 70.00 },
+    { name: "Combo Smirnoff e Baly", price: 75.00 },
+    { name: "Combo Smirnoff e Red Bull", price: 120.00 },
+    { name: "Combo Smirnoff e Monster", price: 135.00 },
+    { name: "Combo Smirnoff Melancia e Baly", price: 99.00 },
+    { name: "Combo Smirnoff Melancia e Red Bull", price: 144.00 },
+    { name: "Combo Smirnoff Melancia e Monster", price: 159.00 },
+    { name: "Combo Smirnoff Maracujá e Baly", price: 99.00 },
+    { name: "Combo Smirnoff Maracujá e Red Bull", price: 144.00 },
+    { name: "Combo Smirnoff Maracujá e Monster", price: 159.00 },
+    { name: "Combo Absolut e Baly", price: 145.00 },
+    { name: "Combo Absolut e Red Bull", price: 185.00 },
+    { name: "Combo Absolut e Monster", price: 200.00 },
+    { name: "Combo Ciroc e Baly", price: 209.00 },
+    { name: "Combo Ciroc e Red Bull", price: 254.00 },
+    { name: "Combo Ciroc e Monster", price: 269.00 },
+    { name: "Combo Ciroc Redberry e Baly", price: 219.00 },
+    { name: "Combo Ciroc Redberry e Red Bull", price: 264.00 },
+    { name: "Combo Ciroc Redberry e Monster", price: 279.00 }
+  ],
+  "Combos Gin": [
+    { name: "Combo Intencion e Tradicional", price: 50.00 },
+    { name: "Combo Intencion e Baly", price: 50.00 },
+    { name: "Combo Intencion e Red Bull", price: 100.00 },
+    { name: "Combo Intencion e Monster", price: 105.00 },
+    { name: "Combo Ópera e Tradicional", price: 50.00 },
+    { name: "Combo Ópera e Baly", price: 50.00 },
+    { name: "Combo Ópera e Red Bull", price: 100.00 },
+    { name: "Combo Ópera e Monster", price: 105.00 },
+    { name: "Combo Rocks e Tradicional", price: 65.00 },
+    { name: "Combo Rocks e Baly", price: 65.00 },
+    { name: "Combo Rocks e Red Bull", price: 110.00 },
+    { name: "Combo Rocks e Monster", price: 115.00 },
+    { name: "Combo Rocks Strawberry e Tradicional", price: 65.00 },
+    { name: "Combo Rocks Strawberry e Baly", price: 65.00 },
+    { name: "Combo Rocks Strawberry e Red Bull", price: 110.00 },
+    { name: "Combo Rocks Strawberry e Monster", price: 115.00 },
+    { name: "Combo Gordons e Baly", price: 105.00 },
+    { name: "Combo Gordons e Red Bull", price: 150.00 },
+    { name: "Combo Gordons e Monster", price: 155.00 },
+    { name: "Combo Beefeater e Baly", price: 130.00 },
+    { name: "Combo Beefeater e Red Bull", price: 175.00 },
+    { name: "Combo Beefeater e Monster", price: 179.00 },
+    { name: "Combo Tanqueray e Baly", price: 165.00 },
+    { name: "Combo Tanqueray e Red Bull", price: 210.00 },
+    { name: "Combo Tanqueray e Monster", price: 215.00 },
+    { name: "Combo Tanqueray Royale e Baly", price: 165.00 },
+    { name: "Combo Tanqueray Royale e Red Bull", price: 210.00 },
+    { name: "Combo Tanqueray Royale e Monster", price: 215.00 },
+    { name: "Combo Tanqueray Sevilla e Baly", price: 165.00 },
+    { name: "Combo Tanqueray Sevilla e Red Bull", price: 210.00 },
+    { name: "Combo Tanqueray Sevilla e Monster", price: 215.00 }
+  ],
+  "Cervejas": [
+    { name: "Skol 269ml", price: 3.50 },
+    { name: "Skol 350ml", price: 4.00 },
+    { name: "Itaipava 269ml", price: 3.00 },
+    { name: "Itaipava 350ml", price: 3.50 },
+    { name: "Original 269ml", price: 4.50 },
+    { name: "Original 350ml", price: 5.50 },
+    { name: "Brahma 350ml", price: 4.50 },
+    { name: "Brahma Duplo Malte 350ml", price: 5.00 },
+    { name: "Heineken 350ml", price: 6.50 },
+    { name: "Heineken Zero 350ml", price: 6.50 },
+    { name: "Eisenbahn Amarela", price: 5.50 },
+    { name: "Eisenbahn Verde", price: 5.50 },
+    { name: "Budweiser 269ml ", price: 4.50 },
+    { name: "Petra 350ml", price: 4.50 },
+    { name: "Império 269ml", price: 4.00 },
+    { name: "Império 350ml", price: 4.50 },
+    { name: "Amstel 269ml", price: 4.50 },
+    { name: "Amstel 350ml", price: 5.50 },
+    { name: "Spaten 350ml", price: 6.50 },
+    { name: "Skol Beats Senses", price: 9.00 },
+    { name: "Skol Beats GT", price: 9.00 },
+    { name: "Longneck Budweiser", price: 10.00 },
+    { name: "Longneck Corona", price: 10.00 },
+    { name: "Longneck Heineken", price: 10.00 },
+    { name: "Longneck Heineken 0%", price: 10.00 },
+    { name: "Longneck Stella", price: 10.00 },
+    { name: "Longneck Skol Beats Senses", price: 12.00 },
+    { name: "Longneck Skol Beats GT", price: 12.00 }
+  ],
+"Vinhos": [
+    { name: "Dani 700ml", price: 22.00 },
+    { name: "Cantinho do Vale 880ml", price: 6.00 },
+    { name: "Cantinho do Vale 2L", price: 12.00 },
+    { name: "Dom Nogueira 900ml", price: 20.00 },
+    { name: "Sangue de Boi Suave 1L", price: 20.00 },
+    { name: "Sangue de Boi Seco 1L", price: 20.00 },
+    { name: "Pergola 1L", price: 28.00 },
+    { name: "Chopp de Vinho Draft 600ml", price: 15.00 },
+    { name: "Longneck Skol Beats GT", price: 12.00 }
+  ],
+  "Refrigerantes": [
+    { name: "Coca-Cola 2L", price: 12.00 },
+    { name: "Coca-Cola Zero 2L", price: 12.00 },
+    { name: "Coca-Cola 1L", price: 9.00 },
+    { name: "Coca-Cola Zero 1L", price: 9.00 },
+    { name: "Fanta Laranja 2L", price: 12.00 },
+    { name: "Guaraná Antatica 2L", price: 12.00 },
+    { name: "TISS Sabores 2L", price: 7.50 },
+    { name: "Coca-Cola 200ml", price: 3.00 },
+    { name: "Coca-Cola 600ml", price: 8.00 },
+    { name: "Guaraná Antarctica 600ml", price: 6.00 },
+    { name: "Coca-Cola Lata", price: 6.00 },
+    { name: "Coca-Cola Zero 200ml", price: 3.00 },
+    { name: "Coca-Cola 600ml", price: 8.00 },
+    { name: "Coca-Cola Zero 600ml", price: 8.00 },
+    { name: "Sprite 2L", price: 12.00 },
+    { name: "Schweppes 1,5L", price: 12.00 },
+    { name: "Schweppes Cítrus", price: 12.00 },
+    { name: "Schweppes Tônica", price: 12.00 }, 
+    { name: "Pepsi 600ml", price: 6.00 },
+    { name: "Guaranita 600ml", price: 6.00 }
+  ],
+  "Energéticos": [
+    { name: "Red Bull Tradicional 250ml", price: 12.00 },
+    { name: "Red Bull Zero Açúcar 250ml", price: 12.00 },
+    { name: "Red Bull Coco com Açaí 250ml", price: 12.00 },
+    { name: "Red Bull Frutas Vermelhas 250ml", price: 12.00 },
+    { name: "Red Bull Açaí 250ml", price: 12.00 },
+    { name: "Red Bull Figo com Maçã 250ml", price: 12.00 },
+    { name: "Red Bull Pitaya 250ml", price: 12.00 },
+    { name: "Red Bull Melancia 250ml", price: 12.00 },
+    { name: "Red Bull Tropical 250ml", price: 12.00 },
+    { name: "Red Bull Cereja 250ml", price: 12.00 },
+    { name: "Red Bull Melão e Maracujá 250ml", price: 12.00 },
+    { name: "Red Bull Pera e Canela 250ml", price: 12.00 },
+    { name: "Monster Tradicional 500ml", price: 13.00 },
+    { name: "Monster Manga 500ml", price: 13.00 },
+    { name: "Monster Melancia 500ml", price: 13.00 },
+    { name: "Baly 2 Litros Melancia", price: 16.00 },
+    { name: "Baly 2 Litros Morango e Pêssego", price: 16.00 },
+    { name: "Baly 2 Litros Maçã Verde", price: 16.00 },
+    { name: "Baly 2 Litros Tropical", price: 16.00 },
+    { name: "Fusion 2 Litros", price: 20.00 },
+    { name: "Big Boss 2 Litros", price: 14.00 }
+  ],
+  "Corotes": [
+    { name: "Corote Puro", price: 6.00 },
+    { name: "Corote Limão", price: 6.00 },
+    { name: "Corote Maracuja", price: 6.00 },
+    { name: "Corote Blueberry", price: 6.00 },
+    { name: "Corote Melância", price: 6.00 },
+    { name: "Corote Morango", price: 6.00 }
+  ],
+  "Caipirinhas": [
+    { name: "Caipirinha de Limão", price: 20.00 },
+    { name: "Caipirinha de Morango", price: 25.00 },
+    { name: "Caipirinha de Morango com Limão", price: 28.00 },
+    { name: "Caipirinha de Morango com Laranja", price: 35.00 },
+    { name: "Caipirinha de Maracujá", price: 20.00 },
+    { name: "Caipirinha de Kiwi", price: 25.00 },
+    { name: "Caipirinha de Limão com Maracujá", price: 25.00 },
+    { name: "Caipirinha de Kiwi com Maracujá", price: 29.00 },
+    { name: "Caipirinha de Morango com Maracujá", price: 29.00 },
+    { name: "Caipirinha de Manga com Maracujá", price: 29.00 },
+    { name: "Caipirinha de Manga com Limão", price: 25.00 },
+    { name: "Caipirinha de Goiaba com Limão", price: 25.00 },
+    { name: "Caipirinha de Uva com Limão", price: 27.00 },
+    { name: "Caipirinha de Uva com Kiwi", price: 29.00 },
+    { name: "Caipirinha de Abacaxi", price: 22.00 },
+    { name: "Caipirinha de Abacaxi com Limão", price: 27.00 },
+    { name: "Caipirinha de Abacaxi com Morango", price: 29.00 },
+    { name: "Caipirinha de Abacaxi com Hortelã", price: 27.00 },
+    { name: "Caipirinha de Limão com Ice", price: 30.00 },
+    { name: "Caipirinha de Morango com Ice", price: 30.00 },
+    { name: "Caipirinha de Kiwi com Ice", price: 30.00 },
+    { name: "Caipirinha de Maracujá com Ice", price: 30.00 },
+    { name: "Caipirinha de Uva com Ice", price: 30.00 },
+    { name: "Caipirinha de Abacaxi com Ice", price: 30.00 },
+    { name: "Caipirinha de GT com Maracujá", price: 32.00 },
+    { name: "Caipirinha de Limão com Ice ZERO", price: 30.00 },
+    { name: "Caipirinha de Morango com Ice ZERO", price: 30.00 },
+    { name: "Caipirinha de Kiwi com Ice ZERO", price: 30.00 },
+    { name: "Caipirinha de Maracujá com Ice ZERO", price: 30.00 },
+    { name: "Caipirinha de Uva com Ice ZERO", price: 30.00 },
+    { name: "Caipirinha de Abacaxi com Ice ZERO", price: 30.00 },
+    { name: "Caipicerva de Limão com Corona ou Heineken", price: 30.00 },
+    { name: "Caipicerva de Limão com Corona ou Heineken ZERO", price: 30.00 },
+    { name: "Caipicerva de Maracujá com Corona ou Heineken", price: 30.00 },
+    { name: "Caipicerva de Maracujá com Corona ou Heineken ZERO", price: 30.00 }
+  ],
+  "Drinks 43": [
+    { name: "Refresco 43 - Licor 43, limão e laranja.", price: 38.00 },
+    { name: "Abacaxi 43 - Licor 43, limão e abacaxi", price: 38.00 },
+    { name: "Summer 43 - Licor 43, pessego e morango", price: 45.00 },
+    { name: "Morty 43 - Licor 43, maracuja e morango", price: 45.00 },
+    { name: "Limão 43 - Licor 43, limão", price: 38.00 },
+    { name: "Tropical do Vilão - Licor 43, maracujá", price: 45.00 },
+    { name: "Pêssego 43 - Licor 43, limão, pêssego", price: 45.00 },
+    { name: "Ice 43 - Licor 43, limão, Smirnoff Ice limão", price: 45.00 },
+    { name: "Cerva 43 - Licor 43, limão, Corona ou Heineken", price: 45.00 },
+    { name: "Red 43 - Licor 43, limão, redbull", price: 45.00 },
+    { name: "Na Corona 43 - Licor 43, limão e corona", price: 20.00 }
+  ],
+  "Drinks Gourmet": [
+    { name: "Rick and Morty - Licor, Vodka e Energético da Casa", price: 28.00 },
+    { name: "Copo da Barbie - Licor Balena, Redbull e frutas verelhas.", price: 52.00 },
+    { name: "Drink Cannabis - Vidka cannabis, frutas a escolha", price: 45.00 },
+    { name: "Jack Maracujá - Maracujá, limão e Jack Daniel's", price: 45.00 },
+    { name: "Cabelo Verde - Kiwi, Limão e Jack Daniels's Maça Verde", price: 45.00 },
+    { name: "Jack Limão - Limão, Jack Daniel's", price: 38.00 }
+  ],
+  "Batidas": [
+    { name: "Nevada do Rick - Limão e leite condensado.", price: 28.00 },
+    { name: "Maracujá", price: 28.00 },
+    { name: "Maracujá com Ovomaltine", price: 33.00 },
+    { name: "Maracujá com Chocolate", price: 37.00 },
+    { name: "Mr. Poppy, Maracujá, leite condensado e paçoca", price: 33.00 },
+    { name: "Ovomaltine", price: 28.00 },
+    { name: "Chocolate", price: 28.00 },
+    { name: "Batida de Oreo", price: 28.00 },
+    { name: "Chocolate com Morango", price: 37.00 },
+    { name: "Morango", price: 28.00 },
+    { name: "Paçoca", price: 28.00 },
+    { name: "Coco", price: 28.00 }
+  ],
+  "Batidas Kids 0%": [
+    { name: "Nevada do Rick - Limão e leite condensado.", price: 15.00 },
+    { name: "Maracujá", price: 19.00 },
+    { name: "Maracujá com Ovomaltine", price: 19.00 },
+    { name: "Maracujá com Chocolate", price: 19.00 },
+    { name: "Mr. Poppy, Maracujá, leite condensado e paçoca.", price: 19.00 },
+    { name: "Ovomaltine", price: 19.00 },
+    { name: "Chocolate", price: 24.00 },
+    { name: "Batida de Oreo", price: 24.00 },
+    { name: "Chocolate com Morango", price: 24.00 },
+    { name: "Morango", price: 15.00 },
+    { name: "Paçoca", price: 15.00 },
+    { name: "Coco", price: 19.00 }
+  ],
+  "Ices": [
+    { name: "51 Ice Limão", price: 10.00 },
+    { name: "51 Ice Kiwi", price: 10.00 },
+    { name: "51 Ice Maracujá", price: 10.00 },
+    { name: "51 Ice Morango", price: 10.00 },
+    { name: "Smirnoff Ice", price: 10.00 },
+    { name: "Keep Cooler", price: 10.00 },
+    { name: "Pina Colada", price: 10.00 }
+  ],
+  "Gelos": [
+    { name: "Gelo de Coco", price: 4.00 },
+    { name: "Gelo de Maracujá", price: 4.00 },
+    { name: "Gelo de Morango", price: 4.00 },
+    { name: "Gelo de Maçã Verde", price: 4.00 },
+    { name: "Gelo de Melancia", price: 4.00 },
+    { name: "Gelo Comum 5kg", price: 15.00 }
+  ],
+  "Água": [
+    { name: "Água 500ml", price: 3.00 },
+    { name: "Água 1,5L", price: 5.50 },
+    { name: "Água com Gás", price: 3.50 }
+  ],
+  "Gins": [
+    { name: "Gin Bulldog", price: 50.00 },
+    { name: "Gin Gordons Tradicional", price: 45.00 },
+    { name: "Gin Gordons Rosa", price: 48.00 },
+    { name: "Gin Rocks Seco", price: 40.00 },
+    { name: "Gin Rocks Rosa", price: 42.00 },
+    { name: "Gin Intencion Tradicional", price: 50.00 },
+    { name: "Gin Intencion Rosa", price: 52.00 },
+    { name: "Gin Ópera Rosa", price: 55.00 },
+    { name: "Gin Ópera Melancia", price: 56.00 }
+  ],
+  "Vodkas": [
+    { name: "Vodka", price: 15.00 },
+    { name: "Vodka Askov Tradicional", price: 20.00 },
+    { name: "Vodka Askov Limão", price: 20.00 },
+    { name: "Vodka Askov Blueberry", price: 20.00 },
+    { name: "Vodka Askov Maracujá", price: 20.00 },
+    { name: "Vodka Askov Frutas Vermelhas", price: 20.00 },
+    { name: "Vodka Ciroc Tradicional", price: 185.00 },
+    { name: "Vodka Ciroc Melancia", price: 290.00 },
+    { name: "Vodka Ciroc Moschino", price: 290.00 },
+    { name: "Vodka Ciroc Maçã Verde", price: 290.00 },
+    { name: "Vodka Ciroc Black Raspberry", price: 190.00 },
+    { name: "Vodka Ciroc Abacaxi", price: 290.00 },
+    { name: "Vodka Ciroc Coconut", price: 290.00 },
+    { name: "Vodka Ciroc Pêssego", price: 290.00 },
+    { name: "Vodka Absolut Tradicional", price: 115.00 },
+    { name: "Vodka Absolut Peppar", price: 130.00 },
+    { name: "Vodka Absolut Melancia", price: 130.00 },
+    { name: "Vodka Absolut Extrakt", price: 130.00 },
+    { name: "Vodka Absolut Elyx", price: 130.00 },
+    { name: "Vodka Absolut Vanilla", price: 130.00 },
+    { name: "Vodka Absolut Raspberry", price: 130.00 },
+    { name: "Vodka Absolut Citron", price: 130.00 }
+  ],
+  "Whiskys": [
+    { name: "Whisky Jack Daniel's Tradicional", price: 165.00 },
+    { name: "Whisky Jack Sinatra", price: 1300.00 },
+    { name: "Whisky Jack Single Barrel", price: 380.00 },
+    { name: "Whisky Jack Edição Limitada", price: 330.00 },
+    { name: "Whisky Jack Master Distiller", price: 330.00 },
+    { name: "Whisky Jack Rye", price: 330.00 },
+    { name: "Whisky Jack White Rabbit", price: 330.00 },
+    { name: "Whisky Jack Maçã", price: 330.00 },
+    { name: "Whisky Jack Canela", price: 330.00 },
+    { name: "Whisky Jack Mel", price: 330.00 },
+    { name: "Whisky Chivas Regal 12 anos", price: 189.00 },
+    { name: "Whisky Chivas Regal 15 anos", price: 390.00 },
+    { name: "Whisky Chivas Regal 18 anos", price: 550.00 },
+    { name: "Whisky Buchanan’s 12 anos", price: 220.00 },
+    { name: "Whisky Buchanan’s 18 anos", price: 950.00 },
+    { name: "Whisky Ballantine's Finest", price: 95.00 },
+    { name: "Whisky Ballantine's 12 anos", price: 140.00 },
+    { name: "Whisky Ballantine's Bourbon", price: 95.00 },
+    { name: "Whisky Old Parr 12 anos", price: 180.00 },
+    { name: "Whisky Old Parr 18 anos", price: 390.00 },
+    { name: "Whisky Bullet Bourbon", price: 90.00 },
+    { name: "Whisky Woodford Reserve", price: 290.00 },
+    { name: "Whisky Cardhu", price: 130.00 },
+    { name: "Whisky Passport Tradicional", price: 65.00 },
+    { name: "Whisky Passport Mel", price: 65.00 },
+    { name: "Whisky Master Gold", price: 15.00 }
+  ],
+  "Licores": [
+    { name: "Licor Dolce di Latte", price: 65.00 },
+    { name: "Licor 43 Tradicional", price: 175.00 },
+    { name: "Licor 43 Chocolate", price: 215.00 },
+    { name: "Licor 43 Baristo", price: 215.00 },
+    { name: "Licor 43 Creme Brulé", price: 215.00 },
+    { name: "Licor Amarula Tradicional", price: 149.00 },
+    { name: "Licor Amarula Raspberry", price: 189.00 },
+    { name: "Licor Amarula Vanilla Spice", price: 180.00 },
+    { name: "Licor Amarula Chocolate Raspberry", price: 189.00 },
+    { name: "Licor Amarula Ethiopian Coffee", price: 189.00 },
+    { name: "Catuaba Selvagem", price: 22.00 },
+    { name: "Catuaba Açaí", price: 22.00 }
+  ],
+  "Sucos": [
+    { name: "Suco Laranja 1L", price: 12.00 },
+    { name: "Suco Pêssego 1L", price: 12.00 },
+    { name: "Suco Uva 1L", price: 12.00 },
+    { name: "Suco Maracujá 1L", price: 12.00 },
+    { name: "Suco Goiaba 1L", price: 12.00 },
+    { name: "Suco Manga 1L", price: 12.00 },
+    { name: "Água de Coco 1L", price: 12.00 }
+  ],
+  "Doces": [
+    { name: "Pirulito", price: 1.00 },
+    { name: "Bis Branco", price: 9.00 },
+    { name: "Bis Preto", price: 9.00 },
+    { name: "Halls Morango", price: 4.50 },
+    { name: "Halls Melancia", price: 4.50 },
+    { name: "Halls Preto", price: 4.50 },
+    { name: "Halls Menta", price: 4.50 },
+    { name: "Trident Hortelã", price: 4.50 },
+    { name: "Trident Menta", price: 4.50 },
+    { name: "Trident Tutti Fruti", price: 4.50 },
+    { name: "Trident Morango", price: 4.50 },
+    { name: "Trakinas Morango", price: 4.50 },
+    { name: "Trakinas Limão", price: 4.50 },
+    { name: "Trakinas Chocolate", price: 4.50 },
+    { name: "Passatempo Chocolate", price: 4.50 },
+    { name: "Oreo/Negresco", price: 4.50 }
+  ],
+  "Tabacaria": [
+    { name: "Rothmans Branco", price: 9.00 },
+    { name: "Rothmans Branco Solto", price: 1.00 },
+    { name: "Rothmans Vermelho", price: 9.00 },
+    { name: "Rothmans Vermelho Solto", price: 1.00 },
+    { name: "Carlton", price: 15.50 },
+    { name: "Carlton Solto", price: 1.00 },
+    { name: "Marlboro Vermelho", price: 15.50 },
+    { name: "Marlboro Vermelho Solto", price: 1.00 },
+    { name: "Marlboro Melancia", price: 15.50 },
+    { name: "Marlboro Melancia Solto", price: 1.00 },
+    { name: "Eight", price: 6.50 },
+    { name: "Eight Solto", price: 1.00 },
+    { name: "Palheiro Menta", price: 12.00 },
+    { name: "Palheiro Menta Solto", price: 2.00 },
+    { name: "Palheiro Uva", price: 12.00 },
+    { name: "Palheiro Uva Solto", price: 2.00 },
+    { name: "Palheiro Tradicional", price: 12.00 },
+    { name: "Palheiro Tradicional Solto", price: 2.00 },
+    { name: "Gudang Garand", price: 35.00 },
+    { name: "Gudang Garand Solto", price: 3.00 },
+    { name: "Essências Sabores", price: 15.00 },
+    { name: "Carvão", price: 3.00 },
+    { name: "Alumínio", price: 2.00 },
+    { name: "Seda ZOMO", price: 5.00 },
+    { name: "Seda Vidro", price: 10.00 },
+    { name: "Piteira Vidro", price: 3.00 },
+    { name: "Piteira Papel", price: 10.00 },
+    { name: "Dichavador", price: 10.00 },
+    { name: "Recipiente OCB Pratinho", price: 55.00 },
+    { name: "Gás para Isqueiro", price: 20.00 },
+    { name: "Tabaco", price: 20.00 },
+    { name: "Isqueiro BIC P", price: 5.50 },
+    { name: "Isqueiro BIC G", price: 7.00 },
+    { name: "Isqueiro Paraguai", price: 4.00 }
+  ],
+  "Diversos": [
+    { name: "Camisinha", price: 8.00 },
+    { name: "Copo 700ml", price: 2.00 },
+    { name: "Canudo Rosa ou Preto", price: 2.00 },
+    { name: "Carvão de Churrasco 2kg", price: 12.00 }
+  ]
+};
 
-// Re-export from other files to maintain the same API
-export { categories, loadCategories, saveNewCategory as saveCategory, updateExistingCategory as updateCategory, deleteExistingCategory as deleteCategory, moveCategoriesOrder as moveCategoryOrder } from './categories';
+export const bairros = [
+  { nome: "Selecione Um Bairro", taxa: 0 },
+  { nome: "Vila Maria", taxa: 3 },
+  { nome: "Jardim Bela Vista", taxa: 3 },
+  { nome: "Centro", taxa: 3 },
+  { nome: "Vl. Guarani", taxa: 4 },
+  { nome: "Vila Nova São José", taxa: 4 },
+  { nome: "Monte Castelo", taxa: 4 },
+  { nome: "Vl. São Pedro", taxa: 5 },
+  { nome: "Vl Zizinha", taxa: 5 },
+  { nome: "Vl Teresinha", taxa: 5 },
+  { nome: "Vila Machado", taxa: 5 },
+  { nome: "Vila Industrial", taxa: 5 },
+  { nome: "Vila Guarani", taxa: 5 },
+  { nome: "Vila Cristina", taxa: 5 },
+  { nome: "São Dimas", taxa: 5 },
+  { nome: "Santana", taxa: 5 },
+  { nome: "Jd. Paulista", taxa: 5 },
+  { nome: "Jd. Oswaldo Cruz", taxa: 5 },
+  { nome: "Jd Augusta", taxa: 5 },
+  { nome: "Vl. Betania", taxa: 6 },
+  { nome: "Vl. Adyana", taxa: 6 },
+  { nome: "Vl. Candida", taxa: 6 },
+  { nome: "Jd. Sao Dimas", taxa: 6 },
+  { nome: "Jd. Maringa", taxa: 6 },
+  { nome: "Jd. Apolo", taxa: 6 },
+  { nome: "Jd Minas Gerais", taxa: 6 },
+  { nome: "Jd. Telespark", taxa: 7 },
+  { nome: "Vila Tesouro", taxa: 8 },
+  { nome: "Vila São Geraldo", taxa: 8 },
+  { nome: "Vila Paiva", taxa: 8 },
+  { nome: "Vila Ema", taxa: 8 },
+  { nome: "Jd. Das Colinas", taxa: 8 },
+  { nome: "Jardim Da Granja", taxa: 8 },
+  { nome: "Boa Vista", taxa: 8 },
+  { nome: "Altos De Santana", taxa: 8 },
+  { nome: "Aguas De Canindu", taxa: 8 },
+  { nome: "Motorama", taxa: 9 },
+  { nome: "Vista Verde", taxa: 10 },
+  { nome: "Residencial São Francisco", taxa: 10 },
+  { nome: "Parque Industrial", taxa: 10 },
+  { nome: "Esplanada Do Sol", taxa: 10 },
+  { nome: "Vila São Bento", taxa: 10 },
+  { nome: "Vale Do Sol", taxa: 12 },
+  { nome: "Urbanova", taxa: 12 },
+  { nome: "Satelite", taxa: 12 },
+  { nome: "Pararangaba", taxa: 12 },
+  { nome: "Novo Horizonte", taxa: 12 },
+  { nome: "Jd. Das Industrias", taxa: 12 },
+  { nome: "Jd. Portugal", taxa: 12 },
+  { nome: "Jd. Nova Republica", taxa: 12 },
+  { nome: "Jd. Morumbi", taxa: 12 },
+  { nome: "Jd. Colonial", taxa: 12 },
+  { nome: "Jd. Aquarius", taxa: 12 },
+  { nome: "Jd. America", taxa: 12 },
+  { nome: "Jd. Alvorada", taxa: 12 },
+  { nome: "Jardim Sao Vicente", taxa: 12 },
+  { nome: "D Pedro II", taxa: 12 },
+  { nome: "D Pedro I", taxa: 12 },
+  { nome: "Conj. 31 De Março", taxa: 12 },
+  { nome: "Campo Dos Alemaes", taxa: 12 },
+  { nome: "Bosque Dos Ypes", taxa: 12 },
+  { nome: "Bosque Dos Eucalipitos", taxa: 12 },
+  { nome: "Nova Michigan", taxa: 13 },
+  { nome: "Jd. Nova Michigan", taxa: 13 },
+  { nome: "Paraiso Do Sol", taxa: 15 },
+  { nome: "Campos De São Jose", taxa: 15 },
+  { nome: "Buquirinha II", taxa: 15 },
+  { nome: "Jd. Imperial", taxa: 15 },
+  { nome: "Jardim Santa Ines III", taxa: 16 },
+  { nome: "Jardim Jatoba", taxa: 16 },
+  { nome: "Interlagos", taxa: 16 },
+  { nome: "Galo Branco", taxa: 18 }
+];
 
-export { 
-  bairrosList, 
-  loadBairros,
-  saveBairro,
-  updateBairro,
-  deleteBairro
-} from './bairros';
+export const iceFlavors = ["Coco", "Melancia", "Maracujá", "Maçã Verde", "Morango", "Gelo de Água"];
 
-export {
-  alcoholOptions, 
-  iceFlavors, 
-  getMaxIce, 
-  requiresFlavor, 
-  requiresAlcoholChoice,
-  loadIceFlavors,
-  loadAlcoholOptions
-} from './ice-and-alcohol';
+export const alcoholOptions = [
+  { name: "Vodka", extraCost: 0 },
+  { name: "Pinga", extraCost: 0 },
+  { name: "Jurupinga", extraCost: 10 },
+  { name: "Whisky", extraCost: 10 },
+  { name: "Gin", extraCost: 10 },
+  { name: "Saquê", extraCost: 10 },
+];
 
-// Combine the products from both files
-const allProducts = { ...products, ...otherCategoryProducts };
+export const gerarCodigoPedido = () => `A${Math.floor(1000 + Math.random() * 9000)}`;
 
-export const loadProductsByCategory = async (category: string) => {
+export const requiresFlavor = (category: string) => {
+  return [
+    "Copão Whisky", "Copão Vodka", "Copão Gin",
+    "Combos Whisky", "Combos Vodka", "Combos Gin"
+  ].includes(category);
+};
+
+export const requiresAlcoholChoice = (category: string) => category === "Caipirinhas";
+
+export const getMaxIce = (category: string) => {
+  if (["Copão Whisky", "Copão Vodka", "Copão Gin"].includes(category)) return 1;
+  if (["Combos Whisky", "Combos Vodka", "Combos Gin"].includes(category)) return 5;
+  return 0;
+};
+
+// Local Storage functions to save/load data
+const PRODUCTS_STORAGE_KEY = 'adegavm_products';
+const CATEGORIES_STORAGE_KEY = 'adegavm_categories';
+const BAIRROS_STORAGE_KEY = 'adegavm_bairros';
+
+// Load data from localStorage on initialization
+const loadFromStorage = () => {
   try {
-    return await fetchProducts(category);
+    // Load products
+    const storedProducts = localStorage.getItem(PRODUCTS_STORAGE_KEY);
+    if (storedProducts) {
+      Object.assign(products, JSON.parse(storedProducts));
+    }
+    
+    // Load categories
+    const storedCategories = localStorage.getItem(CATEGORIES_STORAGE_KEY);
+    if (storedCategories) {
+      const parsedCategories = JSON.parse(storedCategories);
+      categories.length = 0; // Clear the array
+      categories.push(...parsedCategories);
+    }
+    
+    // Load bairros
+    const storedBairros = localStorage.getItem(BAIRROS_STORAGE_KEY);
+    if (storedBairros) {
+      const parsedBairros = JSON.parse(storedBairros);
+      bairros.length = 0; // Clear the array
+      bairros.push(...parsedBairros);
+    }
   } catch (error) {
-    console.error("Error loading products:", error);
-    return allProducts[category] || [];
+    console.error('Error loading data from localStorage:', error);
   }
 };
 
-export const saveProduct = async (product: Product) => {
-  return await saveProductService(product);
-};
-
-export const updateProduct = async (product: Product, oldName: string) => {
-  return await updateProductService(product, oldName);
-};
-
-export const deleteProduct = async (product: Pick<Product, 'name' | 'category'>) => {
-  return await deleteProductService(product);
-};
-
-export const migrateStaticDataToSupabase = async () => {
-  console.log("Starting migration of static data to Supabase...");
+// Save products to localStorage
+export const saveProducts = (updatedProducts: Record<string, any[]>) => {
   try {
-    const result = await migrateExistingData(
-      categories, 
-      allProducts, 
-      bairrosList, 
-      iceFlavors, 
-      alcoholOptions
-    );
-    console.log("Migration completed successfully:", result);
-    return result;
+    localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(updatedProducts));
+    Object.assign(products, updatedProducts);
   } catch (error) {
-    console.error("Error during migration:", error);
-    throw error;
+    console.error('Error saving products to localStorage:', error);
   }
 };
 
-export const gerarCodigoPedido = () => {
-  const data = new Date();
-  const dia = data.getDate().toString().padStart(2, '0');
-  const mes = (data.getMonth() + 1).toString().padStart(2, '0');
-  const ano = data.getFullYear().toString().slice(-2);
-  const horas = data.getHours().toString().padStart(2, '0');
-  const minutos = data.getMinutes().toString().padStart(2, '0');
-  
-  return `${dia}${mes}${ano}-${horas}${minutos}`;
+// Save categories to localStorage
+export const saveCategories = (updatedCategories: string[]) => {
+  try {
+    localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(updatedCategories));
+    categories.length = 0; // Clear the array
+    categories.push(...updatedCategories);
+  } catch (error) {
+    console.error('Error saving categories to localStorage:', error);
+  }
 };
+
+// Save bairros to localStorage
+export const saveBairros = (updatedBairros: any[]) => {
+  try {
+    localStorage.setItem(BAIRROS_STORAGE_KEY, JSON.stringify(updatedBairros));
+    bairros.length = 0; // Clear the array
+    bairros.push(...updatedBairros);
+  } catch (error) {
+    console.error('Error saving bairros to localStorage:', error);
+  }
+};
+
+// Initialize by loading data from localStorage
+loadFromStorage();
