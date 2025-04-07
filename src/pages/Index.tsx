@@ -13,11 +13,25 @@ import AdminLink from '../components/AdminLink';
 import { useCart } from '../hooks/useCart';
 import { migrateStaticDataToSupabase } from '../data/products';
 import { supabase } from '@/integrations/supabase/client';
+import { FormData, Bairro } from '../types';
 
 const Index = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [initialDataLoaded, setInitialDataLoaded] = useState(false);
   const { toast } = useToast();
+  const [form, setForm] = useState<FormData>({
+    nome: '',
+    endereco: '',
+    numero: '',
+    complemento: '',
+    referencia: '',
+    observacao: '',
+    whatsapp: '',
+    bairro: { nome: 'Selecione Um Bairro', taxa: 0 },
+    pagamento: '',
+    troco: ''
+  });
+  
   const {
     cart,
     activeCategory,
@@ -101,10 +115,26 @@ const Index = () => {
     );
   }
 
+  const handleCheckoutSubmit = () => {
+    // Add checkout submission logic here
+    console.log("Submitting order:", { cart, form });
+    toast({
+      title: "Pedido enviado",
+      description: "Seu pedido foi enviado com sucesso!",
+    });
+    setShowSummary(false);
+  };
+
   if (showSummary) {
     return (
       <PageLayout>
-        <CheckoutView cart={cart} onBack={() => setShowSummary(false)} />
+        <CheckoutView 
+          cart={cart}
+          form={form}
+          setForm={setForm}
+          onBackToProducts={() => setShowSummary(false)}
+          onSubmit={handleCheckoutSubmit}
+        />
       </PageLayout>
     );
   }
@@ -140,9 +170,10 @@ const Index = () => {
       
       {isFlavorModalOpen && selectedProductForFlavor && (
         <FlavorSelectionModal
+          isOpen={isFlavorModalOpen}
           product={selectedProductForFlavor}
-          iceSelection={selectedIce}
-          onUpdateIce={updateIceQuantity}
+          selectedIce={selectedIce}
+          updateIceQuantity={updateIceQuantity}
           onClose={() => setIsFlavorModalOpen(false)}
           onConfirm={confirmFlavorSelection}
         />
@@ -150,9 +181,10 @@ const Index = () => {
       
       {isAlcoholModalOpen && selectedProductForAlcohol && (
         <AlcoholSelectionModal
+          isOpen={isAlcoholModalOpen}
           product={selectedProductForAlcohol}
           selectedAlcohol={selectedAlcohol}
-          onSelectAlcohol={setSelectedAlcohol}
+          setSelectedAlcohol={setSelectedAlcohol}
           onClose={() => setIsAlcoholModalOpen(false)}
           onConfirm={confirmAlcoholSelection}
         />
