@@ -602,6 +602,7 @@ export const bairros = [
   { nome: "Vila Maria", taxa: 3 },
   { nome: "Jardim Bela Vista", taxa: 3 },
   { nome: "Centro", taxa: 3 },
+  { nome: "Banhado", taxa: 5 },
   { nome: "Vl. Guarani", taxa: 4 },
   { nome: "Vila Nova São José", taxa: 4 },
   { nome: "Monte Castelo", taxa: 4 },
