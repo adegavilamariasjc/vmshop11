@@ -53,7 +53,7 @@ const AddressLookupField: React.FC<AddressLookupFieldProps> = ({ onAddressFound 
   };
 
   return (
-    <FormField id="cep" label="CEP (Buscar Endereço)">
+    <FormField id="cep" label="CEP (Buscar Endereço - Opcional)">
       <div className="flex">
         <input
           id="cep"
