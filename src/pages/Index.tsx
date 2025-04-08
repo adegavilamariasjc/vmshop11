@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../hooks/useCart';
 import { AnimatePresence } from 'framer-motion';
@@ -61,7 +60,7 @@ const Index = () => {
       try {
         const { data, error } = await supabase
           .from('bairros')
-          .select('nome:name, taxa')
+          .select('nome, taxa')
           .order('nome');
         
         if (error) {
@@ -70,13 +69,11 @@ const Index = () => {
           return;
         }
         
-        // Transform Supabase data format to match our app's format
         const formattedBairros = data.map(b => ({
           nome: b.nome,
           taxa: b.taxa
         }));
         
-        // Make sure we always have the default "Selecione Um Bairro" option
         if (!formattedBairros.find(b => b.nome === "Selecione Um Bairro")) {
           formattedBairros.unshift({ nome: "Selecione Um Bairro", taxa: 0 });
         }

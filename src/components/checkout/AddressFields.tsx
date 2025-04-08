@@ -1,88 +1,82 @@
 
 import React from 'react';
-import { FormData } from '../../types';
 import FormField from './FormField';
 
 interface AddressFieldsProps {
-  form: FormData;
-  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  endereco: string;
+  numero: string;
+  complemento: string;
+  referencia: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
 }
 
-const AddressFields: React.FC<AddressFieldsProps> = ({ form, handleChange }) => {
+const AddressFields: React.FC<AddressFieldsProps> = ({ 
+  endereco, 
+  numero, 
+  complemento, 
+  referencia, 
+  onChange 
+}) => {
   return (
-    <>
-      <div className="col-span-1">
+    <div className="space-y-3 grid grid-cols-2 gap-3">
+      <div className="col-span-2">
         <FormField id="endereco" label="Endereço" required>
           <input
             id="endereco"
             name="endereco"
             type="text"
-            value={form.endereco}
-            onChange={handleChange}
-            className="w-full p-3 bg-gray-900 border border-gray-600 rounded-md text-white"
+            value={endereco}
+            onChange={onChange}
+            className="w-full bg-gray-800 text-white border border-gray-700 rounded-md p-2 text-sm"
             placeholder="Rua / Avenida"
             required
           />
         </FormField>
       </div>
       
-      <div className="col-span-1">
+      <div>
         <FormField id="numero" label="Número" required>
           <input
             id="numero"
             name="numero"
             type="text"
-            value={form.numero}
-            onChange={handleChange}
-            className="w-full p-3 bg-gray-900 border border-gray-600 rounded-md text-white"
+            value={numero}
+            onChange={onChange}
+            className="w-full bg-gray-800 text-white border border-gray-700 rounded-md p-2 text-sm"
             placeholder="Número"
             required
           />
         </FormField>
       </div>
       
-      <div className="col-span-1">
+      <div>
         <FormField id="complemento" label="Complemento">
           <input
             id="complemento"
             name="complemento"
             type="text"
-            value={form.complemento}
-            onChange={handleChange}
-            className="w-full p-3 bg-gray-900 border border-gray-600 rounded-md text-white"
+            value={complemento}
+            onChange={onChange}
+            className="w-full bg-gray-800 text-white border border-gray-700 rounded-md p-2 text-sm"
             placeholder="Apto / Casa / Bloco"
           />
         </FormField>
       </div>
       
-      <div className="col-span-1">
+      <div className="col-span-2">
         <FormField id="referencia" label="Referência">
           <input
             id="referencia"
             name="referencia"
             type="text"
-            value={form.referencia}
-            onChange={handleChange}
-            className="w-full p-3 bg-gray-900 border border-gray-600 rounded-md text-white"
+            value={referencia}
+            onChange={onChange}
+            className="w-full bg-gray-800 text-white border border-gray-700 rounded-md p-2 text-sm"
             placeholder="Próximo a..."
           />
         </FormField>
       </div>
-      
-      <div className="col-span-2">
-        <FormField id="observacao" label="Observações">
-          <textarea
-            id="observacao"
-            name="observacao"
-            value={form.observacao}
-            onChange={handleChange}
-            className="w-full p-3 bg-gray-900 border border-gray-600 rounded-md text-white"
-            placeholder="Alguma observação especial?"
-            rows={3}
-          />
-        </FormField>
-      </div>
-    </>
+    </div>
   );
 };
 

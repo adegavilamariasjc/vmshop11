@@ -1,74 +1,51 @@
 
 import React from 'react';
-import { FormData } from '../../types';
 import FormField from './FormField';
-import AddressLookupField from './AddressLookupField';
-import { Bairro } from '../../types';
 
 interface PersonalInfoFieldsProps {
-  form: FormData;
-  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  formatWhatsApp: (number: string) => string;
-  onAddressFound: (address: { street: string, neighborhood: string }) => void;
+  nome: string;
+  whatsapp: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
 }
 
-const PersonalInfoFields: React.FC<PersonalInfoFieldsProps> = ({ 
-  form, 
-  handleChange, 
-  formatWhatsApp, 
-  onAddressFound 
+const PersonalInfoFields: React.FC<PersonalInfoFieldsProps> = ({
+  nome,
+  whatsapp,
+  onChange
 }) => {
-  const handleWhatsAppChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formattedValue = formatWhatsApp(e.target.value);
-    const event = {
-      ...e,
-      target: {
-        ...e.target,
-        name: 'whatsapp',
-        value: formattedValue
-      }
-    } as React.ChangeEvent<HTMLInputElement>;
-    
-    handleChange(event);
-  };
-
   return (
-    <>
-      <div className="col-span-2">
+    <div className="space-y-3">
+      <div>
         <FormField id="nome" label="Nome" required>
           <input
             id="nome"
             name="nome"
             type="text"
-            value={form.nome}
-            onChange={handleChange}
-            className="w-full p-3 bg-gray-900 border border-gray-600 rounded-md text-white"
+            value={nome}
+            onChange={onChange}
+            className="w-full bg-gray-800 text-white border border-gray-700 rounded-md p-2 text-sm"
             placeholder="Seu nome completo"
             required
           />
         </FormField>
       </div>
       
-      <div className="col-span-2 md:col-span-1">
-        <AddressLookupField onAddressFound={onAddressFound} />
-      </div>
-      
-      <div className="col-span-2 md:col-span-1">
+      <div>
         <FormField id="whatsapp" label="WhatsApp" required>
           <input
             id="whatsapp"
             name="whatsapp"
             type="text"
-            value={form.whatsapp}
-            onChange={handleWhatsAppChange}
-            className="w-full p-3 bg-gray-900 border border-gray-600 rounded-md text-white"
+            value={whatsapp}
+            onChange={onChange}
+            className="w-full bg-gray-800 text-white border border-gray-700 rounded-md p-2 text-sm"
             placeholder="Ex: 12999999999"
             required
-            maxLength={11}
+            maxLength={14}
           />
         </FormField>
       </div>
-    </>
+    </div>
   );
 };
 
