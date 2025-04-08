@@ -74,10 +74,6 @@ const Index = () => {
           taxa: b.taxa
         }));
         
-        if (!formattedBairros.find(b => b.nome === "Selecione Um Bairro")) {
-          formattedBairros.unshift({ nome: "Selecione Um Bairro", taxa: 0 });
-        }
-        
         setBairros(formattedBairros);
       } catch (err) {
         console.error('Unexpected error fetching bairros:', err);
