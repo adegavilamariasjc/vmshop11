@@ -1,84 +1,97 @@
 
 import React from 'react';
-import { FormData, Bairro } from '../../types';
-import { bairros } from '../../data/products';
-import FormField from './FormField';
 
 interface LocationAndPaymentFieldsProps {
-  form: FormData;
-  handleBairroChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  handlePagamentoChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  bairro: string;
+  pagamento: string;
+  troco: string;
+  bairros: { nome: string; taxa: number }[];
+  observacao: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
 }
 
 const LocationAndPaymentFields: React.FC<LocationAndPaymentFieldsProps> = ({
-  form,
-  handleBairroChange,
-  handlePagamentoChange,
-  handleChange
+  bairro,
+  pagamento,
+  troco,
+  bairros,
+  observacao,
+  onChange
 }) => {
   return (
-    <>
-      {/* Bairro selection */}
-      <div className="col-span-2">
-        <label htmlFor="bairro" className="block text-lg font-medium text-purple-light mb-1">
-          Selecione Um Bairro *
+    <div className="space-y-3">
+      <div>
+        <label htmlFor="bairro" className="block text-sm font-medium text-gray-300 mb-1">
+          Bairro *
         </label>
         <select
           id="bairro"
           name="bairro"
-          value={form.bairro.nome}
-          onChange={handleBairroChange}
-          className="w-full p-3 bg-gray-800 border-2 border-purple-dark rounded-md text-white"
+          value={bairro}
+          onChange={onChange}
+          className="w-full bg-gray-800 text-white border border-gray-700 rounded-md p-2 text-sm"
           required
         >
-          {bairros.map((bairro) => (
-            <option key={bairro.nome} value={bairro.nome} disabled={bairro.nome === "Selecione Um Bairro"}>
-              {bairro.nome} {bairro.taxa > 0 ? `(R$ ${bairro.taxa.toFixed(2)})` : ''}
+          {bairros.map((b) => (
+            <option key={b.nome} value={b.nome}>
+              {b.nome} {b.taxa > 0 ? `(R$ ${b.taxa.toFixed(2)})` : ''}
             </option>
           ))}
         </select>
       </div>
       
-      {/* Payment method selection */}
-      <div className="col-span-2">
-        <label htmlFor="pagamento" className="block text-lg font-medium text-purple-light mb-1">
-          Selecione Forma de Pagamento *
+      <div>
+        <label htmlFor="pagamento" className="block text-sm font-medium text-gray-300 mb-1">
+          Forma de Pagamento *
         </label>
         <select
           id="pagamento"
           name="pagamento"
-          value={form.pagamento}
-          onChange={handlePagamentoChange}
-          className="w-full p-3 bg-gray-800 border-2 border-purple-dark rounded-md text-white"
+          value={pagamento}
+          onChange={onChange}
+          className="w-full bg-gray-800 text-white border border-gray-700 rounded-md p-2 text-sm"
           required
         >
-          <option value="" disabled>Escolha uma forma de pagamento</option>
-          <option value="Cartão">Cartão</option>
-          <option value="Pix">Pix</option>
+          <option value="">Selecione...</option>
           <option value="Dinheiro">Dinheiro</option>
+          <option value="Pix">Pix</option>
+          <option value="Cartão de Crédito">Cartão de Crédito</option>
+          <option value="Cartão de Débito">Cartão de Débito</option>
         </select>
       </div>
       
-      {form.pagamento === "Dinheiro" && (
-        <div className="col-span-2">
-          <FormField id="troco" label="Troco para quanto?" required>
-            <input
-              id="troco"
-              name="troco"
-              type="number"
-              value={form.troco}
-              onChange={handleChange}
-              className="w-full p-3 bg-gray-900 border border-gray-600 rounded-md text-white"
-              placeholder="Valor para troco"
-              required
-              min="1"
-              step="0.01"
-            />
-          </FormField>
+      {pagamento === 'Dinheiro' && (
+        <div>
+          <label htmlFor="troco" className="block text-sm font-medium text-gray-300 mb-1">
+            Troco para quanto?
+          </label>
+          <input
+            type="text"
+            id="troco"
+            name="troco"
+            value={troco}
+            onChange={onChange}
+            placeholder="Exemplo: R$ 50,00"
+            className="w-full bg-gray-800 text-white border border-gray-700 rounded-md p-2 text-sm"
+          />
         </div>
       )}
-    </>
+      
+      <div>
+        <label htmlFor="observacao" className="block text-sm font-medium text-gray-300 mb-1">
+          Observações
+        </label>
+        <textarea
+          id="observacao"
+          name="observacao"
+          value={observacao}
+          onChange={onChange}
+          rows={3}
+          placeholder="Instruções para entrega, preferências, etc."
+          className="w-full bg-gray-800 text-white border border-gray-700 rounded-md p-2 text-sm"
+        />
+      </div>
+    </div>
   );
 };
 

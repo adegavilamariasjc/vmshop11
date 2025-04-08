@@ -1,9 +1,9 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Minus } from 'lucide-react';
+import { Plus, Minus, Loader2 } from 'lucide-react';
 import { Product } from '../types';
-import { products } from '../data/products';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ProductListProps {
   category: string;
@@ -13,11 +13,88 @@ interface ProductListProps {
 }
 
 const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct, onUpdateQuantity }) => {
+  const [products, setProducts] = useState<{name: string; price: number}[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        // First get category id by name
+        const { data: categoryData, error: categoryError } = await supabase
+          .from('categories')
+          .select('id')
+          .eq('name', category)
+          .single();
+
+        if (categoryError) {
+          console.error('Error fetching category:', categoryError);
+          setError('Erro ao carregar categoria');
+          setIsLoading(false);
+          return;
+        }
+
+        // Then fetch products for that category
+        const { data: productsData, error: productsError } = await supabase
+          .from('products')
+          .select('name, price')
+          .eq('category_id', categoryData.id)
+          .order('name');
+
+        if (productsError) {
+          console.error('Error fetching products:', productsError);
+          setError('Erro ao carregar produtos');
+          setIsLoading(false);
+          return;
+        }
+
+        setProducts(productsData || []);
+      } catch (err) {
+        console.error('Unexpected error:', err);
+        setError('Erro inesperado ao carregar produtos');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (category) {
+      fetchProducts();
+    }
+  }, [category]);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center py-10">
+        <Loader2 className="w-8 h-8 text-white animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center text-white py-10">
+        <p>{error}</p>
+        <p className="text-sm opacity-70">Verifique sua conexão e tente novamente</p>
+      </div>
+    );
+  }
+
+  if (products.length === 0) {
+    return (
+      <div className="text-center text-white py-10">
+        <p>Nenhum produto encontrado nesta categoria</p>
+      </div>
+    );
+  }
+
   return (
     <div className="mb-4 pb-20">
       <h2 className="text-lg font-semibold mb-3 text-white">{category}</h2>
       
-      {products[category]?.map((item) => {
+      {products.map((item) => {
         const cartItem = cart.find(p => 
           p.name === item.name && 
           p.category === category &&
@@ -54,7 +131,7 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
               </motion.span>
               
               <button
-                onClick={() => onAddProduct(item)}
+                onClick={() => onAddProduct({ ...item, category })}
                 className="w-8 h-8 flex items-center justify-center bg-purple-dark text-white rounded-full"
               >
                 <Plus size={16} />

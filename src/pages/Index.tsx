@@ -1,8 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCart } from '../hooks/useCart';
 import { AnimatePresence } from 'framer-motion';
-import { bairros, gerarCodigoPedido } from '../data/products';
+import { gerarCodigoPedido } from '../data/products';
 import { formatWhatsAppMessage } from '../utils/formatWhatsApp';
 import { FormData } from '../types';
 import PageLayout from '../components/PageLayout';
@@ -10,6 +10,8 @@ import ProductSelectionView from '../components/ProductSelectionView';
 import CheckoutView from '../components/CheckoutView';
 import FlavorSelectionModal from '../components/FlavorSelectionModal';
 import AlcoholSelectionModal from '../components/AlcoholSelectionModal';
+import { supabase } from '@/integrations/supabase/client';
+import { Loader2 } from 'lucide-react';
 
 const Index = () => {
   const {
@@ -44,10 +46,51 @@ const Index = () => {
     referencia: "",
     observacao: "",
     whatsapp: "",
-    bairro: bairros[0],
+    bairro: { nome: "Selecione Um Bairro", taxa: 0 },
     pagamento: "",
     troco: ""
   });
+  const [bairros, setBairros] = useState<{nome: string; taxa: number}[]>([
+    { nome: "Selecione Um Bairro", taxa: 0 }
+  ]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchBairros = async () => {
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('bairros')
+          .select('nome:name, taxa')
+          .order('nome');
+        
+        if (error) {
+          console.error('Error fetching bairros:', error);
+          setIsLoading(false);
+          return;
+        }
+        
+        // Transform Supabase data format to match our app's format
+        const formattedBairros = data.map(b => ({
+          nome: b.nome,
+          taxa: b.taxa
+        }));
+        
+        // Make sure we always have the default "Selecione Um Bairro" option
+        if (!formattedBairros.find(b => b.nome === "Selecione Um Bairro")) {
+          formattedBairros.unshift({ nome: "Selecione Um Bairro", taxa: 0 });
+        }
+        
+        setBairros(formattedBairros);
+      } catch (err) {
+        console.error('Unexpected error fetching bairros:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBairros();
+  }, []);
 
   const enviarPedidoWhatsApp = () => {
     if (cart.length === 0) {
@@ -91,6 +134,17 @@ const Index = () => {
     window.open(urlWhatsApp, "_blank");
   };
 
+  if (isLoading) {
+    return (
+      <PageLayout>
+        <div className="flex items-center justify-center h-screen">
+          <Loader2 className="h-8 w-8 animate-spin text-white" />
+          <span className="ml-2 text-white">Carregando dados...</span>
+        </div>
+      </PageLayout>
+    );
+  }
+
   return (
     <PageLayout>
       <AnimatePresence mode="wait">
@@ -108,6 +162,7 @@ const Index = () => {
             cart={cart}
             form={form}
             setForm={setForm}
+            bairros={bairros}
             onBackToProducts={() => setShowSummary(false)}
             onSubmit={enviarPedidoWhatsApp}
           />

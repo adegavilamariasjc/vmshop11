@@ -1,7 +1,8 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { categories } from '../data/products';
+import { supabase } from '@/integrations/supabase/client';
+import { Loader2 } from 'lucide-react';
 
 interface CategorySelectorProps {
   activeCategory: string | null;
@@ -9,25 +10,89 @@ interface CategorySelectorProps {
 }
 
 const CategorySelector: React.FC<CategorySelectorProps> = ({ activeCategory, onSelectCategory }) => {
+  const [categories, setCategories] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('categories')
+          .select('name')
+          .order('order_index');
+        
+        if (error) {
+          console.error('Error fetching categories:', error);
+          setError('Erro ao carregar categorias');
+          setIsLoading(false);
+          return;
+        }
+        
+        // Extract category names from the data
+        const categoryNames = data.map(category => category.name);
+        setCategories(categoryNames);
+        
+        // Auto-select first category if none is active
+        if (categoryNames.length > 0 && !activeCategory) {
+          onSelectCategory(categoryNames[0]);
+        }
+        
+      } catch (err) {
+        console.error('Unexpected error:', err);
+        setError('Erro inesperado ao carregar categorias');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, [activeCategory, onSelectCategory]);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-4">
+        <Loader2 className="w-6 h-6 text-white animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center text-white py-4">
+        <p>{error}</p>
+      </div>
+    );
+  }
+
+  if (categories.length === 0) {
+    return (
+      <div className="text-center text-white py-4">
+        <p>Nenhuma categoria encontrada</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex overflow-x-auto mb-4 pb-2 gap-2">
-      {categories.map(category => (
-        <motion.div
-          key={category}
-          onClick={() => onSelectCategory(category)}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className={`cursor-pointer px-3 py-2 rounded-md text-center min-w-max ${
-            activeCategory === category 
-              ? 'bg-purple-dark text-white' 
-              : 'bg-gray-200 text-black'
-          }`}
-        >
-          <span className="text-sm font-semibold whitespace-nowrap">
+    <div className="mb-6 overflow-x-auto pb-2">
+      <div className="flex space-x-2 min-w-max">
+        {categories.map((category) => (
+          <motion.button
+            key={category}
+            className={`py-2 px-4 rounded-full text-sm font-medium whitespace-nowrap ${
+              activeCategory === category
+                ? "bg-purple-dark text-white"
+                : "bg-gray-700 text-gray-200"
+            }`}
+            onClick={() => onSelectCategory(category)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
             {category}
-          </span>
-        </motion.div>
-      ))}
+          </motion.button>
+        ))}
+      </div>
     </div>
   );
 };
