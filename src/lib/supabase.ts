@@ -1,9 +1,10 @@
-
 import { createClient } from '@supabase/supabase-js';
 
-// Check for environment variables and provide better error messages
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Check for environment variables in both formats (VITE_ and NEXT_PUBLIC_)
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 
+                   import.meta.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 
+                       import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 // Create a mock client if we're in development and missing credentials
 const createMockClient = () => {
@@ -46,11 +47,11 @@ export const supabase = (!supabaseUrl || !supabaseAnonKey)
 
 // Log a warning if credentials are missing
 if (!supabaseUrl) {
-  console.error('VITE_SUPABASE_URL environment variable is not set');
+  console.error('Supabase URL environment variable is not set (check both VITE_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_URL)');
 }
 
 if (!supabaseAnonKey) {
-  console.error('VITE_SUPABASE_ANON_KEY environment variable is not set');
+  console.error('Supabase Anon Key environment variable is not set (check both VITE_SUPABASE_ANON_KEY and NEXT_PUBLIC_SUPABASE_ANON_KEY)');
 }
 
 // Tipos para as tabelas

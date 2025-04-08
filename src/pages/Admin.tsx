@@ -23,9 +23,9 @@ const Admin = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if Supabase is configured by checking environment variables
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    // Check if Supabase is configured by checking environment variables in both formats
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || import.meta.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     
     if (!supabaseUrl || !supabaseAnonKey) {
       setSupabaseConfigured(false);
