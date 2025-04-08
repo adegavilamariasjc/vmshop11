@@ -1,11 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Bell, BellRing } from "lucide-react";
 import AdminLogin from '../components/admin/AdminLogin';
 import ProductManager from '../components/admin/ProductManager';
 import CategoryManager from '../components/admin/CategoryManager';
@@ -14,6 +14,89 @@ import Logo from '../components/Logo';
 import { bairros, categories, products } from '../data/products';
 import { migrateDataToSupabase } from '@/lib/supabase';
 import { Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+
+// Add a new dedicated component for order alerts
+const OrderAlert = () => {
+  const [orderCount, setOrderCount] = useState(0);
+  const [hasNewOrder, setHasNewOrder] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    // Create audio element for notification sound
+    audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+    
+    // We would normally set up a real-time subscription to orders table
+    // For now, simulate incoming orders for demonstration
+    const simulateOrderCheck = setInterval(() => {
+      // This is where you would check for new orders from your database
+      const randomChance = Math.random() * 100;
+      
+      // 5% chance of new order for demonstration (remove in production)
+      if (randomChance < 5) {
+        playAlertSound();
+        setOrderCount(prev => prev + 1);
+        setHasNewOrder(true);
+        
+        toast({
+          title: "Novo Pedido Recebido!",
+          description: "Um cliente finalizou um pedido no sistema.",
+          variant: "default",
+        });
+      }
+    }, 30000); // Check every 30 seconds
+    
+    return () => {
+      clearInterval(simulateOrderCheck);
+    };
+  }, [toast]);
+  
+  const playAlertSound = () => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(e => console.error("Error playing sound:", e));
+    }
+  };
+  
+  const handleAcknowledge = () => {
+    setHasNewOrder(false);
+  };
+  
+  return (
+    <div className="fixed bottom-6 right-6 z-50">
+      {hasNewOrder ? (
+        <Alert className="bg-yellow-600 border-yellow-700 text-white animate-pulse w-72">
+          <BellRing className="h-4 w-4 text-white" />
+          <AlertTitle>Atenção! Novo Pedido</AlertTitle>
+          <AlertDescription>
+            Você tem {orderCount} {orderCount === 1 ? 'novo pedido' : 'novos pedidos'} para processar!
+          </AlertDescription>
+          <Button 
+            variant="outline" 
+            className="mt-2 bg-yellow-700 hover:bg-yellow-800 border-white text-white w-full"
+            onClick={handleAcknowledge}
+          >
+            Entendido
+          </Button>
+        </Alert>
+      ) : (
+        <Button
+          className="bg-yellow-600 hover:bg-yellow-700 rounded-full h-12 w-12 flex items-center justify-center shadow-lg"
+          onClick={playAlertSound}
+          title="Testar alerta sonoro"
+        >
+          <Bell size={24} />
+          {orderCount > 0 && (
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              {orderCount}
+            </span>
+          )}
+        </Button>
+      )}
+    </div>
+  );
+};
 
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -148,6 +231,9 @@ const Admin = () => {
                 </TabsContent>
               </Tabs>
             </div>
+            
+            {/* Add the order alert component */}
+            <OrderAlert />
           </>
         ) : (
           <div className="flex flex-col items-center justify-center">

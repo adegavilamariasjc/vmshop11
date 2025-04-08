@@ -29,6 +29,27 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ form, setForm, bairros }) =
     }
   };
 
+  const handleAddressFound = (address: { street: string, neighborhood: string }) => {
+    setForm(prev => ({
+      ...prev,
+      endereco: address.street
+    }));
+
+    // Attempt to find matching neighborhood in available bairros
+    if (address.neighborhood) {
+      const matchingBairro = bairros.find(b => 
+        b.nome.toLowerCase() === address.neighborhood.toLowerCase()
+      );
+      
+      if (matchingBairro) {
+        setForm(prev => ({
+          ...prev,
+          bairro: matchingBairro
+        }));
+      }
+    }
+  };
+
   return (
     <div className="bg-black/50 p-4 rounded-md">
       <h3 className="text-lg font-semibold text-white mb-4">Dados para Entrega</h3>
@@ -46,6 +67,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ form, setForm, bairros }) =
           complemento={form.complemento}
           referencia={form.referencia}
           onChange={handleInputChange}
+          setAddress={handleAddressFound}
         />
         
         <LocationAndPaymentFields

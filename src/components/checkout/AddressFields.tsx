@@ -1,6 +1,7 @@
 
 import React from 'react';
 import FormField from './FormField';
+import AddressLookupField from './AddressLookupField';
 
 interface AddressFieldsProps {
   endereco: string;
@@ -8,6 +9,7 @@ interface AddressFieldsProps {
   complemento: string;
   referencia: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
+  setAddress: (address: {street: string, neighborhood: string}) => void;
 }
 
 const AddressFields: React.FC<AddressFieldsProps> = ({ 
@@ -15,10 +17,13 @@ const AddressFields: React.FC<AddressFieldsProps> = ({
   numero, 
   complemento, 
   referencia, 
-  onChange 
+  onChange,
+  setAddress
 }) => {
   return (
-    <div className="space-y-3 grid grid-cols-2 gap-3">
+    <div className="space-y-3">
+      <AddressLookupField onAddressFound={setAddress} />
+      
       <div className="col-span-2">
         <FormField id="endereco" label="Endereço" required>
           <input
@@ -34,33 +39,35 @@ const AddressFields: React.FC<AddressFieldsProps> = ({
         </FormField>
       </div>
       
-      <div>
-        <FormField id="numero" label="Número" required>
-          <input
-            id="numero"
-            name="numero"
-            type="text"
-            value={numero}
-            onChange={onChange}
-            className="w-full bg-gray-800 text-white border border-gray-700 rounded-md p-2 text-sm"
-            placeholder="Número"
-            required
-          />
-        </FormField>
-      </div>
-      
-      <div>
-        <FormField id="complemento" label="Complemento">
-          <input
-            id="complemento"
-            name="complemento"
-            type="text"
-            value={complemento}
-            onChange={onChange}
-            className="w-full bg-gray-800 text-white border border-gray-700 rounded-md p-2 text-sm"
-            placeholder="Apto / Casa / Bloco"
-          />
-        </FormField>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <FormField id="numero" label="Número" required>
+            <input
+              id="numero"
+              name="numero"
+              type="text"
+              value={numero}
+              onChange={onChange}
+              className="w-full bg-gray-800 text-white border border-gray-700 rounded-md p-2 text-sm"
+              placeholder="Número"
+              required
+            />
+          </FormField>
+        </div>
+        
+        <div>
+          <FormField id="complemento" label="Complemento">
+            <input
+              id="complemento"
+              name="complemento"
+              type="text"
+              value={complemento}
+              onChange={onChange}
+              className="w-full bg-gray-800 text-white border border-gray-700 rounded-md p-2 text-sm"
+              placeholder="Apto / Casa / Bloco"
+            />
+          </FormField>
+        </div>
       </div>
       
       <div className="col-span-2">
