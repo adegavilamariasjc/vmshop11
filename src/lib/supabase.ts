@@ -1,58 +1,12 @@
+
 import { createClient } from '@supabase/supabase-js';
 
-// Check for environment variables in both formats (VITE_ and NEXT_PUBLIC_)
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 
-                   import.meta.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 
-                       import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+// Usar diretamente as credenciais do Supabase
+const supabaseUrl = "https://zdtuvslyqayjedjsfvwa.supabase.co";
+const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpkdHV2c2x5cWF5amVkanNmdndhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM4MzU1NjIsImV4cCI6MjA1OTQxMTU2Mn0.vBugMM69TLwKbWwlPpEfTEER7Rjh2emQS44dlAEfByM";
 
-// Create a mock client if we're in development and missing credentials
-const createMockClient = () => {
-  console.warn('Using mock Supabase client. Database operations will not work.');
-  
-  // Return a mock client that logs operations but doesn't actually connect to Supabase
-  return {
-    from: (table: string) => ({
-      select: () => {
-        console.log(`Mock: Selecting from ${table}`);
-        return { data: [], error: null };
-      },
-      insert: () => {
-        console.log(`Mock: Inserting into ${table}`);
-        return { data: null, error: null };
-      },
-      update: () => {
-        console.log(`Mock: Updating ${table}`);
-        return { data: null, error: null };
-      },
-      delete: () => {
-        console.log(`Mock: Deleting from ${table}`);
-        return { data: null, error: null };
-      },
-      eq: () => ({
-        order: () => ({ data: [], error: null }),
-        select: () => ({ data: [], error: null }),
-      }),
-      order: () => ({ data: [], error: null }),
-      single: () => ({ data: null, error: null }),
-      neq: () => ({ data: [], error: null }),
-    }),
-  };
-};
-
-// Create either a real client or a mock client based on whether credentials are available
-export const supabase = (!supabaseUrl || !supabaseAnonKey) 
-  ? createMockClient() as any
-  : createClient(supabaseUrl, supabaseAnonKey);
-
-// Log a warning if credentials are missing
-if (!supabaseUrl) {
-  console.error('Supabase URL environment variable is not set (check both VITE_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_URL)');
-}
-
-if (!supabaseAnonKey) {
-  console.error('Supabase Anon Key environment variable is not set (check both VITE_SUPABASE_ANON_KEY and NEXT_PUBLIC_SUPABASE_ANON_KEY)');
-}
+// Criar cliente Supabase
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Tipos para as tabelas
 export type SupabaseProduct = {
@@ -277,11 +231,6 @@ export const migrateDataToSupabase = async (
   localProducts: Record<string, { name: string; price: number }[]>,
   localBairros: { nome: string; taxa: number }[]
 ): Promise<boolean> => {
-  if (!supabaseUrl || !supabaseAnonKey) {
-    console.error('Não é possível migrar dados: credenciais do Supabase não configuradas');
-    return false;
-  }
-
   try {
     // Limpar tabelas existentes para migração fresca
     await supabase.from('products').delete().neq('id', 0);
