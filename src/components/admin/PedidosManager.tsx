@@ -1,13 +1,13 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { Bell, BellRing, Printer, Eye, Check, RefreshCcw } from 'lucide-react';
+import { Bell, BellRing, Printer, Eye, Check, RefreshCcw, Trash2 } from 'lucide-react';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import PedidoDetalhe from './PedidoDetalhe';
-import { fetchPedidos, updatePedidoStatus, SupabasePedido } from '@/lib/supabase';
+import { fetchPedidos, updatePedidoStatus, deletePedido, SupabasePedido } from '@/lib/supabase';
 
 interface Pedido {
   id: string;
@@ -27,12 +27,13 @@ const PedidosManager: React.FC = () => {
   const [showDetalhe, setShowDetalhe] = useState(false);
   const [hasNewPedido, setHasNewPedido] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Criar elemento de áudio para notificação
-    audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+    // Criar elemento de áudio para notificação com som de telefone antigo
+    audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2874/2874-preview.mp3');
     
     // Buscar pedidos iniciais
     fetchPedidosData();
@@ -104,6 +105,39 @@ const PedidosManager: React.FC = () => {
   const handleVisualizarPedido = (id: string) => {
     setSelectedPedido(id);
     setShowDetalhe(true);
+  };
+
+  const handleExcluirPedido = async (id: string, codigo: string) => {
+    if (!confirm(`Tem certeza que deseja excluir o pedido ${codigo}? Esta ação não pode ser desfeita.`)) {
+      return;
+    }
+    
+    setIsDeleting(true);
+    
+    try {
+      const success = await deletePedido(id);
+      
+      if (!success) {
+        throw new Error('Falha ao excluir pedido');
+      }
+      
+      // Atualizar a lista de pedidos após exclusão
+      setPedidos(pedidos.filter(p => p.id !== id));
+      
+      toast({
+        title: 'Pedido excluído',
+        description: `O pedido ${codigo} foi excluído com sucesso.`,
+      });
+    } catch (error) {
+      console.error('Erro ao excluir pedido:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível excluir o pedido.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const handleAtualizarStatus = async (id: string, novoStatus: string) => {
@@ -267,6 +301,15 @@ const PedidosManager: React.FC = () => {
                       title="Imprimir pedido"
                     >
                       <Printer size={18} />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => handleExcluirPedido(pedido.id, pedido.codigo_pedido)}
+                      className="text-red-500 hover:text-red-400 hover:bg-gray-700"
+                      title="Excluir pedido"
+                    >
+                      <Trash2 size={18} />
                     </Button>
                   </div>
                 </TableCell>
