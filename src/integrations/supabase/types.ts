@@ -78,6 +78,66 @@ export type Database = {
         }
         Relationships: []
       }
+      pedidos: {
+        Row: {
+          cliente_bairro: string
+          cliente_complemento: string | null
+          cliente_endereco: string
+          cliente_nome: string
+          cliente_numero: string | null
+          cliente_referencia: string | null
+          cliente_whatsapp: string
+          codigo_pedido: string
+          data_criacao: string
+          forma_pagamento: string
+          id: string
+          itens: Json
+          observacao: string | null
+          status: string
+          taxa_entrega: number
+          total: number
+          troco: string | null
+        }
+        Insert: {
+          cliente_bairro: string
+          cliente_complemento?: string | null
+          cliente_endereco: string
+          cliente_nome: string
+          cliente_numero?: string | null
+          cliente_referencia?: string | null
+          cliente_whatsapp: string
+          codigo_pedido: string
+          data_criacao?: string
+          forma_pagamento: string
+          id?: string
+          itens: Json
+          observacao?: string | null
+          status?: string
+          taxa_entrega: number
+          total: number
+          troco?: string | null
+        }
+        Update: {
+          cliente_bairro?: string
+          cliente_complemento?: string | null
+          cliente_endereco?: string
+          cliente_nome?: string
+          cliente_numero?: string | null
+          cliente_referencia?: string | null
+          cliente_whatsapp?: string
+          codigo_pedido?: string
+          data_criacao?: string
+          forma_pagamento?: string
+          id?: string
+          itens?: Json
+          observacao?: string | null
+          status?: string
+          taxa_entrega?: number
+          total?: number
+          troco?: string | null
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           category_id: number | null

@@ -1,7 +1,7 @@
 
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Send } from 'lucide-react';
+import { ChevronLeft, Send, Loader2 } from 'lucide-react';
 import { FormData, Product } from '../types';
 import OrderSummary from './cart/OrderSummary';
 import CartSummary from './CartSummary';
@@ -14,6 +14,7 @@ interface CheckoutViewProps {
   bairros: { nome: string; taxa: number }[];
   onBackToProducts: () => void;
   onSubmit: () => void;
+  isSending?: boolean;
 }
 
 const CheckoutView: React.FC<CheckoutViewProps> = ({
@@ -22,7 +23,8 @@ const CheckoutView: React.FC<CheckoutViewProps> = ({
   setForm,
   bairros,
   onBackToProducts,
-  onSubmit
+  onSubmit,
+  isSending = false
 }) => {
   const subtotal = useMemo(() => 
     cart.reduce((sum, item) => sum + (item.price || 0) * (item.qty || 1), 0),
@@ -73,13 +75,22 @@ const CheckoutView: React.FC<CheckoutViewProps> = ({
           
           <motion.button
             onClick={onSubmit}
-            disabled={cart.length === 0 || form.nome === '' || form.endereco === '' || form.bairro.nome === 'Selecione Um Bairro' || form.pagamento === ''}
+            disabled={cart.length === 0 || form.nome === '' || form.endereco === '' || form.bairro.nome === 'Selecione Um Bairro' || form.pagamento === '' || isSending}
             className="w-full bg-green-600 hover:bg-green-700 text-white rounded-md py-3 px-4 flex justify-center items-center gap-2 mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            <Send size={18} />
-            <span>Enviar Pedido via WhatsApp</span>
+            {isSending ? (
+              <>
+                <Loader2 size={18} className="animate-spin" />
+                <span>Enviando Pedido...</span>
+              </>
+            ) : (
+              <>
+                <Send size={18} />
+                <span>Enviar Pedido via WhatsApp</span>
+              </>
+            )}
           </motion.button>
         </div>
       </div>
