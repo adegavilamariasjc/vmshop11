@@ -1,21 +1,24 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Printer, X, Check } from 'lucide-react';
-import { fetchPedidoById, updatePedidoStatus, SupabasePedido } from '@/lib/supabase';
+import { Printer, X, Check, Trash2 } from 'lucide-react';
+import { fetchPedidoById, updatePedidoStatus, deletePedido, SupabasePedido } from '@/lib/supabase';
 
 interface PedidoDetalheProps {
   pedidoId: string;
   onClose: () => void;
+  onDelete?: () => void;
 }
 
 type PedidoCompleto = SupabasePedido;
 
-const PedidoDetalhe: React.FC<PedidoDetalheProps> = ({ pedidoId, onClose }) => {
+const PedidoDetalhe: React.FC<PedidoDetalheProps> = ({ pedidoId, onClose, onDelete }) => {
   const [pedido, setPedido] = useState<PedidoCompleto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isPrinting, setIsPrinting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const impressaoRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -45,99 +48,89 @@ const PedidoDetalhe: React.FC<PedidoDetalheProps> = ({ pedidoId, onClose }) => {
   };
 
   const handleImprimir = () => {
-    if (!impressaoRef.current) return;
+    if (!pedido) return;
     
     setIsPrinting(true);
     
-    const conteudo = impressaoRef.current;
+    // Criar conteúdo simplificado para impressão
+    const itensFormatados = pedido.itens.map((item: any) => {
+      let texto = `${item.qty}x ${item.name}`;
+      if (item.alcohol) {
+        texto += ` (${item.alcohol})`;
+      }
+      
+      // Adicionar informações de gelo se houver
+      if (item.ice && Object.entries(item.ice).some(([_, qty]: [string, any]) => qty > 0)) {
+        const geloInfo = Object.entries(item.ice)
+          .filter(([_, qty]: [string, any]) => qty > 0)
+          .map(([flavor, qty]: [string, any]) => `${flavor} x${qty}`)
+          .join(", ");
+        
+        texto += `\n   Gelo: ${geloInfo}`;
+      }
+      
+      texto += `\n   R$ ${(item.price * item.qty).toFixed(2)}`;
+      return texto;
+    }).join('\n\n');
+    
+    const conteudoImpressao = `
+ADEGA VM
+PEDIDO #${pedido.codigo_pedido}
+${new Date(pedido.data_criacao).toLocaleString('pt-BR')}
+
+CLIENTE: ${pedido.cliente_nome}
+ENDEREÇO: ${pedido.cliente_endereco}, ${pedido.cliente_numero || ''}
+${pedido.cliente_complemento ? `COMPLEMENTO: ${pedido.cliente_complemento}` : ''}
+${pedido.cliente_referencia ? `REFERÊNCIA: ${pedido.cliente_referencia}` : ''}
+BAIRRO: ${pedido.cliente_bairro}
+WHATSAPP: ${pedido.cliente_whatsapp}
+${pedido.observacao ? `OBSERVAÇÃO: ${pedido.observacao}` : ''}
+
+ITENS DO PEDIDO:
+${itensFormatados}
+
+SUBTOTAL: R$ ${(pedido.total - pedido.taxa_entrega).toFixed(2)}
+TAXA DE ENTREGA: R$ ${pedido.taxa_entrega.toFixed(2)}
+TOTAL: R$ ${pedido.total.toFixed(2)}
+
+FORMA DE PAGAMENTO: ${pedido.forma_pagamento}
+${pedido.forma_pagamento === 'Dinheiro' && pedido.troco ? `TROCO PARA: R$ ${pedido.troco}` : ''}
+
+Obrigado pela preferência!
+ADEGA VM
+    `.trim();
+    
+    // Abrir janela de impressão com texto simples
     const janela = window.open('', '_blank');
     
     if (janela) {
       janela.document.write(`
         <html>
           <head>
-            <title>Pedido ${pedido?.codigo_pedido}</title>
+            <title>Pedido ${pedido.codigo_pedido}</title>
             <style>
               body {
-                font-family: 'Courier New', monospace;
-                width: 80mm;
-                margin: 0 auto;
-                padding: 5mm;
+                font-family: monospace;
+                font-size: 12pt;
+                line-height: 1.2;
+                white-space: pre-wrap;
+                margin: 10mm;
               }
-              .header {
-                text-align: center;
-                margin-bottom: 10px;
-                border-bottom: 1px dashed #000;
-                padding-bottom: 10px;
-              }
-              .title {
-                font-size: 18px;
-                font-weight: bold;
-              }
-              .info {
-                margin-bottom: 10px;
-              }
-              .items {
-                margin-top: 10px;
-                margin-bottom: 10px;
-                border-bottom: 1px dashed #000;
-                padding-bottom: 10px;
-              }
-              .item {
-                margin-bottom: 5px;
-              }
-              .total {
-                font-weight: bold;
-                text-align: right;
-                font-size: 16px;
-                margin-top: 10px;
-                margin-bottom: 10px;
-              }
-              .footer {
-                text-align: center;
-                font-size: 12px;
-                margin-top: 20px;
-                border-top: 1px dashed #000;
-                padding-top: 10px;
-              }
-              .print-hidden {
-                display: none;
-              }
-              .status {
-                display: inline-block;
-                padding: 3px 8px;
-                border-radius: 10px;
-                font-size: 12px;
-                font-weight: bold;
-                background-color: #ccc;
-                color: white;
-              }
-              .status-pendente {
-                background-color: #f59e0b;
-              }
-              .status-preparando {
-                background-color: #3b82f6;
-              }
-              .status-entregue {
-                background-color: #10b981;
-              }
-              .status-cancelado {
-                background-color: #ef4444;
+              @media print {
+                body {
+                  width: 80mm;
+                }
               }
             </style>
           </head>
           <body>
-            ${conteudo.innerHTML}
-            <div class="footer">
-              Obrigado pela preferência!<br>
-              ADEGA VM
-            </div>
+${conteudoImpressao}
             <script>
               window.onload = function() {
                 window.print();
                 setTimeout(function() {
                   window.close();
-                }, 750);
+                }, 500);
               };
             </script>
           </body>
@@ -148,6 +141,44 @@ const PedidoDetalhe: React.FC<PedidoDetalheProps> = ({ pedidoId, onClose }) => {
     }
     
     setIsPrinting(false);
+  };
+
+  const handleExcluirPedido = async () => {
+    if (!pedido) return;
+    
+    if (!confirm(`Tem certeza que deseja excluir o pedido ${pedido.codigo_pedido}? Esta ação não pode ser desfeita.`)) {
+      return;
+    }
+    
+    setIsDeleting(true);
+    
+    try {
+      const success = await deletePedido(pedido.id);
+      
+      if (!success) {
+        throw new Error('Falha ao excluir pedido');
+      }
+      
+      toast({
+        title: 'Pedido excluído',
+        description: `O pedido ${pedido.codigo_pedido} foi excluído com sucesso.`,
+      });
+      
+      // Fechar o modal e atualizar a lista de pedidos
+      onClose();
+      if (onDelete) {
+        onDelete();
+      }
+    } catch (error) {
+      console.error('Erro ao excluir pedido:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível excluir o pedido.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -304,21 +335,21 @@ const PedidoDetalhe: React.FC<PedidoDetalheProps> = ({ pedidoId, onClose }) => {
                   <div className="flex gap-2 flex-wrap">
                     <Button 
                       variant={pedido.status === 'pendente' ? 'default' : 'outline'}
-                      className={pedido.status === 'pendente' ? 'bg-yellow-600 hover:bg-yellow-700' : 'border-gray-600'}
+                      className={`text-black font-medium ${pedido.status === 'pendente' ? 'bg-yellow-600 hover:bg-yellow-700' : 'border-gray-600'}`}
                       onClick={() => handleAtualizarStatus('pendente')}
                     >
                       Pendente
                     </Button>
                     <Button 
                       variant={pedido.status === 'preparando' ? 'default' : 'outline'}
-                      className={pedido.status === 'preparando' ? 'bg-blue-600 hover:bg-blue-700' : 'border-gray-600'}
+                      className={`text-black font-medium ${pedido.status === 'preparando' ? 'bg-blue-600 hover:bg-blue-700' : 'border-gray-600'}`}
                       onClick={() => handleAtualizarStatus('preparando')}
                     >
                       Preparando
                     </Button>
                     <Button 
                       variant={pedido.status === 'entregue' ? 'default' : 'outline'}
-                      className={pedido.status === 'entregue' ? 'bg-green-600 hover:bg-green-700' : 'border-gray-600'}
+                      className={`text-black font-medium ${pedido.status === 'entregue' ? 'bg-green-600 hover:bg-green-700' : 'border-gray-600'}`}
                       onClick={() => handleAtualizarStatus('entregue')}
                     >
                       <Check size={16} className="mr-1" />
@@ -326,7 +357,7 @@ const PedidoDetalhe: React.FC<PedidoDetalheProps> = ({ pedidoId, onClose }) => {
                     </Button>
                     <Button 
                       variant={pedido.status === 'cancelado' ? 'default' : 'outline'}
-                      className={pedido.status === 'cancelado' ? 'bg-red-600 hover:bg-red-700' : 'border-gray-600'}
+                      className={`text-black font-medium ${pedido.status === 'cancelado' ? 'bg-red-600 hover:bg-red-700' : 'border-gray-600'}`}
                       onClick={() => handleAtualizarStatus('cancelado')}
                     >
                       <X size={16} className="mr-1" />
@@ -337,14 +368,23 @@ const PedidoDetalhe: React.FC<PedidoDetalheProps> = ({ pedidoId, onClose }) => {
                 
                 <div className="bg-black/40 p-4 rounded-md">
                   <h3 className="text-lg font-semibold mb-3">Ações</h3>
-                  <div>
+                  <div className="flex flex-col gap-2">
                     <Button 
                       onClick={handleImprimir}
                       disabled={isPrinting}
-                      className="w-full bg-purple-dark hover:bg-purple-600"
+                      className="w-full bg-purple-dark hover:bg-purple-600 text-black font-medium"
                     >
                       <Printer size={16} className="mr-2" />
                       Imprimir Comanda
+                    </Button>
+                    
+                    <Button 
+                      onClick={handleExcluirPedido}
+                      disabled={isDeleting}
+                      className="w-full bg-red-600 hover:bg-red-700 text-black font-medium"
+                    >
+                      <Trash2 size={16} className="mr-2" />
+                      Excluir Pedido
                     </Button>
                   </div>
                 </div>
@@ -361,7 +401,7 @@ const PedidoDetalhe: React.FC<PedidoDetalheProps> = ({ pedidoId, onClose }) => {
           <Button 
             variant="outline" 
             onClick={onClose}
-            className="border-gray-600"
+            className="border-gray-600 text-black font-medium"
           >
             Fechar
           </Button>

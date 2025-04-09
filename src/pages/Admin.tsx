@@ -1,23 +1,18 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
 import AdminLogin from '../components/admin/AdminLogin';
 import ProductManager from '../components/admin/ProductManager';
 import CategoryManager from '../components/admin/CategoryManager';
 import BairroManager from '../components/admin/BairroManager';
 import PedidosManager from '../components/admin/PedidosManager';
 import Logo from '../components/Logo';
-import { migrateDataToSupabase } from '@/lib/supabase';
-import { bairros, categories, products } from '../data/products';
-import { supabase } from '@/integrations/supabase/client';
 
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isMigrating, setIsMigrating] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -46,44 +41,6 @@ const Admin = () => {
     });
   };
 
-  const handleMigrateData = async () => {
-    if (!confirm("Esta operação irá migrar todos os dados locais para o Supabase. Os dados existentes no Supabase serão apagados. Deseja continuar?")) {
-      return;
-    }
-
-    setIsMigrating(true);
-    
-    try {
-      const success = await migrateDataToSupabase(
-        categories,
-        products,
-        bairros.map(b => ({ nome: b.nome, taxa: b.taxa }))
-      );
-
-      if (success) {
-        toast({
-          title: "Migração concluída",
-          description: "Todos os dados foram migrados com sucesso para o Supabase.",
-        });
-      } else {
-        toast({
-          title: "Erro na migração",
-          description: "Ocorreu um erro durante a migração dos dados.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Erro ao migrar dados:", error);
-      toast({
-        title: "Erro na migração",
-        description: "Ocorreu um erro durante a migração dos dados.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsMigrating(false);
-    }
-  };
-
   return (
     <div
       className="min-h-screen w-full bg-fixed"
@@ -101,24 +58,11 @@ const Admin = () => {
               <div className="w-40">
                 <Logo />
               </div>
-              <div className="flex items-center gap-4">
-                <Button 
-                  onClick={handleMigrateData}
-                  disabled={isMigrating}
-                  className="bg-yellow-600 hover:bg-yellow-700"
-                >
-                  {isMigrating ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Migrando...
-                    </>
-                  ) : (
-                    "Migrar Dados para Supabase"
-                  )}
-                </Button>
+              <div>
                 <Button 
                   variant="destructive" 
                   onClick={handleLogout}
+                  className="text-black font-medium"
                 >
                   Sair
                 </Button>
@@ -130,10 +74,10 @@ const Admin = () => {
               
               <Tabs defaultValue="pedidos" className="w-full">
                 <TabsList className="grid grid-cols-4 mb-8">
-                  <TabsTrigger value="pedidos">Pedidos</TabsTrigger>
-                  <TabsTrigger value="produtos">Produtos</TabsTrigger>
-                  <TabsTrigger value="categorias">Categorias</TabsTrigger>
-                  <TabsTrigger value="bairros">Bairros</TabsTrigger>
+                  <TabsTrigger value="pedidos" className="text-black font-medium">Pedidos</TabsTrigger>
+                  <TabsTrigger value="produtos" className="text-black font-medium">Produtos</TabsTrigger>
+                  <TabsTrigger value="categorias" className="text-black font-medium">Categorias</TabsTrigger>
+                  <TabsTrigger value="bairros" className="text-black font-medium">Bairros</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="pedidos" className="bg-black/50 p-4 rounded-md">

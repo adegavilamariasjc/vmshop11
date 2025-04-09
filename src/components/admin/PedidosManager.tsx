@@ -170,7 +170,7 @@ const PedidosManager: React.FC = () => {
         <div className="flex items-center gap-3">
           {hasNewPedido && (
             <Button 
-              className="bg-yellow-600 hover:bg-yellow-700 text-white flex items-center gap-2 animate-pulse"
+              className="bg-yellow-600 hover:bg-yellow-700 text-black font-medium flex items-center gap-2 animate-pulse"
               onClick={handleAcknowledge}
             >
               <BellRing size={16} />
@@ -179,7 +179,7 @@ const PedidosManager: React.FC = () => {
           )}
           <Button 
             variant="outline" 
-            className="text-white border-gray-600"
+            className="text-black font-medium border-gray-600"
             onClick={handleRefresh}
             disabled={refreshing}
           >
@@ -287,38 +287,11 @@ const PedidosManager: React.FC = () => {
         <PedidoDetalhe 
           pedidoId={selectedPedido} 
           onClose={() => setShowDetalhe(false)} 
+          onDelete={fetchPedidosData} 
         />
       )}
     </div>
   );
-};
-
-// Função auxiliar para renderizar o badge de status
-const getStatusBadge = (status: string) => {
-  switch (status) {
-    case 'pendente':
-      return <Badge className="bg-yellow-600 text-white">Pendente</Badge>;
-    case 'preparando':
-      return <Badge className="bg-blue-600 text-white">Preparando</Badge>;
-    case 'entregue':
-      return <Badge className="bg-green-600 text-white">Entregue</Badge>;
-    case 'cancelado':
-      return <Badge className="bg-red-600 text-white">Cancelado</Badge>;
-    default:
-      return <Badge>{status}</Badge>;
-  }
-};
-
-// Função auxiliar para formatar data e hora
-const formatDateTime = (dateString: string) => {
-  const date = new Date(dateString);
-  return new Intl.DateTimeFormat('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  }).format(date);
 };
 
 export default PedidosManager;

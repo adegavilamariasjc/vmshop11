@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '@/integrations/supabase/types';
 
@@ -303,6 +302,25 @@ export const updatePedidoStatus = async (id: string, status: string): Promise<bo
     return true;
   } catch (err) {
     console.error('Erro ao atualizar status do pedido:', err);
+    return false;
+  }
+};
+
+export const deletePedido = async (id: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('pedidos')
+      .delete()
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Erro ao excluir pedido:', error);
+      return false;
+    }
+    
+    return true;
+  } catch (err) {
+    console.error('Erro ao excluir pedido:', err);
     return false;
   }
 };
