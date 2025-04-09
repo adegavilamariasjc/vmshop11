@@ -1,12 +1,12 @@
-
 import { createClient } from '@supabase/supabase-js';
+import { Database } from '@/integrations/supabase/types';
 
 // Usar diretamente as credenciais do Supabase
 const supabaseUrl = "https://zdtuvslyqayjedjsfvwa.supabase.co";
 const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpkdHV2c2x5cWF5amVkanNmdndhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM4MzU1NjIsImV4cCI6MjA1OTQxMTU2Mn0.vBugMM69TLwKbWwlPpEfTEER7Rjh2emQS44dlAEfByM";
 
 // Criar cliente Supabase
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
 
 // Tipos para as tabelas
 export type SupabaseProduct = {
@@ -29,6 +29,27 @@ export type SupabaseBairro = {
   name: string;
   taxa: number;
   created_at?: string;
+};
+
+// Tipo para pedidos
+export type SupabasePedido = {
+  id: string;
+  codigo_pedido: string;
+  cliente_nome: string;
+  cliente_endereco: string;
+  cliente_numero?: string;
+  cliente_complemento?: string;
+  cliente_referencia?: string;
+  cliente_bairro: string;
+  taxa_entrega: number;
+  cliente_whatsapp: string;
+  forma_pagamento: string;
+  troco?: string;
+  itens: any;
+  total: number;
+  status: string;
+  data_criacao: string;
+  observacao?: string;
 };
 
 // Funções para produtos
@@ -225,6 +246,65 @@ export const deleteBairro = async (id: number): Promise<boolean> => {
   return true;
 };
 
+// Funções para pedidos
+export const fetchPedidos = async (): Promise<SupabasePedido[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('pedidos')
+      .select('*')
+      .order('data_criacao', { ascending: false });
+    
+    if (error) {
+      console.error('Erro ao buscar pedidos:', error);
+      return [];
+    }
+    
+    return data || [];
+  } catch (err) {
+    console.error('Erro ao buscar pedidos:', err);
+    return [];
+  }
+};
+
+export const fetchPedidoById = async (id: string): Promise<SupabasePedido | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('pedidos')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) {
+      console.error('Erro ao buscar pedido por ID:', error);
+      return null;
+    }
+    
+    return data;
+  } catch (err) {
+    console.error('Erro ao buscar pedido por ID:', err);
+    return null;
+  }
+};
+
+export const updatePedidoStatus = async (id: string, status: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('pedidos')
+      .update({ status })
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Erro ao atualizar status do pedido:', error);
+      return false;
+    }
+    
+    return true;
+  } catch (err) {
+    console.error('Erro ao atualizar status do pedido:', err);
+    return false;
+  }
+};
+
 // Função de migração de dados
 export const migrateDataToSupabase = async (
   localCategories: string[], 
@@ -282,5 +362,26 @@ export const migrateDataToSupabase = async (
   } catch (error) {
     console.error('Erro na migração de dados:', error);
     return false;
+  }
+};
+
+// Função para salvar pedido no banco de dados
+export const savePedido = async (pedido: Omit<SupabasePedido, 'id' | 'data_criacao'>): Promise<SupabasePedido | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('pedidos')
+      .insert(pedido)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Erro ao salvar pedido:', error);
+      return null;
+    }
+    
+    return data;
+  } catch (err) {
+    console.error('Erro ao salvar pedido:', err);
+    return null;
   }
 };

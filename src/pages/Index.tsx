@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../hooks/useCart';
 import { AnimatePresence } from 'framer-motion';
@@ -14,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import AdminLink from '../components/AdminLink';
+import { savePedido } from '@/lib/supabase';
 
 const Index = () => {
   const {
@@ -65,7 +65,7 @@ const Index = () => {
       try {
         const { data, error } = await supabase
           .from('bairros')
-          .select('nome, taxa')
+          .select('*')
           .order('nome');
         
         if (error) {
@@ -96,32 +96,25 @@ const Index = () => {
     const total = cart.reduce((sum, p) => sum + (p.price || 0) * (p.qty || 1), 0) + form.bairro.taxa;
     
     try {
-      const { data, error } = await supabase
-        .from('pedidos')
-        .insert({
-          codigo_pedido: codigoPedido,
-          cliente_nome: form.nome,
-          cliente_endereco: form.endereco,
-          cliente_numero: form.numero,
-          cliente_complemento: form.complemento,
-          cliente_referencia: form.referencia,
-          cliente_bairro: form.bairro.nome,
-          taxa_entrega: form.bairro.taxa,
-          cliente_whatsapp: form.whatsapp,
-          forma_pagamento: form.pagamento,
-          troco: form.troco,
-          observacao: form.observacao,
-          itens: cart,
-          total: total
-        })
-        .select();
+      const pedido = await savePedido({
+        codigo_pedido: codigoPedido,
+        cliente_nome: form.nome,
+        cliente_endereco: form.endereco,
+        cliente_numero: form.numero,
+        cliente_complemento: form.complemento,
+        cliente_referencia: form.referencia,
+        cliente_bairro: form.bairro.nome,
+        taxa_entrega: form.bairro.taxa,
+        cliente_whatsapp: form.whatsapp,
+        forma_pagamento: form.pagamento,
+        troco: form.troco,
+        observacao: form.observacao,
+        itens: cart,
+        total: total,
+        status: 'pendente'
+      });
       
-      if (error) {
-        console.error('Erro ao salvar pedido:', error);
-        return false;
-      }
-      
-      return true;
+      return !!pedido;
     } catch (err) {
       console.error('Erro inesperado ao salvar pedido:', err);
       return false;

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import PedidoDetalhe from './PedidoDetalhe';
+import { fetchPedidos, updatePedidoStatus, SupabasePedido } from '@/lib/supabase';
 
 interface Pedido {
   id: string;
@@ -34,7 +35,7 @@ const PedidosManager: React.FC = () => {
     audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
     
     // Buscar pedidos iniciais
-    fetchPedidos();
+    fetchPedidosData();
     
     // Configurar listener para novos pedidos
     const channel = supabase
@@ -50,7 +51,7 @@ const PedidosManager: React.FC = () => {
           // Tocar alerta sonoro
           playAlertSound();
           // Atualizar lista de pedidos
-          fetchPedidos();
+          fetchPedidosData();
           // Mostrar notificação
           setHasNewPedido(true);
           toast({
@@ -66,19 +67,11 @@ const PedidosManager: React.FC = () => {
     };
   }, []);
 
-  const fetchPedidos = async () => {
+  const fetchPedidosData = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('pedidos')
-        .select('*')
-        .order('data_criacao', { ascending: false });
-      
-      if (error) {
-        throw error;
-      }
-      
-      setPedidos(data);
+      const pedidosData = await fetchPedidos();
+      setPedidos(pedidosData);
     } catch (error) {
       console.error('Erro ao buscar pedidos:', error);
       toast({
@@ -93,7 +86,7 @@ const PedidosManager: React.FC = () => {
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await fetchPedidos();
+    await fetchPedidosData();
     setTimeout(() => setRefreshing(false), 1000);
   };
 
@@ -115,13 +108,10 @@ const PedidosManager: React.FC = () => {
 
   const handleAtualizarStatus = async (id: string, novoStatus: string) => {
     try {
-      const { error } = await supabase
-        .from('pedidos')
-        .update({ status: novoStatus })
-        .eq('id', id);
+      const success = await updatePedidoStatus(id, novoStatus);
       
-      if (error) {
-        throw error;
+      if (!success) {
+        throw new Error('Falha ao atualizar status');
       }
       
       // Atualizar o status localmente para evitar nova busca
@@ -301,6 +291,34 @@ const PedidosManager: React.FC = () => {
       )}
     </div>
   );
+};
+
+// Função auxiliar para renderizar o badge de status
+const getStatusBadge = (status: string) => {
+  switch (status) {
+    case 'pendente':
+      return <Badge className="bg-yellow-600 text-white">Pendente</Badge>;
+    case 'preparando':
+      return <Badge className="bg-blue-600 text-white">Preparando</Badge>;
+    case 'entregue':
+      return <Badge className="bg-green-600 text-white">Entregue</Badge>;
+    case 'cancelado':
+      return <Badge className="bg-red-600 text-white">Cancelado</Badge>;
+    default:
+      return <Badge>{status}</Badge>;
+  }
+};
+
+// Função auxiliar para formatar data e hora
+const formatDateTime = (dateString: string) => {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(date);
 };
 
 export default PedidosManager;

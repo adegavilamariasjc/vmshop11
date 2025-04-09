@@ -1,42 +1,16 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Printer, X, Check } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { fetchPedidoById, updatePedidoStatus, SupabasePedido } from '@/lib/supabase';
 
 interface PedidoDetalheProps {
   pedidoId: string;
   onClose: () => void;
 }
 
-interface PedidoCompleto {
-  id: string;
-  codigo_pedido: string;
-  cliente_nome: string;
-  cliente_endereco: string;
-  cliente_numero: string;
-  cliente_complemento: string;
-  cliente_referencia: string;
-  cliente_bairro: string;
-  taxa_entrega: number;
-  cliente_whatsapp: string;
-  forma_pagamento: string;
-  troco: string;
-  itens: {
-    name: string;
-    qty: number;
-    price: number;
-    ice?: Record<string, number>;
-    alcohol?: string;
-  }[];
-  total: number;
-  status: string;
-  data_criacao: string;
-  observacao: string;
-}
+type PedidoCompleto = SupabasePedido;
 
 const PedidoDetalhe: React.FC<PedidoDetalheProps> = ({ pedidoId, onClose }) => {
   const [pedido, setPedido] = useState<PedidoCompleto | null>(null);
@@ -52,17 +26,12 @@ const PedidoDetalhe: React.FC<PedidoDetalheProps> = ({ pedidoId, onClose }) => {
   const fetchPedido = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('pedidos')
-        .select('*')
-        .eq('id', pedidoId)
-        .single();
-      
-      if (error) {
-        throw error;
+      const pedidoData = await fetchPedidoById(pedidoId);
+      if (pedidoData) {
+        setPedido(pedidoData);
+      } else {
+        throw new Error('Pedido não encontrado');
       }
-      
-      setPedido(data);
     } catch (error) {
       console.error('Erro ao buscar detalhes do pedido:', error);
       toast({
@@ -216,13 +185,10 @@ const PedidoDetalhe: React.FC<PedidoDetalheProps> = ({ pedidoId, onClose }) => {
     if (!pedido) return;
     
     try {
-      const { error } = await supabase
-        .from('pedidos')
-        .update({ status: novoStatus })
-        .eq('id', pedido.id);
+      const success = await updatePedidoStatus(pedido.id, novoStatus);
       
-      if (error) {
-        throw error;
+      if (!success) {
+        throw new Error('Falha ao atualizar status');
       }
       
       setPedido({
@@ -284,17 +250,17 @@ const PedidoDetalhe: React.FC<PedidoDetalheProps> = ({ pedidoId, onClose }) => {
                 
                 <div className="items">
                   <h3><strong>ITENS DO PEDIDO</strong></h3>
-                  {pedido.itens.map((item, index) => (
+                  {pedido.itens.map((item: any, index: number) => (
                     <div key={index} className="item">
                       <div>
                         {item.qty}x {item.name} 
                         {item.alcohol ? ` (${item.alcohol})` : ""}
                       </div>
-                      {item.ice && Object.entries(item.ice).some(([_, qty]) => qty > 0) && (
+                      {item.ice && Object.entries(item.ice).some(([_, qty]: [string, any]) => qty > 0) && (
                         <div style={{ marginLeft: '20px', fontSize: '14px' }}>
                           Gelo: {Object.entries(item.ice)
-                            .filter(([_, qty]) => qty > 0)
-                            .map(([flavor, qty]) => `${flavor} x${qty}`)
+                            .filter(([_, qty]: [string, any]) => qty > 0)
+                            .map(([flavor, qty]: [string, any]) => `${flavor} x${qty}`)
                             .join(", ")}
                         </div>
                       )}
