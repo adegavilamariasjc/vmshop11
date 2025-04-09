@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '@/integrations/supabase/types';
 
@@ -24,9 +25,10 @@ export type SupabaseCategory = {
   created_at?: string;
 };
 
+// Corrigir tipo do bairro para usar 'nome' em vez de 'name'
 export type SupabaseBairro = {
   id: number;
-  name: string;
+  nome: string;
   taxa: number;
   created_at?: string;
 };
@@ -193,7 +195,7 @@ export const fetchBairros = async (): Promise<SupabaseBairro[]> => {
   const { data, error } = await supabase
     .from('bairros')
     .select('*')
-    .order('name');
+    .order('nome');
   
   if (error) {
     console.error('Erro ao buscar bairros:', error);
@@ -348,12 +350,12 @@ export const migrateDataToSupabase = async (
       }
     }
     
-    // Inserir bairros
+    // Inserir bairros - atualizado para usar o campo nome corretamente
     for (const bairro of localBairros) {
       await supabase
         .from('bairros')
         .insert({
-          name: bairro.nome,
+          nome: bairro.nome,
           taxa: bairro.taxa
         });
     }
