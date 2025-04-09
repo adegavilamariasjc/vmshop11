@@ -5,7 +5,7 @@ import { Bell, BellRing, Printer, Eye, Check, RefreshCcw, Trash2 } from 'lucide-
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase/client';
 import PedidoDetalhe from './PedidoDetalhe';
 import { fetchPedidos, updatePedidoStatus, deletePedido, SupabasePedido } from '@/lib/supabase';
 
