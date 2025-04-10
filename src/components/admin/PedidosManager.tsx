@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Bell, BellRing, Printer, Eye, Check, RefreshCcw, Trash2 } from 'lucide-react';
@@ -8,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/lib/supabase/client';
 import PedidoDetalhe from './PedidoDetalhe';
 import { fetchPedidos, updatePedidoStatus, deletePedido, SupabasePedido } from '@/lib/supabase';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface Pedido {
   id: string;
@@ -29,6 +29,7 @@ const PedidosManager: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -49,8 +50,8 @@ const PedidosManager: React.FC = () => {
         }, 
         (payload) => {
           console.log('Novo pedido recebido:', payload);
-          // Tocar alerta sonoro
-          playAlertSound();
+          // Iniciar alerta sonoro contínuo
+          startRingingAlert();
           // Atualizar lista de pedidos
           fetchPedidosData();
           // Mostrar notificação
@@ -65,8 +66,38 @@ const PedidosManager: React.FC = () => {
     
     return () => {
       supabase.removeChannel(channel);
+      // Certifique-se de limpar o intervalo ao desmontar o componente
+      stopRingingAlert();
     };
   }, []);
+
+  // Função para iniciar o toque contínuo
+  const startRingingAlert = () => {
+    // Limpar qualquer intervalo existente primeiro
+    stopRingingAlert();
+    
+    // Tocar imediatamente
+    playAlertSound();
+    
+    // Configurar intervalo para tocar a cada 3 segundos
+    audioIntervalRef.current = setInterval(() => {
+      playAlertSound();
+    }, 3000); // Intervalo entre toques
+  };
+
+  // Função para parar o toque contínuo
+  const stopRingingAlert = () => {
+    if (audioIntervalRef.current) {
+      clearInterval(audioIntervalRef.current);
+      audioIntervalRef.current = null;
+      
+      // Parar o áudio se estiver tocando
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    }
+  };
 
   const fetchPedidosData = async () => {
     setIsLoading(true);
@@ -100,6 +131,7 @@ const PedidosManager: React.FC = () => {
 
   const handleAcknowledge = () => {
     setHasNewPedido(false);
+    stopRingingAlert();
   };
 
   const handleVisualizarPedido = (id: string) => {
@@ -146,6 +178,12 @@ const PedidosManager: React.FC = () => {
       
       if (!success) {
         throw new Error('Falha ao atualizar status');
+      }
+      
+      // Se está aceitando um pedido e há notificação sonora, parar o som
+      if (novoStatus === 'preparando' && hasNewPedido) {
+        stopRingingAlert();
+        setHasNewPedido(false);
       }
       
       // Atualizar o status localmente para evitar nova busca
@@ -204,11 +242,11 @@ const PedidosManager: React.FC = () => {
         <div className="flex items-center gap-3">
           {hasNewPedido && (
             <Button 
-              className="bg-yellow-600 hover:bg-yellow-700 text-black font-medium flex items-center gap-2 animate-pulse"
+              className="bg-red-600 hover:bg-red-700 text-white font-medium flex items-center gap-2 animate-pulse"
               onClick={handleAcknowledge}
             >
               <BellRing size={16} />
-              <span>Novo Pedido!</span>
+              <span>Parar Alerta</span>
             </Button>
           )}
           <Button 
@@ -222,6 +260,16 @@ const PedidosManager: React.FC = () => {
           </Button>
         </div>
       </div>
+      
+      {hasNewPedido && (
+        <Alert className="bg-yellow-600/20 border-yellow-600 mb-4 animate-pulse">
+          <BellRing className="h-4 w-4 text-yellow-600" />
+          <AlertTitle className="text-yellow-600">Novo Pedido!</AlertTitle>
+          <AlertDescription className="text-yellow-600/90">
+            Há um novo pedido que precisa de atenção. Clique para aceitar e parar o alerta sonoro.
+          </AlertDescription>
+        </Alert>
+      )}
       
       <div className="bg-black/50 rounded-md overflow-hidden">
         <Table>
