@@ -49,8 +49,7 @@ export const updatePedidoStatus = async (id: string, status: string): Promise<bo
     const { error } = await supabase
       .from('pedidos')
       .update({ status })
-      .eq('i
-      d', id);
+      .eq('id', id);
     
     if (error) {
       console.error('Erro ao atualizar status do pedido:', error);
