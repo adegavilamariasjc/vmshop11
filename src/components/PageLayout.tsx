@@ -12,7 +12,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
     <div
       className="min-h-screen w-full bg-fixed"
       style={{ 
-        backgroundImage: "url('https://adegavm.com/bgs.jpg')",
+        backgroundImage: "url('https://adegavm.shop/bgs.jpg')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat"
