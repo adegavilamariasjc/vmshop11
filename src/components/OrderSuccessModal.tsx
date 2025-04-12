@@ -92,7 +92,7 @@ const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md bg-transparent border-none">
+      <DialogContent className="sm:max-w-md bg-transparent border-white/10">
         <DialogHeader className="text-center">
           <div className="flex justify-center mb-4">
             {isDuplicate ? (
