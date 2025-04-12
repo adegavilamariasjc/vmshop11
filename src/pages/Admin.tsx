@@ -21,7 +21,7 @@ const Admin = () => {
     // Force video to maintain its position
     const videoContainer = document.querySelector('.video-container');
     if (videoContainer) {
-      videoContainer.setAttribute('style', 'position: fixed !important; top: 0 !important; left: 0 !important;');
+      videoContainer.setAttribute('style', 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important;');
     }
     
     return () => {
@@ -55,7 +55,7 @@ const Admin = () => {
   };
 
   return (
-    <div className="min-h-screen w-full relative">
+    <div className="min-h-screen w-full relative overflow-x-hidden">
       {/* Video Background */}
       <div className="video-container">
         <video 

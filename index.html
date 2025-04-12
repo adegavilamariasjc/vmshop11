@@ -3,7 +3,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Adega VM | Bebidas, Drinks e Delivery Rápido em São José dos Campos</title>
     <meta name="description" content="Bebidas, Drinks e Delivery Rápido em São José dos Campos" />
     <meta name="author" content="Adega VM" />
@@ -32,6 +32,7 @@
         margin: 0;
         padding: 0;
         overflow-x: hidden;
+        position: relative;
       }
       
       /* Hide horizontal scrollbar */
@@ -74,6 +75,12 @@
       .content-overlay {
         position: relative !important;
         z-index: 10 !important;
+        width: 100% !important;
+      }
+      
+      /* Prevent any zooming and scaling issues */
+      body {
+        touch-action: pan-x pan-y !important;
       }
     </style>
   </head>
