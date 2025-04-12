@@ -1,24 +1,45 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Adega VM | Bebidas, Drinks e Delivery Rápido em São José dos Campos</title>
-    <meta name="description" content="Lovable Generated Project" />
-    <meta name="author" content="Lovable" />
+    <meta name="description" content="Bebidas, Drinks e Delivery Rápido em São José dos Campos" />
+    <meta name="author" content="Adega VM" />
 
-    <meta property="og:title" content="Lovable Generated Project" />
-    <meta property="og:description" content="Lovable Generated Project" />
+    <meta property="og:title" content="Adega VM | Bebidas, Drinks e Delivery Rápido" />
+    <meta property="og:description" content="Bebidas, Drinks e Delivery Rápido em São José dos Campos" />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta property="og:image" content="https://adegavm.shop/cover.jpg" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@lovable_dev" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta name="twitter:site" content="@adegavm" />
+    <meta name="twitter:image" content="https://adegavm.shop/cover.jpg" />
+    
+    <style>
+      /* Ensure video background covers the entire screen */
+      html, body, #root {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+      }
+      
+      /* Ensure content doesn't overflow horizontally */
+      .overflow-x-hidden {
+        overflow-x: hidden;
+      }
+      
+      /* Hide horizontal scrollbar */
+      ::-webkit-scrollbar-horizontal {
+        display: none;
+      }
+    </style>
   </head>
 
-  <body>
-    <div id="root"></div>
+  <body class="overflow-x-hidden">
+    <div id="root" class="overflow-x-hidden"></div>
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>

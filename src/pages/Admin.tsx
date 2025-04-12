@@ -42,16 +42,24 @@ const Admin = () => {
   };
 
   return (
-    <div
-      className="min-h-screen w-full bg-fixed"
-      style={{ 
-        backgroundImage: "url('https://adegavm.com/bgs.jpg')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat"
-      }}
-    >
-      <div className="w-full max-w-4xl mx-auto min-h-screen bg-black/70 p-4">
+    <div className="min-h-screen w-full relative overflow-hidden">
+      {/* Video Background with Opacity */}
+      <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
+        <video 
+          autoPlay 
+          loop 
+          muted 
+          playsInline
+          className="absolute w-full h-full object-cover opacity-70"
+        >
+          <source src="https://adegavm.shop/bgs.mp4" type="video/mp4" />
+          {/* Fallback background if video fails to load */}
+          <div className="absolute inset-0 bg-black"></div>
+        </video>
+      </div>
+      
+      {/* Content overlay */}
+      <div className="relative z-10 w-full lg:max-w-6xl mx-auto min-h-screen bg-black/70 p-4">
         {isAuthenticated ? (
           <>
             <div className="flex justify-between items-center mb-4">
@@ -73,7 +81,7 @@ const Admin = () => {
               <h1 className="text-2xl font-bold text-white mb-6">Painel Administrativo</h1>
               
               <Tabs defaultValue="pedidos" className="w-full">
-                <TabsList className="grid grid-cols-4 mb-8">
+                <TabsList className="grid grid-cols-4 mb-8 max-w-full overflow-x-auto">
                   <TabsTrigger value="pedidos" className="text-black font-medium">Pedidos</TabsTrigger>
                   <TabsTrigger value="produtos" className="text-black font-medium">Produtos</TabsTrigger>
                   <TabsTrigger value="categorias" className="text-black font-medium">Categorias</TabsTrigger>
@@ -99,7 +107,7 @@ const Admin = () => {
             </div>
           </>
         ) : (
-          <div className="flex flex-col items-center justify-center">
+          <div className="flex flex-col items-center justify-center min-h-screen">
             <div className="w-full max-w-[200px] mb-6">
               <Logo />
             </div>

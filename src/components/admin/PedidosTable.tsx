@@ -22,46 +22,46 @@ const PedidosTable: React.FC<PedidosTableProps> = ({
   formatDateTime
 }) => {
   return (
-    <div className="bg-black/50 rounded-md overflow-hidden">
-      <Table>
+    <div className="rounded-md overflow-auto max-w-full">
+      <Table className="min-w-full">
         <TableHeader className="bg-gray-800">
           <TableRow>
-            <TableHead className="text-white">Código</TableHead>
-            <TableHead className="text-white">Cliente</TableHead>
-            <TableHead className="text-white">Local</TableHead>
-            <TableHead className="text-white">Pagamento</TableHead>
-            <TableHead className="text-white text-right">Total</TableHead>
-            <TableHead className="text-white">Status</TableHead>
-            <TableHead className="text-white">Data/Hora</TableHead>
-            <TableHead className="text-white text-right">Ações</TableHead>
+            <TableHead className="text-white whitespace-nowrap">Código</TableHead>
+            <TableHead className="text-white whitespace-nowrap">Cliente</TableHead>
+            <TableHead className="text-white whitespace-nowrap hidden md:table-cell">Local</TableHead>
+            <TableHead className="text-white whitespace-nowrap hidden lg:table-cell">Pagamento</TableHead>
+            <TableHead className="text-white text-right whitespace-nowrap">Total</TableHead>
+            <TableHead className="text-white whitespace-nowrap">Status</TableHead>
+            <TableHead className="text-white whitespace-nowrap hidden md:table-cell">Data/Hora</TableHead>
+            <TableHead className="text-white text-right whitespace-nowrap">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {pedidos.map((pedido) => (
             <TableRow key={pedido.id} className="border-gray-700 hover:bg-gray-800">
-              <TableCell className="text-white font-mono">
+              <TableCell className="text-white font-mono whitespace-nowrap">
                 {pedido.codigo_pedido}
               </TableCell>
-              <TableCell className="text-white">
+              <TableCell className="text-white whitespace-nowrap">
                 {pedido.cliente_nome}
               </TableCell>
-              <TableCell className="text-white">
+              <TableCell className="text-white whitespace-nowrap hidden md:table-cell">
                 {pedido.cliente_bairro}
               </TableCell>
-              <TableCell className="text-white">
+              <TableCell className="text-white whitespace-nowrap hidden lg:table-cell">
                 {pedido.forma_pagamento}
               </TableCell>
-              <TableCell className="text-white text-right">
+              <TableCell className="text-white text-right whitespace-nowrap">
                 R$ {pedido.total.toFixed(2)}
               </TableCell>
-              <TableCell>
+              <TableCell className="whitespace-nowrap">
                 <PedidoStatusBadge status={pedido.status} />
               </TableCell>
-              <TableCell className="text-white text-sm">
+              <TableCell className="text-white text-sm whitespace-nowrap hidden md:table-cell">
                 {formatDateTime(pedido.data_criacao)}
               </TableCell>
-              <TableCell className="text-right">
-                <div className="flex justify-end gap-1">
+              <TableCell className="text-right p-1">
+                <div className="flex justify-end gap-1 flex-wrap">
                   <Button 
                     variant="ghost" 
                     size="icon"
@@ -96,7 +96,7 @@ const PedidosTable: React.FC<PedidosTableProps> = ({
                     variant="ghost" 
                     size="icon"
                     onClick={() => onVisualizarPedido(pedido.id)}
-                    className="text-purple-500 hover:text-purple-400 hover:bg-gray-700"
+                    className="text-purple-500 hover:text-purple-400 hover:bg-gray-700 hidden sm:flex"
                     title="Imprimir pedido"
                   >
                     <Printer size={18} />

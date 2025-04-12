@@ -34,10 +34,12 @@ const PedidosManager: React.FC = () => {
         <h2 className="text-xl font-bold text-white">Gerenciar Pedidos</h2>
         <div className="flex items-center gap-3">
           {hasNewPedido && (
-            <NewOrderAlert 
-              hasNewPedido={hasNewPedido}
-              onAcknowledge={handleAcknowledge}
-            />
+            <Button 
+              className="bg-red-600 hover:bg-red-700 text-white font-medium animate-pulse"
+              onClick={handleAcknowledge}
+            >
+              Parar Campainha
+            </Button>
           )}
           <Button 
             variant="outline" 
@@ -58,13 +60,15 @@ const PedidosManager: React.FC = () => {
         />
       )}
       
-      <PedidosTable 
-        pedidos={pedidos}
-        onVisualizarPedido={handleVisualizarPedido}
-        onAtualizarStatus={handleAtualizarStatus}
-        onExcluirPedido={handleExcluirPedido}
-        formatDateTime={formatDateTime}
-      />
+      <div className="overflow-x-auto">
+        <PedidosTable 
+          pedidos={pedidos}
+          onVisualizarPedido={handleVisualizarPedido}
+          onAtualizarStatus={handleAtualizarStatus}
+          onExcluirPedido={handleExcluirPedido}
+          formatDateTime={formatDateTime}
+        />
+      </div>
       
       {showDetalhe && selectedPedido && (
         <PedidoDetalhe 

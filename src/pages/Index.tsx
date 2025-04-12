@@ -9,6 +9,7 @@ import ProductSelectionView from '../components/ProductSelectionView';
 import CheckoutView from '../components/CheckoutView';
 import FlavorSelectionModal from '../components/FlavorSelectionModal';
 import AlcoholSelectionModal from '../components/AlcoholSelectionModal';
+import OrderSuccessModal from '../components/OrderSuccessModal';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -57,6 +58,7 @@ const Index = () => {
   ]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSendingOrder, setIsSendingOrder] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -129,7 +131,6 @@ const Index = () => {
     setIsSendingOrder(true);
     
     try {
-      // Primeiro, salvar o pedido no banco de dados
       const pedidoSalvo = await salvarPedidoNoBanco();
       
       if (!pedidoSalvo) {
@@ -142,7 +143,6 @@ const Index = () => {
         return;
       }
       
-      // Depois, prepara a mensagem para WhatsApp
       const total = cart.reduce((sum, p) => sum + (p.price || 0) * (p.qty || 1), 0) + form.bairro.taxa;
       
       const itensPedido = cart
@@ -179,18 +179,8 @@ const Index = () => {
       const urlWhatsApp = `https://wa.me/5512982704573?text=${mensagemEncoded}`;
       window.open(urlWhatsApp, "_blank");
       
-      toast({
-        title: 'Pedido enviado',
-        description: 'Seu pedido foi registrado com sucesso e enviado para o WhatsApp.'
-      });
+      setShowSuccessModal(true);
       
-      // Limpar o carrinho e retornar para a seleção de produtos
-      setShowSummary(false);
-      
-      setTimeout(() => {
-        // Atualizar a página para reiniciar o pedido
-        window.location.reload();
-      }, 1000);
     } catch (err) {
       console.error('Erro ao enviar pedido:', err);
       toast({
@@ -255,6 +245,12 @@ const Index = () => {
         selectedAlcohol={selectedAlcohol}
         setSelectedAlcohol={setSelectedAlcohol}
         onConfirm={confirmAlcoholSelection}
+      />
+      
+      <OrderSuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        codigoPedido={codigoPedido}
       />
       
       <AdminLink />
