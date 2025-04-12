@@ -11,7 +11,9 @@ const PedidoStatusBadge: React.FC<PedidoStatusBadgeProps> = ({ status }) => {
     case 'pendente':
       return <Badge className="bg-yellow-600 text-white">Pendente</Badge>;
     case 'preparando':
-      return <Badge className="bg-blue-600 text-white">Preparando</Badge>;
+      return <Badge className="bg-blue-600 text-white">Em Produção</Badge>;
+    case 'em_deslocamento':
+      return <Badge className="bg-orange-600 text-white">Em Deslocamento</Badge>;
     case 'entregue':
       return <Badge className="bg-green-600 text-white">Entregue</Badge>;
     case 'cancelado':

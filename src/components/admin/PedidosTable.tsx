@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Printer, Eye, Check, Trash2, ChevronRight } from 'lucide-react';
+import { Printer, Eye, Check, Truck, ShoppingBag, Trash2, ChevronRight } from 'lucide-react';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import PedidoStatusBadge from './PedidoStatusBadge';
@@ -72,14 +72,26 @@ const PedidosTable: React.FC<PedidosTableProps> = ({
                     variant="ghost" 
                     size="sm"
                     onClick={() => onAtualizarStatus(pedido.id, 'preparando')}
-                    className="text-yellow-500 hover:text-yellow-400 hover:bg-gray-700"
+                    className="text-blue-500 hover:text-blue-400 hover:bg-gray-700"
                   >
-                    <Check size={16} className="mr-1" />
-                    Preparar
+                    <ShoppingBag size={16} className="mr-1" />
+                    Produção
                   </Button>
                 )}
                 
                 {pedido.status === 'preparando' && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => onAtualizarStatus(pedido.id, 'em_deslocamento')}
+                    className="text-orange-500 hover:text-orange-400 hover:bg-gray-700"
+                  >
+                    <Truck size={16} className="mr-1" />
+                    Enviar
+                  </Button>
+                )}
+                
+                {pedido.status === 'em_deslocamento' && (
                   <Button 
                     variant="ghost" 
                     size="sm"
@@ -160,27 +172,39 @@ const PedidosTable: React.FC<PedidosTableProps> = ({
                     >
                       <Eye size={18} />
                     </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => onAtualizarStatus(pedido.id, 'preparando')}
-                      disabled={pedido.status !== 'pendente'}
-                      className="text-yellow-500 hover:text-yellow-400 hover:bg-gray-700"
-                      title="Marcar como preparando"
-                    >
-                      <Check size={18} />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => onAtualizarStatus(pedido.id, 'entregue')}
-                      disabled={pedido.status !== 'preparando'}
-                      className="text-green-500 hover:text-green-400 hover:bg-gray-700"
-                      title="Marcar como entregue"
-                    >
-                      <Check size={18} className="mr-1" />
-                      <Check size={18} className="-ml-2" />
-                    </Button>
+                    {pedido.status === 'pendente' && (
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => onAtualizarStatus(pedido.id, 'preparando')}
+                        className="text-blue-500 hover:text-blue-400 hover:bg-gray-700"
+                        title="Marcar como em produção"
+                      >
+                        <ShoppingBag size={18} />
+                      </Button>
+                    )}
+                    {pedido.status === 'preparando' && (
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => onAtualizarStatus(pedido.id, 'em_deslocamento')}
+                        className="text-orange-500 hover:text-orange-400 hover:bg-gray-700"
+                        title="Marcar como em deslocamento"
+                      >
+                        <Truck size={18} />
+                      </Button>
+                    )}
+                    {pedido.status === 'em_deslocamento' && (
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => onAtualizarStatus(pedido.id, 'entregue')}
+                        className="text-green-500 hover:text-green-400 hover:bg-gray-700"
+                        title="Marcar como entregue"
+                      >
+                        <Check size={18} />
+                      </Button>
+                    )}
                     <Button 
                       variant="ghost" 
                       size="icon"

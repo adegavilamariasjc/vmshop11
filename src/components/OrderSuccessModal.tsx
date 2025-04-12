@@ -11,6 +11,7 @@ import {
   DialogTitle
 } from '@/components/ui/dialog';
 import { CheckCircle, Clock } from 'lucide-react';
+import { supabase } from '@/lib/supabase/client';
 
 interface OrderSuccessModalProps {
   isOpen: boolean;
@@ -56,7 +57,22 @@ const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
     }
   }, [isOpen]);
 
-  const handleOk = () => {
+  const handleOk = async () => {
+    // Send notification to the admin system via Supabase Realtime
+    try {
+      // The pedido is already saved in the database, but we need to notify admins
+      // We'll use the Supabase channel system to notify that the order is confirmed
+      const channel = supabase.channel('pedido-confirmado');
+      await channel.subscribe();
+      await channel.send({
+        type: 'broadcast',
+        event: 'pedido-confirmado',
+        payload: { codigo_pedido: codigoPedido }
+      });
+    } catch (error) {
+      console.error('Error notifying admin system:', error);
+    }
+    
     onClose();
     navigate('/');
     // Force reload to reset the form state

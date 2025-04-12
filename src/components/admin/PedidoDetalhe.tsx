@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Printer, X, Check, Trash2 } from 'lucide-react';
+import { Printer, X, Check, Truck, ShoppingBag, Trash2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { fetchPedidoById, updatePedidoStatus, deletePedido, SupabasePedido } from '@/lib/supabase';
 
@@ -53,14 +52,12 @@ const PedidoDetalhe: React.FC<PedidoDetalheProps> = ({ pedidoId, onClose, onDele
     
     setIsPrinting(true);
     
-    // Criar conteúdo simplificado para impressão
     const itensFormatados = pedido.itens.map((item: any) => {
       let texto = `${item.qty}x ${item.name}`;
       if (item.alcohol) {
         texto += ` (${item.alcohol})`;
       }
       
-      // Adicionar informações de gelo se houver
       if (item.ice && Object.entries(item.ice).some(([_, qty]: [string, any]) => qty > 0)) {
         const geloInfo = Object.entries(item.ice)
           .filter(([_, qty]: [string, any]) => qty > 0)
@@ -101,7 +98,6 @@ Obrigado pela preferência!
 ADEGA VM
     `.trim();
     
-    // Abrir janela de impressão com texto simples
     const janela = window.open('', '_blank');
     
     if (janela) {
@@ -165,7 +161,6 @@ ${conteudoImpressao}
         description: `O pedido ${pedido.codigo_pedido} foi excluído com sucesso.`,
       });
       
-      // Fechar o modal e atualizar a lista de pedidos
       onClose();
       if (onDelete) {
         onDelete();
@@ -187,7 +182,9 @@ ${conteudoImpressao}
       case 'pendente':
         return <span className="status status-pendente">Pendente</span>;
       case 'preparando':
-        return <span className="status status-preparando">Preparando</span>;
+        return <span className="status status-preparando">Em Produção</span>;
+      case 'em_deslocamento':
+        return <span className="status status-em-deslocamento">Em Deslocamento</span>;
       case 'entregue':
         return <span className="status status-entregue">Entregue</span>;
       case 'cancelado':
@@ -346,7 +343,16 @@ ${conteudoImpressao}
                       className={`text-black font-medium ${pedido.status === 'preparando' ? 'bg-blue-600 hover:bg-blue-700' : 'border-gray-600'}`}
                       onClick={() => handleAtualizarStatus('preparando')}
                     >
-                      Preparando
+                      <ShoppingBag size={16} className="mr-1" />
+                      Em Produção
+                    </Button>
+                    <Button 
+                      variant={pedido.status === 'em_deslocamento' ? 'default' : 'outline'}
+                      className={`text-black font-medium ${pedido.status === 'em_deslocamento' ? 'bg-orange-600 hover:bg-orange-700' : 'border-gray-600'}`}
+                      onClick={() => handleAtualizarStatus('em_deslocamento')}
+                    >
+                      <Truck size={16} className="mr-1" />
+                      Em Deslocamento
                     </Button>
                     <Button 
                       variant={pedido.status === 'entregue' ? 'default' : 'outline'}
