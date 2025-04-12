@@ -18,7 +18,7 @@ interface OrderSuccessModalProps {
   onClose: () => void;
   codigoPedido: string;
   isDuplicate?: boolean;
-  onConfirm: () => void; // New prop to handle actions after confirmation
+  onConfirm: () => void; // Prop to handle actions after confirmation (WhatsApp)
 }
 
 const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
@@ -79,17 +79,20 @@ const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
       }
     }
     
-    // Call the onConfirm callback (which handles WhatsApp opening)
+    // Close modal 
+    onClose();
+    
+    // Call the onConfirm callback (which handles WhatsApp opening) AFTER closing the modal
+    // This ensures the WhatsApp message is only sent after the user clicks OK
     onConfirm();
     
-    // Close modal and navigate
-    onClose();
+    // Navigate to home page
     navigate('/');
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md bg-transparent border-none">
         <DialogHeader className="text-center">
           <div className="flex justify-center mb-4">
             {isDuplicate ? (
@@ -98,22 +101,24 @@ const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
               <CheckCircle className="h-16 w-16 text-green-500" />
             )}
           </div>
-          <DialogTitle className="text-2xl font-bold">
+          <DialogTitle className="text-2xl font-bold text-white">
             {isDuplicate ? 
               "Alerta de Pedido Duplicado!" : 
               "Seu pedido foi enviado com sucesso!"}
           </DialogTitle>
-          <DialogDescription className="text-lg pt-4 px-2">
+          <DialogDescription className="text-lg pt-4 px-2 text-white">
             {isDuplicate ? (
-              <span className="text-amber-600 font-medium">
+              <span className="text-amber-400 font-medium text-lg">
                 Detectamos um pedido semelhante recente. Por favor, entre em contato com a loja para confirmar este pedido.
               </span>
             ) : (
               <>
-                <div className="mb-2 bg-green-50 p-3 rounded-md border border-green-200">
-                  O código do seu pedido é <span className="font-bold text-green-700">{codigoPedido}</span>
+                <div className="mb-4 bg-green-900/70 p-4 rounded-md border border-green-500 shadow-lg">
+                  <p className="text-xl">O código do seu pedido é:</p> 
+                  <p className="font-bold text-2xl text-green-400 my-2">{codigoPedido}</p>
+                  <p className="mt-2 text-green-200">Guarde este código para consultas</p>
                 </div>
-                <p className="mt-3">
+                <p className="mt-4 text-white/90 font-medium">
                   Foi enviado para a loja com sucesso. Nosso tempo médio de entrega varia entre 20 e 50 minutos.
                 </p>
               </>
@@ -122,7 +127,7 @@ const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
         </DialogHeader>
         
         {!buttonEnabled && (
-          <div className="flex items-center justify-center py-3 text-amber-500">
+          <div className="flex items-center justify-center py-3 text-amber-400">
             <Clock className="animate-pulse mr-2" size={20} />
             <span className="font-medium">Aguarde {countdown} segundos...</span>
           </div>
