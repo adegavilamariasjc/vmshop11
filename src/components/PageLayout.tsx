@@ -9,14 +9,14 @@ interface PageLayoutProps {
 const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen w-full relative overflow-hidden">
-      {/* Video Background with Opacity */}
+      {/* Video Background with Full Opacity */}
       <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
         <video 
           autoPlay 
           loop 
           muted 
           playsInline
-          className="absolute w-full h-full object-cover opacity-70"
+          className="absolute w-full h-full object-cover"
         >
           <source src="https://adegavm.shop/bgs.mp4" type="video/mp4" />
           {/* Fallback background if video fails to load */}
