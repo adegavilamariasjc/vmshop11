@@ -10,7 +10,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen w-full relative overflow-hidden">
       {/* Video Background with Full Opacity */}
-      <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
+      <div className="video-container">
         <video 
           autoPlay 
           loop 
