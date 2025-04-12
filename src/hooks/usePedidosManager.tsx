@@ -29,7 +29,7 @@ export const usePedidosManager = () => {
 
   useEffect(() => {
     // Criar elemento de áudio para notificação com som de telefone antigo
-    audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2874/2874-preview.mp3');
+    audioRef.current = new Audio('https://adegavm.shop/ring.mp3');
     
     // Buscar pedidos iniciais
     fetchPedidosData();
