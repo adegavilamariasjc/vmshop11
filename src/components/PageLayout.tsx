@@ -17,6 +17,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
           muted 
           playsInline
           className="absolute w-full h-full object-cover"
+          style={{ objectPosition: 'center' }}
         >
           <source src="https://adegavm.shop/bgs.mp4" type="video/mp4" />
           {/* Fallback background if video fails to load */}
