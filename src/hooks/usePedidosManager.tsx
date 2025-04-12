@@ -13,6 +13,7 @@ export interface Pedido {
   total: number;
   status: string;
   data_criacao: string;
+  timeInProduction?: number; // Time in minutes the order has been in production
 }
 
 export const usePedidosManager = () => {
@@ -25,6 +26,7 @@ export const usePedidosManager = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const productionTimerRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -59,12 +61,57 @@ export const usePedidosManager = () => {
       )
       .subscribe();
     
+    // Start the production timer to check order status
+    startProductionTimer();
+    
     return () => {
       supabase.removeChannel(channel);
       // Certifique-se de limpar o intervalo ao desmontar o componente
       stopRingingAlert();
+      stopProductionTimer();
     };
   }, []);
+
+  // Function to start the production timer
+  const startProductionTimer = () => {
+    // Clear any existing timer
+    stopProductionTimer();
+    
+    // Check orders in production every minute
+    productionTimerRef.current = setInterval(() => {
+      setPedidos(currentPedidos => {
+        const now = new Date();
+        
+        return currentPedidos.map(pedido => {
+          // Only update orders in "preparando" status
+          if (pedido.status === 'preparando') {
+            const orderDate = new Date(pedido.data_criacao);
+            const elapsedMinutes = Math.floor((now.getTime() - orderDate.getTime()) / (1000 * 60));
+            
+            // If order has been in production for 30 minutes or more, show a notification
+            if (elapsedMinutes >= 30 && (!pedido.timeInProduction || pedido.timeInProduction < 30)) {
+              toast({
+                title: "Alerta de Produção",
+                description: `O pedido ${pedido.codigo_pedido} está em produção há 30 minutos ou mais.`,
+                variant: "destructive",
+              });
+            }
+            
+            return { ...pedido, timeInProduction: elapsedMinutes };
+          }
+          return pedido;
+        });
+      });
+    }, 60000); // Check every minute
+  };
+
+  // Function to stop the production timer
+  const stopProductionTimer = () => {
+    if (productionTimerRef.current) {
+      clearInterval(productionTimerRef.current);
+      productionTimerRef.current = null;
+    }
+  };
 
   // Função para iniciar o toque contínuo
   const startRingingAlert = () => {
@@ -98,7 +145,19 @@ export const usePedidosManager = () => {
     setIsLoading(true);
     try {
       const pedidosData = await fetchPedidos();
-      setPedidos(pedidosData);
+      
+      // Calculate time in production for each order
+      const now = new Date();
+      const processedPedidos = pedidosData.map(pedido => {
+        if (pedido.status === 'preparando') {
+          const orderDate = new Date(pedido.data_criacao);
+          const elapsedMinutes = Math.floor((now.getTime() - orderDate.getTime()) / (1000 * 60));
+          return { ...pedido, timeInProduction: elapsedMinutes };
+        }
+        return pedido;
+      });
+      
+      setPedidos(processedPedidos);
     } catch (error) {
       console.error('Erro ao buscar pedidos:', error);
       toast({
@@ -181,9 +240,9 @@ export const usePedidosManager = () => {
         setHasNewPedido(false);
       }
       
-      // Atualizar o status localmente para evitar nova busca
+      // Reset timeInProduction when status changes
       setPedidos(pedidos.map(p => 
-        p.id === id ? { ...p, status: novoStatus } : p
+        p.id === id ? { ...p, status: novoStatus, timeInProduction: novoStatus === 'preparando' ? 0 : undefined } : p
       ));
       
       toast({

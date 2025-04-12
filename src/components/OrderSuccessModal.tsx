@@ -10,19 +10,23 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog';
-import { CheckCircle, Clock } from 'lucide-react';
+import { CheckCircle, Clock, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 
 interface OrderSuccessModalProps {
   isOpen: boolean;
   onClose: () => void;
   codigoPedido: string;
+  isDuplicate?: boolean;
+  onConfirm: () => void; // New prop to handle actions after confirmation
 }
 
 const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
   isOpen,
   onClose,
-  codigoPedido
+  codigoPedido,
+  isDuplicate = false,
+  onConfirm
 }) => {
   const navigate = useNavigate();
   const [countdown, setCountdown] = useState(10); // 10 second countdown
@@ -58,38 +62,62 @@ const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
   }, [isOpen]);
 
   const handleOk = async () => {
-    // Send notification to the admin system via Supabase Realtime
-    try {
-      // The pedido is already saved in the database, but we need to notify admins
-      // We'll use the Supabase channel system to notify that the order is confirmed
-      const channel = supabase.channel('pedido-confirmado');
-      await channel.subscribe();
-      await channel.send({
-        type: 'broadcast',
-        event: 'pedido-confirmado',
-        payload: { codigo_pedido: codigoPedido }
-      });
-    } catch (error) {
-      console.error('Error notifying admin system:', error);
+    // Only send notification to the admin system if it's not a duplicate order
+    if (!isDuplicate) {
+      try {
+        // The pedido is already saved in the database, but we need to notify admins
+        // We'll use the Supabase channel system to notify that the order is confirmed
+        const channel = supabase.channel('pedido-confirmado');
+        await channel.subscribe();
+        await channel.send({
+          type: 'broadcast',
+          event: 'pedido-confirmado',
+          payload: { codigo_pedido: codigoPedido }
+        });
+      } catch (error) {
+        console.error('Error notifying admin system:', error);
+      }
     }
     
+    // Call the onConfirm callback (which handles WhatsApp opening)
+    onConfirm();
+    
+    // Close modal and navigate
     onClose();
     navigate('/');
-    // Force reload to reset the form state
-    window.location.reload();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader className="text-center">
-          <div className="flex justify-center mb-2">
-            <CheckCircle className="h-16 w-16 text-green-500" />
+          <div className="flex justify-center mb-4">
+            {isDuplicate ? (
+              <AlertTriangle className="h-16 w-16 text-amber-500" />
+            ) : (
+              <CheckCircle className="h-16 w-16 text-green-500" />
+            )}
           </div>
-          <DialogTitle className="text-2xl">Seu pedido foi enviado com sucesso!</DialogTitle>
-          <DialogDescription className="text-lg pt-4">
-            O código do seu pedido é <span className="font-bold">{codigoPedido}</span>. 
-            Foi enviado para a loja com sucesso. Nosso tempo médio de entrega varia entre 20 e 50 minutos.
+          <DialogTitle className="text-2xl font-bold">
+            {isDuplicate ? 
+              "Alerta de Pedido Duplicado!" : 
+              "Seu pedido foi enviado com sucesso!"}
+          </DialogTitle>
+          <DialogDescription className="text-lg pt-4 px-2">
+            {isDuplicate ? (
+              <span className="text-amber-600 font-medium">
+                Detectamos um pedido semelhante recente. Por favor, entre em contato com a loja para confirmar este pedido.
+              </span>
+            ) : (
+              <>
+                <div className="mb-2 bg-green-50 p-3 rounded-md border border-green-200">
+                  O código do seu pedido é <span className="font-bold text-green-700">{codigoPedido}</span>
+                </div>
+                <p className="mt-3">
+                  Foi enviado para a loja com sucesso. Nosso tempo médio de entrega varia entre 20 e 50 minutos.
+                </p>
+              </>
+            )}
           </DialogDescription>
         </DialogHeader>
         
@@ -100,13 +128,14 @@ const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
           </div>
         )}
         
-        <DialogFooter className="flex justify-center">
+        <DialogFooter className="flex justify-center mt-4">
           <Button 
             onClick={handleOk} 
             disabled={!buttonEnabled}
-            className={`bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto ${!buttonEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`${isDuplicate ? 'bg-amber-600 hover:bg-amber-700' : 'bg-green-600 hover:bg-green-700'} text-white w-full sm:w-auto ${!buttonEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+            size="lg"
           >
-            OK
+            {isDuplicate ? "Entendi" : "OK"}
           </Button>
         </DialogFooter>
       </DialogContent>

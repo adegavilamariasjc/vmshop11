@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Printer, Eye, Check, Truck, ShoppingBag, Trash2, ChevronRight } from 'lucide-react';
+import { Printer, Eye, Check, Truck, ShoppingBag, Trash2, Clock } from 'lucide-react';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import PedidoStatusBadge from './PedidoStatusBadge';
@@ -22,6 +22,23 @@ const PedidosTable: React.FC<PedidosTableProps> = ({
   onExcluirPedido,
   formatDateTime
 }) => {
+  // Function to render production time
+  const renderProductionTime = (pedido: Pedido) => {
+    if (pedido.status !== 'preparando' || !pedido.timeInProduction) {
+      return null;
+    }
+    
+    const isWarning = pedido.timeInProduction >= 20;
+    const isAlert = pedido.timeInProduction >= 30;
+    
+    return (
+      <div className={`flex items-center ${isAlert ? 'text-red-500' : isWarning ? 'text-amber-500' : 'text-blue-400'}`}>
+        <Clock size={16} className={`mr-1 ${isAlert ? 'animate-pulse' : ''}`} />
+        <span>{pedido.timeInProduction}min</span>
+      </div>
+    );
+  };
+  
   // Mobile view for small screens
   if (window.innerWidth < 768) {
     return (
@@ -35,7 +52,10 @@ const PedidosTable: React.FC<PedidosTableProps> = ({
             <div key={pedido.id} className="bg-gray-800 rounded-lg p-3 space-y-2">
               <div className="flex justify-between items-center">
                 <span className="text-white font-mono">{pedido.codigo_pedido}</span>
-                <PedidoStatusBadge status={pedido.status} />
+                <div className="flex items-center gap-2">
+                  {renderProductionTime(pedido)}
+                  <PedidoStatusBadge status={pedido.status} />
+                </div>
               </div>
               
               <div className="grid grid-cols-2 gap-2 text-sm">
@@ -55,7 +75,7 @@ const PedidosTable: React.FC<PedidosTableProps> = ({
                 <div className="text-white">{formatDateTime(pedido.data_criacao)}</div>
               </div>
               
-              <div className="flex justify-between pt-2 border-t border-gray-700 mt-2">
+              <div className="flex flex-wrap justify-between pt-2 border-t border-gray-700 mt-2 gap-1">
                 <Button 
                   variant="ghost" 
                   size="sm"
@@ -156,7 +176,10 @@ const PedidosTable: React.FC<PedidosTableProps> = ({
                   R$ {pedido.total.toFixed(2)}
                 </TableCell>
                 <TableCell className="whitespace-nowrap">
-                  <PedidoStatusBadge status={pedido.status} />
+                  <div className="flex items-center gap-2">
+                    {renderProductionTime(pedido)}
+                    <PedidoStatusBadge status={pedido.status} />
+                  </div>
                 </TableCell>
                 <TableCell className="text-white text-sm whitespace-nowrap hidden md:table-cell">
                   {formatDateTime(pedido.data_criacao)}
