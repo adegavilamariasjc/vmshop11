@@ -4,6 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Printer, X, Check, Trash2 } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { fetchPedidoById, updatePedidoStatus, deletePedido, SupabasePedido } from '@/lib/supabase';
 
 interface PedidoDetalheProps {
@@ -243,7 +244,7 @@ ${conteudoImpressao}
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="bg-gray-900 text-white border-gray-800 max-w-3xl">
+      <DialogContent className="bg-gray-900 text-white border-gray-800 max-w-3xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="text-xl">
             Detalhes do Pedido {pedido?.codigo_pedido}
@@ -253,7 +254,7 @@ ${conteudoImpressao}
         {isLoading ? (
           <div className="text-center py-8">Carregando detalhes do pedido...</div>
         ) : pedido ? (
-          <>
+          <ScrollArea className="h-[calc(90vh-170px)] pr-4">
             <div className="grid md:grid-cols-2 gap-6">
               <div ref={impressaoRef}>
                 <div className="header">
@@ -390,7 +391,7 @@ ${conteudoImpressao}
                 </div>
               </div>
             </div>
-          </>
+          </ScrollArea>
         ) : (
           <div className="text-center py-8 text-red-500">
             Erro ao carregar os detalhes do pedido.

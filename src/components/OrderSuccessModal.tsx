@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, Clock } from 'lucide-react';
 
 interface OrderSuccessModalProps {
   isOpen: boolean;
@@ -24,6 +24,37 @@ const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
   codigoPedido
 }) => {
   const navigate = useNavigate();
+  const [countdown, setCountdown] = useState(10); // 10 second countdown
+  const [buttonEnabled, setButtonEnabled] = useState(false);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    
+    if (isOpen && countdown > 0) {
+      timer = setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            setButtonEnabled(true);
+            clearInterval(timer);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [isOpen, countdown]);
+
+  // Reset countdown when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setCountdown(10);
+      setButtonEnabled(false);
+    }
+  }, [isOpen]);
 
   const handleOk = () => {
     onClose();
@@ -45,10 +76,19 @@ const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
             Foi enviado para a loja com sucesso. Nosso tempo médio de entrega varia entre 20 e 50 minutos.
           </DialogDescription>
         </DialogHeader>
+        
+        {!buttonEnabled && (
+          <div className="flex items-center justify-center py-3 text-amber-500">
+            <Clock className="animate-pulse mr-2" size={20} />
+            <span className="font-medium">Aguarde {countdown} segundos...</span>
+          </div>
+        )}
+        
         <DialogFooter className="flex justify-center">
           <Button 
             onClick={handleOk} 
-            className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto"
+            disabled={!buttonEnabled}
+            className={`bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto ${!buttonEnabled ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             OK
           </Button>
