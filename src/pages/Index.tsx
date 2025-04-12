@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../hooks/useCart';
 import { AnimatePresence } from 'framer-motion';
@@ -10,6 +9,7 @@ import ProductSelectionView from '../components/ProductSelectionView';
 import CheckoutView from '../components/CheckoutView';
 import FlavorSelectionModal from '../components/FlavorSelectionModal';
 import AlcoholSelectionModal from '../components/AlcoholSelectionModal';
+import BalyFlavorSelectionModal from '../components/BalyFlavorSelectionModal';
 import OrderSuccessModal from '../components/OrderSuccessModal';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
@@ -24,8 +24,10 @@ const Index = () => {
     showSummary,
     isFlavorModalOpen,
     isAlcoholModalOpen,
+    isBalyModalOpen,
     selectedProductForFlavor,
     selectedProductForAlcohol,
+    selectedProductForBaly,
     selectedIce,
     selectedAlcohol,
     setShowSummary,
@@ -35,9 +37,11 @@ const Index = () => {
     updateIceQuantity,
     confirmFlavorSelection,
     confirmAlcoholSelection,
+    confirmBalySelection,
     checkMissingFlavorsAndProceed,
     setIsFlavorModalOpen,
     setIsAlcoholModalOpen,
+    setIsBalyModalOpen,
     setSelectedAlcohol
   } = useCart();
 
@@ -97,7 +101,6 @@ const Index = () => {
 
   const checkDuplicateOrder = async (clienteNome: string, clienteWhatsapp: string, total: number) => {
     try {
-      // Fetch recent orders (last 30 minutes)
       const thirtyMinutesAgo = new Date();
       thirtyMinutesAgo.setMinutes(thirtyMinutesAgo.getMinutes() - 30);
       
@@ -114,14 +117,11 @@ const Index = () => {
         return false;
       }
       
-      // If there are recent orders with the same name and whatsapp,
-      // check if total is within 10% variation
       if (data && data.length > 0) {
         for (const prevOrder of data) {
           const totalDifference = Math.abs(prevOrder.total - total);
           const percentDifference = (totalDifference / total) * 100;
           
-          // If order total is within 10% of a previous order, consider it a duplicate
           if (percentDifference < 10) {
             return true;
           }
@@ -140,11 +140,9 @@ const Index = () => {
     
     const total = cart.reduce((sum, p) => sum + (p.price || 0) * (p.qty || 1), 0) + form.bairro.taxa;
     
-    // Check for duplicate order
     const isDuplicate = await checkDuplicateOrder(form.nome, form.whatsapp, total);
     setIsDuplicateOrder(isDuplicate);
 
-    // If it's a duplicate, we still show the modal but don't save the order
     if (isDuplicate) {
       return true;
     }
@@ -192,7 +190,8 @@ const Index = () => {
               .join(", ")
           : "";
         const alcoholText = p.alcohol ? ` (Álcool: ${p.alcohol})` : "";
-        return `${p.qty}x ${p.name}${alcoholText}${iceText} - R$${((p.price || 0) * (p.qty || 1)).toFixed(2)}`;
+        const balyText = p.balyFlavor ? ` (Baly: ${p.balyFlavor})` : "";
+        return `${p.qty}x ${p.name}${alcoholText}${balyText}${iceText} - R$${((p.price || 0) * (p.qty || 1)).toFixed(2)}`;
       })
       .join("\n");
     
@@ -217,12 +216,10 @@ const Index = () => {
   };
 
   const handleOrderConfirmation = () => {
-    // Only open WhatsApp if it's not a duplicate order
     if (!isDuplicateOrder && whatsAppUrl) {
       window.open(whatsAppUrl, "_blank");
     }
     
-    // Force reload to reset the form state
     window.location.reload();
   };
 
@@ -234,7 +231,6 @@ const Index = () => {
     setIsSendingOrder(true);
     
     try {
-      // Prepare the order data and check for duplicates
       const success = await preparePedido();
       
       if (!success) {
@@ -247,13 +243,11 @@ const Index = () => {
         return;
       }
       
-      // Create WhatsApp message but don't open it yet
       if (!isDuplicateOrder) {
         const url = createWhatsAppMessage();
         setWhatsAppUrl(url);
       }
       
-      // Show the success/duplicate modal
       setShowSuccessModal(true);
       
     } catch (err) {
@@ -320,6 +314,13 @@ const Index = () => {
         selectedAlcohol={selectedAlcohol}
         setSelectedAlcohol={setSelectedAlcohol}
         onConfirm={confirmAlcoholSelection}
+      />
+      
+      <BalyFlavorSelectionModal
+        isOpen={isBalyModalOpen}
+        onClose={() => setIsBalyModalOpen(false)}
+        product={selectedProductForBaly}
+        onConfirm={confirmBalySelection}
       />
       
       <OrderSuccessModal

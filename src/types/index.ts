@@ -6,6 +6,7 @@ export interface Product {
   qty?: number;
   ice?: Record<string, number>;
   alcohol?: string;
+  balyFlavor?: string;
 }
 
 export interface Bairro {

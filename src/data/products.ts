@@ -1,4 +1,3 @@
-
 export const categories = [
   "Copão Whisky",
   "Copão Vodka",
@@ -277,7 +276,7 @@ export const products = {
     { name: "Longneck Skol Beats Senses", price: 12.00 },
     { name: "Longneck Skol Beats GT", price: 12.00 }
   ],
-"Vinhos": [
+  "Vinhos": [
     { name: "Dani 700ml", price: 22.00 },
     { name: "Cantinho do Vale 880ml", price: 6.00 },
     { name: "Cantinho do Vale 2L", price: 12.00 },
@@ -699,6 +698,10 @@ export const getMaxIce = (category: string) => {
   if (["Copão Whisky", "Copão Vodka", "Copão Gin"].includes(category)) return 1;
   if (["Combos Whisky", "Combos Vodka", "Combos Gin"].includes(category)) return 5;
   return 0;
+};
+
+export const containsBaly = (productName: string): boolean => {
+  return productName.toLowerCase().includes('baly');
 };
 
 // Local Storage functions to save/load data

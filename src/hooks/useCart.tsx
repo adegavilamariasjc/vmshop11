@@ -11,7 +11,8 @@ import {
   requiresFlavor, 
   requiresAlcoholChoice, 
   iceFlavors, 
-  getMaxIce 
+  getMaxIce,
+  containsBaly
 } from '../data/products';
 
 export const useCart = () => {
@@ -21,8 +22,10 @@ export const useCart = () => {
   const [showSummary, setShowSummary] = useState(false);
   const [isFlavorModalOpen, setIsFlavorModalOpen] = useState(false);
   const [isAlcoholModalOpen, setIsAlcoholModalOpen] = useState(false);
+  const [isBalyModalOpen, setIsBalyModalOpen] = useState(false);
   const [selectedProductForFlavor, setSelectedProductForFlavor] = useState<Product | null>(null);
   const [selectedProductForAlcohol, setSelectedProductForAlcohol] = useState<Product | null>(null);
+  const [selectedProductForBaly, setSelectedProductForBaly] = useState<Product | null>(null);
   const [selectedIce, setSelectedIce] = useState<Record<string, number>>({});
   const [selectedAlcohol, setSelectedAlcohol] = useState<AlcoholOption | null>(null);
 
@@ -48,6 +51,9 @@ export const useCart = () => {
       setSelectedProductForAlcohol(productWithCategory);
       setSelectedAlcohol(null);
       setIsAlcoholModalOpen(true);
+    } else if (containsBaly(item.name)) {
+      setSelectedProductForBaly(productWithCategory);
+      setIsBalyModalOpen(true);
     } else {
       handleUpdateQuantity(productWithCategory, 1);
     }
@@ -61,7 +67,8 @@ export const useCart = () => {
           p.category === item.category &&
           ((p.ice && item.ice && JSON.stringify(p.ice) === JSON.stringify(item.ice)) ||
            (!p.ice && !item.ice)) &&
-          p.alcohol === item.alcohol
+          p.alcohol === item.alcohol &&
+          p.balyFlavor === item.balyFlavor
       );
       
       if (existingItem) {
@@ -71,7 +78,8 @@ export const useCart = () => {
             p.category === item.category &&
             ((p.ice && item.ice && JSON.stringify(p.ice) === JSON.stringify(item.ice)) ||
              (!p.ice && !item.ice)) &&
-            p.alcohol === item.alcohol
+            p.alcohol === item.alcohol &&
+            p.balyFlavor === item.balyFlavor
               ? { ...p, qty: Math.max(0, (p.qty || 1) + delta) }
               : p
           )
@@ -139,6 +147,23 @@ export const useCart = () => {
     });
   };
 
+  const confirmBalySelection = (flavor: string) => {
+    if (!selectedProductForBaly || !flavor) return;
+    
+    const itemWithBaly = {
+      ...selectedProductForBaly,
+      balyFlavor: flavor
+    };
+    
+    handleUpdateQuantity(itemWithBaly, 1);
+    setIsBalyModalOpen(false);
+    
+    toast({
+      title: "Item adicionado",
+      description: `${selectedProductForBaly.name} com Baly ${flavor} adicionado ao pedido.`,
+    });
+  };
+
   const checkMissingFlavorsAndProceed = () => {
     if (cart.length === 0) {
       toast({
@@ -152,7 +177,8 @@ export const useCart = () => {
     const missing = cart.filter(
       item =>
         (requiresFlavor(item.category || '') && (!item.ice || Object.values(item.ice).reduce((a, b) => a + b, 0) === 0)) ||
-        (requiresAlcoholChoice(item.category || '') && !item.alcohol)
+        (requiresAlcoholChoice(item.category || '') && !item.alcohol) ||
+        (containsBaly(item.name) && !item.balyFlavor)
     );
     
     if (missing.length > 0) {
@@ -165,6 +191,9 @@ export const useCart = () => {
         setSelectedProductForAlcohol(itemPend);
         setSelectedAlcohol(null);
         setIsAlcoholModalOpen(true);
+      } else if (containsBaly(itemPend.name)) {
+        setSelectedProductForBaly(itemPend);
+        setIsBalyModalOpen(true);
       }
     } else {
       setShowSummary(true);
@@ -178,8 +207,10 @@ export const useCart = () => {
     showSummary,
     isFlavorModalOpen,
     isAlcoholModalOpen,
+    isBalyModalOpen,
     selectedProductForFlavor,
     selectedProductForAlcohol,
+    selectedProductForBaly,
     selectedIce,
     selectedAlcohol,
     setShowSummary,
@@ -189,9 +220,11 @@ export const useCart = () => {
     updateIceQuantity,
     confirmFlavorSelection,
     confirmAlcoholSelection,
+    confirmBalySelection,
     checkMissingFlavorsAndProceed,
     setIsFlavorModalOpen,
     setIsAlcoholModalOpen,
+    setIsBalyModalOpen,
     setSelectedAlcohol
   };
 };

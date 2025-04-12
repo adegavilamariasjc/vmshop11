@@ -13,6 +13,7 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
         <span className="text-white">
           {item.qty || 1}x {item.name} 
           {item.alcohol ? ` (${item.alcohol})` : ""}
+          {item.balyFlavor ? ` (Baly: ${item.balyFlavor})` : ""}
         </span>
         <span className="text-white font-semibold">
           R$ {((item.price || 0) * (item.qty || 1)).toFixed(2)}
