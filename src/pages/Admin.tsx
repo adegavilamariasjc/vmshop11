@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -15,6 +15,19 @@ const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Ensure video stays fixed during all component lifecycles
+  useEffect(() => {
+    // Force video to maintain its position
+    const videoContainer = document.querySelector('.video-container');
+    if (videoContainer) {
+      videoContainer.setAttribute('style', 'position: fixed !important; top: 0 !important; left: 0 !important;');
+    }
+    
+    return () => {
+      // Cleanup - although not strictly necessary since styles are in global CSS
+    };
+  }, []);
 
   const handleLogin = (password: string) => {
     // Simple password authentication
@@ -42,15 +55,15 @@ const Admin = () => {
   };
 
   return (
-    <div className="min-h-screen w-full relative overflow-hidden">
-      {/* Video Background with Full Opacity */}
+    <div className="min-h-screen w-full relative">
+      {/* Video Background */}
       <div className="video-container">
         <video 
           autoPlay 
           loop 
           muted 
           playsInline
-          className="absolute w-full h-full object-cover"
+          className="video-background"
         >
           <source src="https://adegavm.shop/bgs.mp4" type="video/mp4" />
           {/* Fallback background if video fails to load */}
@@ -59,7 +72,7 @@ const Admin = () => {
       </div>
       
       {/* Content overlay */}
-      <div className="relative z-10 w-full lg:max-w-6xl mx-auto min-h-screen bg-black/70 p-4">
+      <div className="relative z-10 w-full lg:max-w-6xl mx-auto min-h-screen bg-black/70 p-4 content-overlay">
         {isAuthenticated ? (
           <>
             <div className="flex justify-between items-center mb-4">
