@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { RefreshCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PedidoDetalhe from './PedidoDetalhe';
@@ -8,6 +8,7 @@ import PedidosTable from './PedidosTable';
 import NewOrderAlert from './NewOrderAlert';
 
 const PedidosManager: React.FC = () => {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const {
     pedidos,
     isLoading,
@@ -24,6 +25,16 @@ const PedidosManager: React.FC = () => {
     formatDateTime
   } = usePedidosManager();
 
+  // Handle responsive design
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   if (isLoading) {
     return <div className="text-center py-4 text-white">Carregando pedidos...</div>;
   }
@@ -38,7 +49,7 @@ const PedidosManager: React.FC = () => {
               className="bg-red-600 hover:bg-red-700 text-white font-medium animate-pulse"
               onClick={handleAcknowledge}
             >
-              Parar Campainha
+              {isMobile ? 'Parar' : 'Parar Campainha'}
             </Button>
           )}
           <Button 
@@ -48,7 +59,7 @@ const PedidosManager: React.FC = () => {
             disabled={refreshing}
           >
             <RefreshCcw size={16} className={`mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-            Atualizar
+            {isMobile ? '' : 'Atualizar'}
           </Button>
         </div>
       </div>
@@ -60,7 +71,7 @@ const PedidosManager: React.FC = () => {
         />
       )}
       
-      <div className="overflow-x-auto">
+      <div className="w-full">
         <PedidosTable 
           pedidos={pedidos}
           onVisualizarPedido={handleVisualizarPedido}
