@@ -15,7 +15,7 @@ const BackgroundVideoPlayer: React.FC<BackgroundVideoPlayerProps> = ({
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [nextVideoIndex, setNextVideoIndex] = useState(1 % videoUrls.length);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [playedVideos, setPlayedVideos] = useState<number[]>([0]); // Track played videos
+  const [playedVideos, setPlayedVideos] = useState<number[]>([0]);
   
   const currentVideoRef = useRef<HTMLVideoElement>(null);
   const nextVideoRef = useRef<HTMLVideoElement>(null);
@@ -27,6 +27,15 @@ const BackgroundVideoPlayer: React.FC<BackgroundVideoPlayerProps> = ({
     
     console.log("Initializing videos with urls:", videoUrls);
     console.log("Current video index:", currentVideoIndex, "Next video index:", nextVideoIndex);
+    
+    // Preload all videos to ensure smooth transitions
+    videoUrls.forEach((url, idx) => {
+      const preloadLink = document.createElement('link');
+      preloadLink.rel = 'preload';
+      preloadLink.href = url;
+      preloadLink.as = 'video';
+      document.head.appendChild(preloadLink);
+    });
     
     // Set initial sources for videos
     if (currentVideoRef.current) {
@@ -91,10 +100,16 @@ const BackgroundVideoPlayer: React.FC<BackgroundVideoPlayerProps> = ({
       clearTimeout(timerRef.current);
     }
     
+    // Schedule next transition
     timerRef.current = setTimeout(() => {
       console.log("Timer triggered, starting transition");
       startTransition();
     }, playDuration);
+  };
+  
+  // Handle video loaded event for next video
+  const handleNextVideoLoaded = () => {
+    console.log("Next video loaded and ready");
   };
   
   // Start transition to next video
@@ -104,10 +119,15 @@ const BackgroundVideoPlayer: React.FC<BackgroundVideoPlayerProps> = ({
       return;
     }
     
-    console.log("Starting transition from video", currentVideoIndex, "to", nextVideoIndex);
+    // Select a truly random next video that hasn't been played recently
+    const randomNextIndex = getNextVideoIndex();
+    // Update next video index
+    setNextVideoIndex(randomNextIndex);
+    
+    console.log("Starting transition from video", currentVideoIndex, "to", randomNextIndex);
     
     // Make sure the next video URL is valid
-    const nextVideoUrl = videoUrls[nextVideoIndex];
+    const nextVideoUrl = videoUrls[randomNextIndex];
     if (!nextVideoUrl) {
       console.log("Next video URL is invalid:", nextVideoUrl);
       startRotationTimer();
@@ -123,59 +143,70 @@ const BackgroundVideoPlayer: React.FC<BackgroundVideoPlayerProps> = ({
       // Set current time to 0 to make sure the video starts from the beginning
       nextVideoRef.current.currentTime = 0;
       
-      // Silent play to prepare the video (browser needs this)
-      nextVideoRef.current.play()
-        .then(() => {
-          // Start the transition
-          setIsTransitioning(true);
-          
-          // Select the next video index for the following transition
-          const newNextIndex = getNextVideoIndex();
-          console.log("Next video after transition will be", newNextIndex);
-          
-          // After transition is complete
-          setTimeout(() => {
+      // Begin the transition
+      setIsTransitioning(true);
+      
+      // Prepare the next video
+      nextVideoRef.current.onloadeddata = () => {
+        nextVideoRef.current?.play()
+          .then(() => {
+            // Start the transition
+            console.log("Starting fade transition");
+            
             // Add current next video to played list
-            setPlayedVideos(prev => [...prev, nextVideoIndex]);
+            setPlayedVideos(prev => [...prev, randomNextIndex]);
             
-            // Swap videos
-            setCurrentVideoIndex(nextVideoIndex);
-            setNextVideoIndex(newNextIndex);
-            setIsTransitioning(false);
-            
-            // Update video elements
-            if (currentVideoRef.current && nextVideoRef.current) {
-              // Update the current video reference to the one we just transitioned to
-              currentVideoRef.current.src = videoUrls[nextVideoIndex];
-              currentVideoRef.current.load();
-              currentVideoRef.current.play().catch(e => console.log("Current video play suppressed:", e));
+            // After transition is complete
+            setTimeout(() => {
+              // Swap videos - the next video becomes current
+              setCurrentVideoIndex(randomNextIndex);
               
-              // Prepare the new next video
-              nextVideoRef.current.src = videoUrls[newNextIndex];
-              nextVideoRef.current.load();
-            }
-            
-            console.log("Transition complete. Current:", nextVideoIndex, "Next:", newNextIndex);
-            console.log("Played videos now:", [...playedVideos, nextVideoIndex]);
-            
-            // Start the next rotation
-            startRotationTimer();
-          }, transitionDuration);
-        })
-        .catch(e => {
-          console.log("Preloading next video failed:", e);
-          // If play fails, try the next video in sequence
-          const fallbackIndex = getNextVideoIndex();
-          if (fallbackIndex !== currentVideoIndex) {
-            console.log("Trying fallback video:", fallbackIndex);
-            setNextVideoIndex(fallbackIndex);
-            // Try again with a shorter delay
-            setTimeout(startTransition, 1000);
-          } else {
-            // Just restart the timer
-            startRotationTimer();
-          }
-        });
+              // Choose the new next video index
+              const newNextIndex = getNextVideoIndex();
+              console.log("Next video after transition will be", newNextIndex);
+              setNextVideoIndex(newNextIndex);
+              
+              // End transition state
+              setIsTransitioning(false);
+              
+              // Update video elements
+              if (currentVideoRef.current && nextVideoRef.current) {
+                // Update the current video reference
+                currentVideoRef.current.src = videoUrls[randomNextIndex];
+                currentVideoRef.current.load();
+                currentVideoRef.current.play().catch(e => console.log("Current video play suppressed:", e));
+                
+                // Prepare the new next video
+                nextVideoRef.current.src = videoUrls[newNextIndex];
+                nextVideoRef.current.load();
+              }
+              
+              console.log("Transition complete. Current:", randomNextIndex, "Next:", newNextIndex);
+              console.log("Played videos now:", [...playedVideos, randomNextIndex]);
+              
+              // Start the next rotation
+              startRotationTimer();
+            }, transitionDuration);
+          })
+          .catch(e => {
+            console.log("Next video play failed:", e);
+            // If play fails, try another video
+            startRotationTimer(); // Try again shortly
+          });
+      };
+      
+      // Fallback in case onloadeddata doesn't fire
+      setTimeout(() => {
+        if (!isTransitioning) {
+          console.log("Fallback: onloadeddata didn't fire, forcing transition");
+          nextVideoRef.current?.play()
+            .then(() => setIsTransitioning(true))
+            .catch(e => {
+              console.log("Fallback play failed:", e);
+              startRotationTimer();
+            });
+        }
+      }, 3000);
     } else {
       console.log("Next video reference is not available");
       startRotationTimer();
@@ -205,6 +236,7 @@ const BackgroundVideoPlayer: React.FC<BackgroundVideoPlayerProps> = ({
         loop
         muted
         playsInline
+        onLoadedData={handleNextVideoLoaded}
         className="absolute top-0 left-0 w-full h-full object-cover"
         style={{
           opacity: isTransitioning ? 1 : 0,
