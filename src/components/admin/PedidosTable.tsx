@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Printer, Eye, Check, Truck, ShoppingBag, Trash2, Clock } from 'lucide-react';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -22,7 +21,17 @@ const PedidosTable: React.FC<PedidosTableProps> = ({
   onExcluirPedido,
   formatDateTime
 }) => {
-  // Function to render production time
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
   const renderProductionTime = (pedido: Pedido) => {
     if (pedido.status !== 'preparando' || !pedido.timeInProduction) {
       return null;
@@ -39,8 +48,7 @@ const PedidosTable: React.FC<PedidosTableProps> = ({
     );
   };
   
-  // Mobile view for small screens
-  if (window.innerWidth < 768) {
+  if (isMobile) {
     return (
       <div className="space-y-4">
         {pedidos.length === 0 ? (
@@ -140,12 +148,11 @@ const PedidosTable: React.FC<PedidosTableProps> = ({
     );
   }
 
-  // Desktop view
   return (
-    <div className="rounded-md overflow-hidden max-w-full">
-      <ScrollArea className="max-h-[calc(100vh-280px)]">
+    <div className="rounded-md overflow-hidden max-w-full border border-gray-700">
+      <ScrollArea className="max-h-[calc(100vh-280px)] overflow-auto">
         <Table className="min-w-full">
-          <TableHeader className="bg-gray-800">
+          <TableHeader className="bg-gray-800 sticky top-0 z-10">
             <TableRow>
               <TableHead className="text-white whitespace-nowrap">Código</TableHead>
               <TableHead className="text-white whitespace-nowrap">Cliente</TableHead>
