@@ -209,7 +209,7 @@ const BackgroundVideoPlayer: React.FC<BackgroundVideoPlayerProps> = ({
       return newNextIndex;
     }
     
-    // Pick a random video from available ones
+    // Pick a random video from available ones - true random selection
     const randomIdx = Math.floor(Math.random() * availableIndexes.length);
     const selectedNextIndex = availableIndexes[randomIdx];
     console.log(`Selected next video: ${selectedNextIndex}`);
@@ -224,12 +224,16 @@ const BackgroundVideoPlayer: React.FC<BackgroundVideoPlayerProps> = ({
     return selectedNextIndex;
   };
   
-  // Start the rotation timer
+  // Start the rotation timer with randomized duration for more unpredictability
   const startRotationTimer = (customDuration?: number) => {
     cleanup(); // Clear any existing timers
     
-    const duration = customDuration || playDuration;
-    console.log(`Setting rotation timer for ${duration}ms`);
+    // Add some randomness to the play duration (±25% variation)
+    const baseDuration = customDuration || playDuration;
+    const randomFactor = 0.75 + (Math.random() * 0.5); // 0.75 to 1.25
+    const duration = Math.round(baseDuration * randomFactor);
+    
+    console.log(`Setting rotation timer for ${duration}ms (random variation applied)`);
     
     timerRef.current = setTimeout(() => {
       console.log("Rotation timer triggered, preparing transition");

@@ -1,5 +1,5 @@
 
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import Logo from './Logo';
 import BackgroundVideoPlayer from './BackgroundVideoPlayer';
 
@@ -17,13 +17,30 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
     "https://adegavm.shop/4.mp4"
   ];
   
+  // Shuffle the array of videos on component mount for true randomness
+  const [shuffledVideoUrls, setShuffledVideoUrls] = useState<string[]>(videoUrls);
+  
+  useEffect(() => {
+    // Fisher-Yates shuffle algorithm to randomly order the videos
+    const shuffleArray = (array: string[]): string[] => {
+      const newArray = [...array];
+      for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+      }
+      return newArray;
+    };
+    
+    setShuffledVideoUrls(shuffleArray(videoUrls));
+  }, []);
+  
   return (
     <div className="min-h-screen w-full relative overflow-x-hidden">
       {/* Video Background with rotation - shorter play duration for more frequent transitions */}
       <BackgroundVideoPlayer 
-        videoUrls={videoUrls}
+        videoUrls={shuffledVideoUrls}
         transitionDuration={2000}  // 2 seconds transition
-        playDuration={20000}       // 20 seconds per video (reduced from 30s)
+        playDuration={15000}       // 15 seconds per video (reduced for more frequent rotations)
       />
       
       {/* Content overlay */}
