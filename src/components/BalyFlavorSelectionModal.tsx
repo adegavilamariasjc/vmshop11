@@ -34,14 +34,14 @@ const BalyFlavorSelectionModal: React.FC<BalyFlavorSelectionModalProps> = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50"
+      className="fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-50"
       onClick={onClose}
     >
       <motion.div 
         initial={{ scale: 0.9 }}
         animate={{ scale: 1 }}
         exit={{ scale: 0.9 }}
-        className="bg-transparent border border-white/10 rounded-lg p-5 w-full max-w-md"
+        className="bg-black/80 border border-white/20 rounded-lg p-5 w-full max-w-md"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-4">
@@ -61,7 +61,7 @@ const BalyFlavorSelectionModal: React.FC<BalyFlavorSelectionModalProps> = ({
           onValueChange={setSelectedFlavor}
         >
           {BALY_FLAVORS.map(flavor => (
-            <div key={flavor} className="flex items-center space-x-2 bg-gray-800 bg-opacity-50 rounded-md p-3">
+            <div key={flavor} className="flex items-center space-x-2 bg-gray-800/90 rounded-md p-3">
               <RadioGroupItem value={flavor} id={`baly-${flavor}`} className="text-purple-light" />
               <label htmlFor={`baly-${flavor}`} className="text-white cursor-pointer flex-1">
                 {flavor}
@@ -73,7 +73,7 @@ const BalyFlavorSelectionModal: React.FC<BalyFlavorSelectionModalProps> = ({
         <div className="flex gap-3 justify-end">
           <button 
             onClick={onClose}
-            className="px-4 py-2 bg-gray-700 bg-opacity-50 text-white rounded"
+            className="px-4 py-2 bg-gray-700 text-white rounded"
           >
             Cancelar
           </button>
@@ -82,7 +82,7 @@ const BalyFlavorSelectionModal: React.FC<BalyFlavorSelectionModalProps> = ({
             onClick={() => onConfirm(selectedFlavor)}
             className={`px-4 py-2 rounded ${
               !selectedFlavor 
-                ? 'bg-gray-600 bg-opacity-50 text-gray-300 cursor-not-allowed' 
+                ? 'bg-gray-600 text-gray-300 cursor-not-allowed' 
                 : 'bg-purple-dark text-white'
             }`}
             disabled={!selectedFlavor}

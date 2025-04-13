@@ -29,14 +29,14 @@ const AlcoholSelectionModal: React.FC<AlcoholSelectionModalProps> = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50"
+      className="fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-50"
       onClick={onClose}
     >
       <motion.div 
         initial={{ scale: 0.9 }}
         animate={{ scale: 1 }}
         exit={{ scale: 0.9 }}
-        className="bg-gray-900 rounded-lg p-5 w-full max-w-md"
+        className="bg-black/80 border border-white/20 rounded-lg p-5 w-full max-w-md"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-4">
@@ -57,7 +57,7 @@ const AlcoholSelectionModal: React.FC<AlcoholSelectionModalProps> = ({
               className={`flex items-center justify-between rounded-md p-3 cursor-pointer ${
                 selectedAlcohol?.name === option.name 
                   ? 'bg-purple-dark' 
-                  : 'bg-gray-800'
+                  : 'bg-gray-800/90'
               }`}
               onClick={() => setSelectedAlcohol(option)}
             >
