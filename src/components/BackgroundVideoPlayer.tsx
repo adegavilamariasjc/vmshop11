@@ -15,6 +15,7 @@ const BackgroundVideoPlayer: React.FC<BackgroundVideoPlayerProps> = ({
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [nextVideoIndex, setNextVideoIndex] = useState(1 % videoUrls.length);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [playedVideos, setPlayedVideos] = useState<number[]>([0]); // Track played videos
   
   const currentVideoRef = useRef<HTMLVideoElement>(null);
   const nextVideoRef = useRef<HTMLVideoElement>(null);
@@ -49,16 +50,33 @@ const BackgroundVideoPlayer: React.FC<BackgroundVideoPlayerProps> = ({
     };
   }, [videoUrls]); // Re-run when videoUrls change
   
-  // Function to get next random index
-  const getRandomVideoIndex = (current: number) => {
+  // Function to get next random index that hasn't been played yet
+  const getNextVideoIndex = () => {
     if (videoUrls.length <= 1) return 0;
     
-    let newIndex;
-    do {
-      newIndex = Math.floor(Math.random() * videoUrls.length);
-    } while (newIndex === current);
+    // If we've played all videos, reset the played list (except current)
+    if (playedVideos.length >= videoUrls.length) {
+      setPlayedVideos([currentVideoIndex]);
+    }
     
-    return newIndex;
+    // Find indexes that haven't been played yet
+    const availableIndexes = Array.from(
+      { length: videoUrls.length }, 
+      (_, i) => i
+    ).filter(idx => !playedVideos.includes(idx) && idx !== currentVideoIndex);
+    
+    // If somehow all are played, just pick any except current
+    if (availableIndexes.length === 0) {
+      let newIndex;
+      do {
+        newIndex = Math.floor(Math.random() * videoUrls.length);
+      } while (newIndex === currentVideoIndex);
+      return newIndex;
+    }
+    
+    // Pick a random index from available ones
+    const randomIndex = Math.floor(Math.random() * availableIndexes.length);
+    return availableIndexes[randomIndex];
   };
   
   // Start the rotation timer
@@ -105,12 +123,15 @@ const BackgroundVideoPlayer: React.FC<BackgroundVideoPlayerProps> = ({
           // Start the transition
           setIsTransitioning(true);
           
-          // Set up the next video index for the following transition
-          const newNextIndex = getRandomVideoIndex(nextVideoIndex);
+          // Select the next video index for the following transition
+          const newNextIndex = getNextVideoIndex();
           console.log("Next video after transition will be", newNextIndex);
           
           // After transition is complete
           setTimeout(() => {
+            // Add current next video to played list
+            setPlayedVideos(prev => [...prev, nextVideoIndex]);
+            
             // Swap videos
             setCurrentVideoIndex(nextVideoIndex);
             setNextVideoIndex(newNextIndex);
@@ -135,7 +156,7 @@ const BackgroundVideoPlayer: React.FC<BackgroundVideoPlayerProps> = ({
         .catch(e => {
           console.log("Preloading next video failed:", e);
           // If play fails, try the next video in sequence
-          const fallbackIndex = (nextVideoIndex + 1) % videoUrls.length;
+          const fallbackIndex = getNextVideoIndex();
           if (fallbackIndex !== currentVideoIndex) {
             console.log("Trying fallback video:", fallbackIndex);
             setNextVideoIndex(fallbackIndex);
