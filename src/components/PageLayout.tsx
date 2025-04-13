@@ -19,11 +19,11 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
   
   return (
     <div className="min-h-screen w-full relative overflow-x-hidden">
-      {/* Video Background with rotation */}
+      {/* Video Background with rotation - shorter play duration for more frequent transitions */}
       <BackgroundVideoPlayer 
         videoUrls={videoUrls}
         transitionDuration={2000}  // 2 seconds transition
-        playDuration={30000}       // 30 seconds per video
+        playDuration={20000}       // 20 seconds per video (reduced from 30s)
       />
       
       {/* Content overlay */}
