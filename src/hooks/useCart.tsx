@@ -28,6 +28,7 @@ export const useCart = () => {
   const [selectedProductForBaly, setSelectedProductForBaly] = useState<Product | null>(null);
   const [selectedIce, setSelectedIce] = useState<Record<string, number>>({});
   const [selectedAlcohol, setSelectedAlcohol] = useState<AlcoholOption | null>(null);
+  const [pendingProductWithIce, setPendingProductWithIce] = useState<Product | null>(null);
 
   useEffect(() => {
     if (selectedProductForFlavor) {
@@ -119,13 +120,22 @@ export const useCart = () => {
     }
     
     const itemWithIce = { ...selectedProductForFlavor, ice: selectedIce };
-    handleUpdateQuantity(itemWithIce, 1);
-    setIsFlavorModalOpen(false);
     
-    toast({
-      title: "Item adicionado",
-      description: `${selectedProductForFlavor.name} adicionado ao pedido.`,
-    });
+    // Verificar se o produto contém Baly (para combos)
+    if (containsBaly(itemWithIce.name)) {
+      setPendingProductWithIce(itemWithIce);
+      setSelectedProductForBaly(itemWithIce);
+      setIsFlavorModalOpen(false);
+      setIsBalyModalOpen(true);
+    } else {
+      handleUpdateQuantity(itemWithIce, 1);
+      setIsFlavorModalOpen(false);
+      
+      toast({
+        title: "Item adicionado",
+        description: `${selectedProductForFlavor.name} adicionado ao pedido.`,
+      });
+    }
   };
 
   const confirmAlcoholSelection = () => {
@@ -138,22 +148,40 @@ export const useCart = () => {
       price: (selectedProductForAlcohol.price || 0) + extraCost,
     };
     
-    handleUpdateQuantity(itemWithAlcohol, 1);
-    setIsAlcoholModalOpen(false);
-    
-    toast({
-      title: "Item adicionado",
-      description: `${selectedProductForAlcohol.name} com ${selectedAlcohol.name} adicionado ao pedido.`,
-    });
+    // Verificar se o produto contém Baly (para combos)
+    if (containsBaly(itemWithAlcohol.name)) {
+      setSelectedProductForBaly(itemWithAlcohol);
+      setIsAlcoholModalOpen(false);
+      setIsBalyModalOpen(true);
+    } else {
+      handleUpdateQuantity(itemWithAlcohol, 1);
+      setIsAlcoholModalOpen(false);
+      
+      toast({
+        title: "Item adicionado",
+        description: `${selectedProductForAlcohol.name} com ${selectedAlcohol.name} adicionado ao pedido.`,
+      });
+    }
   };
 
   const confirmBalySelection = (flavor: string) => {
     if (!selectedProductForBaly || !flavor) return;
     
-    const itemWithBaly = {
-      ...selectedProductForBaly,
-      balyFlavor: flavor
-    };
+    let itemWithBaly;
+    
+    // Verificar se é um produto pendente com gelo
+    if (pendingProductWithIce && selectedProductForBaly.name === pendingProductWithIce.name) {
+      itemWithBaly = {
+        ...pendingProductWithIce,
+        balyFlavor: flavor
+      };
+      setPendingProductWithIce(null);
+    } else {
+      itemWithBaly = {
+        ...selectedProductForBaly,
+        balyFlavor: flavor
+      };
+    }
     
     handleUpdateQuantity(itemWithBaly, 1);
     setIsBalyModalOpen(false);
