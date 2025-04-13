@@ -240,12 +240,12 @@ const ProductManager: React.FC = () => {
           onValueChange={(value) => setSelectedCategoryId(Number(value))}
           disabled={isLoading || categories.length === 0}
         >
-          <SelectTrigger className="bg-gray-900 border-gray-600 text-white">
+          <SelectTrigger className="bg-gray-800 border-gray-700 text-white w-full">
             <SelectValue placeholder="Selecione uma categoria" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-gray-800 border-gray-700 text-white z-50">
             {categories.map(category => (
-              <SelectItem key={category.id} value={category.id.toString()}>
+              <SelectItem key={category.id} value={category.id.toString()} className="text-white hover:bg-gray-700 focus:bg-gray-700">
                 {category.name}
               </SelectItem>
             ))}
