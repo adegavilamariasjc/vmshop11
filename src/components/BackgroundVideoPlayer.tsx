@@ -26,6 +26,7 @@ const BackgroundVideoPlayer: React.FC<BackgroundVideoPlayerProps> = ({
     if (videoUrls.length === 0) return;
     
     console.log("Initializing videos with urls:", videoUrls);
+    console.log("Current video index:", currentVideoIndex, "Next video index:", nextVideoIndex);
     
     // Set initial sources for videos
     if (currentVideoRef.current) {
@@ -56,6 +57,7 @@ const BackgroundVideoPlayer: React.FC<BackgroundVideoPlayerProps> = ({
     
     // If we've played all videos, reset the played list (except current)
     if (playedVideos.length >= videoUrls.length) {
+      console.log("All videos have been played, resetting played list");
       setPlayedVideos([currentVideoIndex]);
     }
     
@@ -65,17 +67,21 @@ const BackgroundVideoPlayer: React.FC<BackgroundVideoPlayerProps> = ({
       (_, i) => i
     ).filter(idx => !playedVideos.includes(idx) && idx !== currentVideoIndex);
     
+    console.log("Available indexes:", availableIndexes, "Already played:", playedVideos);
+    
     // If somehow all are played, just pick any except current
     if (availableIndexes.length === 0) {
       let newIndex;
       do {
         newIndex = Math.floor(Math.random() * videoUrls.length);
       } while (newIndex === currentVideoIndex);
+      console.log("No available indexes, picked random:", newIndex);
       return newIndex;
     }
     
     // Pick a random index from available ones
     const randomIndex = Math.floor(Math.random() * availableIndexes.length);
+    console.log("Picked random index from available:", availableIndexes[randomIndex]);
     return availableIndexes[randomIndex];
   };
   
@@ -139,7 +145,7 @@ const BackgroundVideoPlayer: React.FC<BackgroundVideoPlayerProps> = ({
             
             // Update video elements
             if (currentVideoRef.current && nextVideoRef.current) {
-              // Current video becomes what was next
+              // Update the current video reference to the one we just transitioned to
               currentVideoRef.current.src = videoUrls[nextVideoIndex];
               currentVideoRef.current.load();
               currentVideoRef.current.play().catch(e => console.log("Current video play suppressed:", e));
@@ -148,6 +154,9 @@ const BackgroundVideoPlayer: React.FC<BackgroundVideoPlayerProps> = ({
               nextVideoRef.current.src = videoUrls[newNextIndex];
               nextVideoRef.current.load();
             }
+            
+            console.log("Transition complete. Current:", nextVideoIndex, "Next:", newNextIndex);
+            console.log("Played videos now:", [...playedVideos, nextVideoIndex]);
             
             // Start the next rotation
             startRotationTimer();
