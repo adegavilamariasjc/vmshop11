@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,24 +10,21 @@ import CategoryManager from '../components/admin/CategoryManager';
 import BairroManager from '../components/admin/BairroManager';
 import PedidosManager from '../components/admin/PedidosManager';
 import Logo from '../components/Logo';
+import BackgroundVideoPlayer from '../components/BackgroundVideoPlayer';
 
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Ensure video stays fixed during all component lifecycles
-  useEffect(() => {
-    // Force video to maintain its position
-    const videoContainer = document.querySelector('.video-container');
-    if (videoContainer) {
-      videoContainer.setAttribute('style', 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important;');
-    }
-    
-    return () => {
-      // Cleanup - although not strictly necessary since styles are in global CSS
-    };
-  }, []);
+  // Array of video URLs for background rotation
+  const videoUrls = [
+    "https://adegavm.shop/bgs.mp4",
+    "https://adegavm.shop/1.mp4",
+    "https://adegavm.shop/2.mp4",
+    "https://adegavm.shop/3.mp4",
+    "https://adegavm.shop/4.mp4"
+  ];
 
   const handleLogin = (password: string) => {
     // Simple password authentication
@@ -57,19 +54,11 @@ const Admin = () => {
   return (
     <div className="min-h-screen w-full relative overflow-x-hidden">
       {/* Video Background */}
-      <div className="video-container">
-        <video 
-          autoPlay 
-          loop 
-          muted 
-          playsInline
-          className="video-background"
-        >
-          <source src="https://adegavm.shop/bgs.mp4" type="video/mp4" />
-          {/* Fallback background if video fails to load */}
-          <div className="absolute inset-0 bg-black"></div>
-        </video>
-      </div>
+      <BackgroundVideoPlayer 
+        videoUrls={videoUrls}
+        transitionDuration={2000}  // 2 seconds transition
+        playDuration={30000}       // 30 seconds per video
+      />
       
       {/* Content overlay */}
       <div className="relative z-10 w-full lg:max-w-6xl mx-auto min-h-screen bg-black/70 p-4 content-overlay">
