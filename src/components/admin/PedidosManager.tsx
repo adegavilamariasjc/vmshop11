@@ -50,7 +50,10 @@ const PedidosManager = () => {
       </div>
       
       {hasNewPedido && (
-        <NewOrderAlert onAcknowledge={handleAcknowledge} />
+        <NewOrderAlert 
+          hasNewPedido={hasNewPedido} 
+          onAcknowledge={handleAcknowledge} 
+        />
       )}
       
       <PedidosTable 
