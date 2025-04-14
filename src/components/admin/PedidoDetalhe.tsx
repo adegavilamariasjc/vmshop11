@@ -10,11 +10,17 @@ interface PedidoDetalheProps {
   pedidoId: string;
   onClose: () => void;
   onDelete?: () => void;
+  onStatusChange?: (id: string, status: string) => void;
 }
 
 type PedidoCompleto = SupabasePedido;
 
-const PedidoDetalhe: React.FC<PedidoDetalheProps> = ({ pedidoId, onClose, onDelete }) => {
+const PedidoDetalhe: React.FC<PedidoDetalheProps> = ({ 
+  pedidoId, 
+  onClose, 
+  onDelete, 
+  onStatusChange 
+}) => {
   const [pedido, setPedido] = useState<PedidoCompleto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isPrinting, setIsPrinting] = useState(false);
@@ -224,6 +230,10 @@ ${conteudoImpressao}
         ...pedido,
         status: novoStatus
       });
+      
+      if (onStatusChange) {
+        onStatusChange(pedido.id, novoStatus);
+      }
       
       toast({
         title: 'Status atualizado',

@@ -1,14 +1,13 @@
 
-import React, { useState, useEffect } from 'react';
-import { RefreshCcw } from 'lucide-react';
+import React from 'react';
+import { RefreshCw, Bell, BellOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import PedidoDetalhe from './PedidoDetalhe';
-import { usePedidosManager } from '@/hooks/usePedidosManager';
 import PedidosTable from './PedidosTable';
+import PedidoDetalhe from './PedidoDetalhe';
 import NewOrderAlert from './NewOrderAlert';
+import { usePedidosManager } from '@/hooks/usePedidosManager';
 
-const PedidosManager: React.FC = () => {
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+const PedidosManager = () => {
   const {
     pedidos,
     isLoading,
@@ -25,67 +24,49 @@ const PedidosManager: React.FC = () => {
     formatDateTime
   } = usePedidosManager();
 
-  // Handle responsive design
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  if (isLoading) {
-    return <div className="text-center py-4 text-white">Carregando pedidos...</div>;
-  }
-
   return (
     <div>
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold text-white">Gerenciar Pedidos</h2>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <h2 className="text-xl font-bold text-white">Pedidos</h2>
         <div className="flex items-center gap-3">
           {hasNewPedido && (
             <Button 
-              className="bg-red-600 hover:bg-red-700 text-white font-medium animate-pulse"
               onClick={handleAcknowledge}
+              className="bg-yellow-600 hover:bg-yellow-700 text-black font-medium"
             >
-              {isMobile ? 'Parar' : 'Parar Campainha'}
+              <BellOff className="mr-2 h-4 w-4" />
+              Silenciar Alerta
             </Button>
           )}
           <Button 
-            variant="outline" 
-            className="text-black font-medium border-gray-600"
-            onClick={handleRefresh}
+            onClick={handleRefresh} 
             disabled={refreshing}
+            className="bg-purple-dark hover:bg-purple-600 text-black font-medium"
           >
-            <RefreshCcw size={16} className={`mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-            {isMobile ? '' : 'Atualizar'}
+            <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            Atualizar
           </Button>
         </div>
       </div>
       
       {hasNewPedido && (
-        <NewOrderAlert 
-          hasNewPedido={hasNewPedido}
-          onAcknowledge={handleAcknowledge}
-        />
+        <NewOrderAlert onAcknowledge={handleAcknowledge} />
       )}
       
-      <div className="w-full">
-        <PedidosTable 
-          pedidos={pedidos}
-          onVisualizarPedido={handleVisualizarPedido}
-          onAtualizarStatus={handleAtualizarStatus}
-          onExcluirPedido={handleExcluirPedido}
-          formatDateTime={formatDateTime}
-        />
-      </div>
+      <PedidosTable 
+        pedidos={pedidos}
+        onVisualizarPedido={handleVisualizarPedido}
+        onAtualizarStatus={handleAtualizarStatus}
+        onExcluirPedido={handleExcluirPedido}
+        formatDateTime={formatDateTime}
+      />
       
       {showDetalhe && selectedPedido && (
         <PedidoDetalhe 
-          pedidoId={selectedPedido} 
-          onClose={() => setShowDetalhe(false)} 
-          onDelete={handleRefresh} 
+          pedidoId={selectedPedido}
+          onClose={() => setShowDetalhe(false)}
+          onDelete={() => handleRefresh()}
+          onStatusChange={handleAtualizarStatus}
         />
       )}
     </div>
