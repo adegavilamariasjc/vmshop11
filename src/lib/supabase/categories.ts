@@ -62,3 +62,61 @@ export const deleteCategory = async (id: number): Promise<boolean> => {
   
   return true;
 };
+
+// Reorder a category (move up or down)
+export const reorderCategory = async (id: number, direction: 'up' | 'down'): Promise<boolean> => {
+  try {
+    // First get all categories ordered by current order_index
+    const { data: categories, error: fetchError } = await supabase
+      .from('categories')
+      .select('*')
+      .order('order_index');
+    
+    if (fetchError || !categories) {
+      console.error('Erro ao buscar categorias para reordenação:', fetchError);
+      return false;
+    }
+    
+    // Find current category and its index
+    const currentIndex = categories.findIndex(c => c.id === id);
+    if (currentIndex === -1) {
+      console.error('Categoria não encontrada');
+      return false;
+    }
+    
+    // Calculate target index based on direction
+    const targetIndex = direction === 'up' 
+      ? Math.max(0, currentIndex - 1) 
+      : Math.min(categories.length - 1, currentIndex + 1);
+    
+    // If no change needed (already at top/bottom), return success
+    if (targetIndex === currentIndex) {
+      return true;
+    }
+    
+    // Get the category to swap with
+    const targetCategory = categories[targetIndex];
+    const currentCategory = categories[currentIndex];
+    
+    // Swap order_index values
+    const { error: updateError1 } = await supabase
+      .from('categories')
+      .update({ order_index: targetCategory.order_index })
+      .eq('id', currentCategory.id);
+    
+    const { error: updateError2 } = await supabase
+      .from('categories')
+      .update({ order_index: currentCategory.order_index })
+      .eq('id', targetCategory.id);
+    
+    if (updateError1 || updateError2) {
+      console.error('Erro ao atualizar ordem das categorias:', updateError1 || updateError2);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Erro inesperado ao reordenar categoria:', error);
+    return false;
+  }
+};

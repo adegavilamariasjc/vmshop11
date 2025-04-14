@@ -49,7 +49,12 @@ const CategoryManager: React.FC = () => {
     setIsSaving(true);
 
     try {
-      const addedCategory = await addCategory(newCategory);
+      const categoryToAdd: Omit<SupabaseCategory, 'id' | 'created_at'> = {
+        name: newCategory,
+        order_index: categories.length
+      };
+      
+      const addedCategory = await addCategory(categoryToAdd);
 
       if (addedCategory) {
         setCategories([...categories, addedCategory]);
@@ -95,10 +100,13 @@ const CategoryManager: React.FC = () => {
     setIsSaving(true);
 
     try {
-      const success = await updateCategory(categoryId, editedCategory.name);
+      const updates: Partial<Omit<SupabaseCategory, 'id' | 'created_at'>> = {
+        name: editedCategory.name
+      };
+      
+      const success = await updateCategory(categoryId, updates);
 
       if (success) {
-        // Atualizar localmente
         setCategories(categories.map(c =>
           c.id === categoryId ? {...c, name: editedCategory.name} : c
         ));
@@ -139,7 +147,6 @@ const CategoryManager: React.FC = () => {
       const success = await deleteCategory(categoryId);
 
       if (success) {
-        // Atualizar localmente
         setCategories(categories.filter(c => c.id !== categoryId));
 
         toast({
@@ -172,7 +179,7 @@ const CategoryManager: React.FC = () => {
       const success = await reorderCategory(categoryId, direction);
 
       if (success) {
-        loadCategories(); // Recarrega as categorias para atualizar a ordem
+        loadCategories();
         toast({
           title: "Ordem atualizada",
           description: "A ordem das categorias foi atualizada com sucesso."
@@ -200,7 +207,6 @@ const CategoryManager: React.FC = () => {
     <div className="space-y-4">
       <h2 className="text-xl font-bold text-white mb-4">Gerenciar Categorias</h2>
       
-      {/* Add new category */}
       <div className="bg-gray-900/50 p-4 rounded-md mb-6">
         <h3 className="text-lg font-semibold text-white mb-3">Adicionar Categoria</h3>
         <div className="flex flex-col md:flex-row gap-3">

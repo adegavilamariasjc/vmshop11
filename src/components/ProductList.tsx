@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Minus, Loader2 } from 'lucide-react';
@@ -12,7 +13,7 @@ interface ProductListProps {
 }
 
 const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct, onUpdateQuantity }) => {
-  const [products, setProducts] = useState<{name: string; price: number}[]>([]);
+  const [products, setProducts] = useState<{name: string; price: number; is_paused?: boolean}[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
