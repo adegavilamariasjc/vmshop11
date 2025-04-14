@@ -142,18 +142,21 @@ export type Database = {
         Row: {
           category_id: number | null
           id: number
+          is_paused: boolean
           name: string
           price: number
         }
         Insert: {
           category_id?: number | null
           id?: number
+          is_paused?: boolean
           name: string
           price: number
         }
         Update: {
           category_id?: number | null
           id?: number
+          is_paused?: boolean
           name?: string
           price?: number
         }

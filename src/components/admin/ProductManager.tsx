@@ -110,7 +110,8 @@ const ProductManager: React.FC = () => {
       const addedProduct = await addProduct({
         name: newProduct.name,
         price: newProduct.price,
-        category_id: selectedCategoryId
+        category_id: selectedCategoryId,
+        is_paused: false
       });
 
       if (addedProduct) {

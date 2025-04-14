@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Minus, Loader2 } from 'lucide-react';
@@ -40,7 +39,7 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
         // Then fetch products for that category
         const { data: productsData, error: productsError } = await supabase
           .from('products')
-          .select('name, price')
+          .select('name, price, is_paused')
           .eq('category_id', categoryData.id)
           .order('name');
 
@@ -95,6 +94,11 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
       <h2 className="text-lg font-semibold mb-3 text-white">{category}</h2>
       
       {products.map((item) => {
+        // Skip rendering if product is paused
+        if (item.is_paused) {
+          return null;
+        }
+
         const cartItem = cart.find(p => 
           p.name === item.name && 
           p.category === category &&

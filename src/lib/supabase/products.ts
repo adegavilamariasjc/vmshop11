@@ -39,10 +39,9 @@ export const fetchAllProducts = async (): Promise<SupabaseProduct[]> => {
 
 // Add a new product
 export const addProduct = async (product: Omit<SupabaseProduct, 'id' | 'created_at'>): Promise<SupabaseProduct | null> => {
-  const productWithPaused = { ...product, is_paused: false };
   const { data, error } = await supabase
     .from('products')
-    .insert([productWithPaused])
+    .insert([product])
     .select()
     .single();
   
