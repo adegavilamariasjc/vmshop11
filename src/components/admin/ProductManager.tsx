@@ -1,11 +1,18 @@
-
 import React, { useState, useEffect } from 'react';
-import { Pencil, Trash, Plus, Save, Loader2 } from 'lucide-react';
+import { Pencil, Trash, Plus, Save, Loader2, PauseCircle, PlayCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { 
-  fetchCategories, fetchProducts, addProduct, updateProduct, deleteProduct,
+  fetchCategories, fetchProducts, addProduct, updateProduct, deleteProduct, toggleProductPause,
   SupabaseCategory, SupabaseProduct
 } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
@@ -45,7 +52,6 @@ const ProductManager: React.FC = () => {
       const fetchedCategories = await fetchCategories();
       setCategories(fetchedCategories);
       
-      // Selecionar primeira categoria por padrão se houver
       if (fetchedCategories.length > 0 && !selectedCategoryId) {
         setSelectedCategoryId(fetchedCategories[0].id);
       } else {
@@ -161,7 +167,6 @@ const ProductManager: React.FC = () => {
       });
 
       if (success) {
-        // Atualizar localmente
         setProductsList(productsList.map(p => 
           p.id === productId 
             ? {...p, name: editedProduct.name, price: editedProduct.price} 
@@ -204,7 +209,6 @@ const ProductManager: React.FC = () => {
       const success = await deleteProduct(productId);
 
       if (success) {
-        // Atualizar localmente
         setProductsList(productsList.filter(p => p.id !== productId));
         
         toast({
@@ -223,6 +227,43 @@ const ProductManager: React.FC = () => {
       toast({
         title: "Erro ao excluir",
         description: "Ocorreu um erro ao excluir o produto.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleTogglePause = async (productId: number, currentPauseState: boolean) => {
+    setIsSaving(true);
+    try {
+      const success = await toggleProductPause(productId, !currentPauseState);
+      
+      if (success) {
+        setProductsList(productsList.map(p => 
+          p.id === productId 
+            ? {...p, is_paused: !currentPauseState}
+            : p
+        ));
+        
+        toast({
+          title: !currentPauseState ? "Produto pausado" : "Produto ativado",
+          description: !currentPauseState 
+            ? "O produto foi pausado e não estará disponível para pedidos"
+            : "O produto está novamente disponível para pedidos"
+        });
+      } else {
+        toast({
+          title: "Erro ao alterar estado",
+          description: "Não foi possível alterar o estado do produto.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao alterar estado do produto:", error);
+      toast({
+        title: "Erro ao alterar estado",
+        description: "Ocorreu um erro ao alterar o estado do produto.",
         variant: "destructive",
       });
     } finally {
@@ -253,7 +294,6 @@ const ProductManager: React.FC = () => {
         </Select>
       </div>
       
-      {/* Add new product */}
       <div className="bg-gray-900/50 p-4 rounded-md mb-6">
         <h3 className="text-lg font-semibold text-white mb-3">Adicionar Produto</h3>
         <div className="flex flex-col md:flex-row gap-3">
@@ -291,7 +331,6 @@ const ProductManager: React.FC = () => {
         </div>
       </div>
       
-      {/* Product list */}
       <div className="space-y-2">
         <h3 className="text-lg font-semibold text-white">Lista de Produtos</h3>
         
@@ -315,7 +354,7 @@ const ProductManager: React.FC = () => {
               </thead>
               <tbody>
                 {productsList.map((product) => (
-                  <tr key={product.id} className="border-t border-gray-700">
+                  <tr key={product.id} className={`border-t border-gray-700 ${product.is_paused ? 'opacity-50' : ''}`}>
                     <td className="p-3">
                       {editMode === product.id ? (
                         <Input
@@ -366,6 +405,14 @@ const ProductManager: React.FC = () => {
                             <Pencil size={16} />
                           </Button>
                         )}
+                        <Button 
+                          onClick={() => handleTogglePause(product.id, product.is_paused)}
+                          size="sm"
+                          className={product.is_paused ? "bg-green-600 hover:bg-green-700" : "bg-yellow-600 hover:bg-yellow-700"}
+                          disabled={isSaving}
+                        >
+                          {product.is_paused ? <PlayCircle size={16} /> : <PauseCircle size={16} />}
+                        </Button>
                         <Button 
                           onClick={() => handleDeleteProduct(product.id)}
                           size="sm"

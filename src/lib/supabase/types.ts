@@ -1,4 +1,3 @@
-
 // Type definitions for Supabase tables
 
 // Product type
@@ -8,6 +7,7 @@ export type SupabaseProduct = {
   price: number;
   category_id: number;
   created_at?: string;
+  is_paused: boolean;
 };
 
 // Category type

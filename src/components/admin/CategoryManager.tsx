@@ -1,18 +1,17 @@
-
 import React, { useState, useEffect } from 'react';
-import { Pencil, Trash, Plus, Save, MoveUp, MoveDown, Loader2 } from 'lucide-react';
+import { Pencil, Trash, Plus, Save, ArrowUp, ArrowDown, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { fetchCategories, addCategory, updateCategory, deleteCategory, fetchProducts, SupabaseCategory } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
+import { fetchCategories, addCategory, updateCategory, deleteCategory, reorderCategory } from '@/lib/supabase';
+import type { SupabaseCategory } from '@/lib/supabase/types';
 
 const CategoryManager: React.FC = () => {
   const { toast } = useToast();
-  const [categoriesList, setCategoriesList] = useState<SupabaseCategory[]>([]);
-  const [productsCount, setProductsCount] = useState<Record<number, number>>({});
-  const [newCategory, setNewCategory] = useState("");
+  const [categories, setCategories] = useState<SupabaseCategory[]>([]);
+  const [newCategory, setNewCategory] = useState<string>("");
   const [editMode, setEditMode] = useState<number | null>(null);
-  const [editedCategory, setEditedCategory] = useState("");
+  const [editedCategory, setEditedCategory] = useState<{name: string}>({ name: "" });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -23,16 +22,8 @@ const CategoryManager: React.FC = () => {
   const loadCategories = async () => {
     setIsLoading(true);
     try {
-      const categories = await fetchCategories();
-      setCategoriesList(categories);
-
-      // Carregar contagem de produtos para cada categoria
-      const countMap: Record<number, number> = {};
-      for (const category of categories) {
-        const products = await fetchProducts(category.id);
-        countMap[category.id] = products.length;
-      }
-      setProductsCount(countMap);
+      const fetchedCategories = await fetchCategories();
+      setCategories(fetchedCategories);
     } catch (error) {
       console.error("Erro ao carregar categorias:", error);
       toast({
@@ -48,17 +39,8 @@ const CategoryManager: React.FC = () => {
   const handleAddCategory = async () => {
     if (!newCategory.trim()) {
       toast({
-        title: "Campo vazio",
-        description: "Por favor, digite um nome para a categoria",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (categoriesList.some(c => c.name === newCategory)) {
-      toast({
-        title: "Categoria duplicada",
-        description: "Esta categoria já existe",
+        title: "Nome inválido",
+        description: "Por favor, insira um nome para a categoria.",
         variant: "destructive",
       });
       return;
@@ -67,21 +49,11 @@ const CategoryManager: React.FC = () => {
     setIsSaving(true);
 
     try {
-      // Determinar o próximo índice de ordem
-      const maxOrderIndex = categoriesList.length > 0 
-        ? Math.max(...categoriesList.map(c => c.order_index))
-        : -1;
-      
-      const newCategoryData = await addCategory({
-        name: newCategory,
-        order_index: maxOrderIndex + 1
-      });
+      const addedCategory = await addCategory(newCategory);
 
-      if (newCategoryData) {
-        setCategoriesList([...categoriesList, newCategoryData]);
-        setProductsCount({...productsCount, [newCategoryData.id]: 0});
+      if (addedCategory) {
+        setCategories([...categories, addedCategory]);
         setNewCategory("");
-        
         toast({
           title: "Categoria adicionada",
           description: `${newCategory} foi adicionada com sucesso`
@@ -106,24 +78,15 @@ const CategoryManager: React.FC = () => {
   };
 
   const handleEditCategory = (category: SupabaseCategory) => {
-    setEditedCategory(category.name);
+    setEditedCategory({ name: category.name });
     setEditMode(category.id);
   };
 
   const handleSaveEdit = async (categoryId: number) => {
-    if (!editedCategory.trim()) {
+    if (!editedCategory.name.trim()) {
       toast({
-        title: "Campo vazio",
-        description: "Por favor, digite um nome para a categoria",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (categoriesList.some(c => c.name === editedCategory && c.id !== categoryId)) {
-      toast({
-        title: "Categoria duplicada",
-        description: "Esta categoria já existe",
+        title: "Nome inválido",
+        description: "Por favor, insira um nome válido para a categoria.",
         variant: "destructive",
       });
       return;
@@ -132,23 +95,19 @@ const CategoryManager: React.FC = () => {
     setIsSaving(true);
 
     try {
-      const success = await updateCategory(categoryId, {
-        name: editedCategory
-      });
+      const success = await updateCategory(categoryId, editedCategory.name);
 
       if (success) {
         // Atualizar localmente
-        setCategoriesList(categoriesList.map(c => 
-          c.id === categoryId 
-            ? {...c, name: editedCategory} 
-            : c
+        setCategories(categories.map(c =>
+          c.id === categoryId ? {...c, name: editedCategory.name} : c
         ));
-        
+
         setEditMode(null);
-        
+
         toast({
           title: "Categoria atualizada",
-          description: `A categoria foi atualizada com sucesso`
+          description: `${editedCategory.name} foi atualizada com sucesso`
         });
       } else {
         toast({
@@ -170,7 +129,7 @@ const CategoryManager: React.FC = () => {
   };
 
   const handleDeleteCategory = async (categoryId: number) => {
-    if (!confirm('Tem certeza que deseja excluir esta categoria? Todos os produtos nela serão removidos também.')) {
+    if (!confirm('Tem certeza que deseja excluir esta categoria?')) {
       return;
     }
 
@@ -181,8 +140,8 @@ const CategoryManager: React.FC = () => {
 
       if (success) {
         // Atualizar localmente
-        setCategoriesList(categoriesList.filter(c => c.id !== categoryId));
-        
+        setCategories(categories.filter(c => c.id !== categoryId));
+
         toast({
           title: "Categoria excluída",
           description: "A categoria foi excluída com sucesso"
@@ -206,52 +165,32 @@ const CategoryManager: React.FC = () => {
     }
   };
 
-  const moveCategory = async (index: number, direction: 'up' | 'down') => {
-    if ((direction === 'up' && index === 0) || (direction === 'down' && index === categoriesList.length - 1)) {
-      return;
-    }
-
+  const handleReorder = async (categoryId: number, direction: 'up' | 'down') => {
     setIsSaving(true);
 
     try {
-      const newIndex = direction === 'up' ? index - 1 : index + 1;
-      const categoryToMove = categoriesList[index];
-      const categoryToSwap = categoriesList[newIndex];
-      
-      // Trocar os índices de ordem
-      const tempOrderIndex = categoryToMove.order_index;
-      
-      const success1 = await updateCategory(categoryToMove.id, {
-        order_index: categoryToSwap.order_index
-      });
-      
-      const success2 = await updateCategory(categoryToSwap.id, {
-        order_index: tempOrderIndex
-      });
+      const success = await reorderCategory(categoryId, direction);
 
-      if (success1 && success2) {
-        // Atualizar localmente
-        const updatedList = [...categoriesList];
-        [updatedList[index], updatedList[newIndex]] = [updatedList[newIndex], updatedList[index]];
-        setCategoriesList(updatedList);
+      if (success) {
+        loadCategories(); // Recarrega as categorias para atualizar a ordem
+        toast({
+          title: "Ordem atualizada",
+          description: "A ordem das categorias foi atualizada com sucesso."
+        });
       } else {
         toast({
-          title: "Erro ao reordenar",
-          description: "Não foi possível reordenar as categorias no banco de dados.",
+          title: "Erro ao atualizar ordem",
+          description: "Não foi possível atualizar a ordem da categoria no banco de dados.",
           variant: "destructive",
         });
-        // Recarregar as categorias para garantir consistência
-        await loadCategories();
       }
     } catch (error) {
-      console.error("Erro ao reordenar categorias:", error);
+      console.error("Erro ao atualizar ordem da categoria:", error);
       toast({
-        title: "Erro ao reordenar",
-        description: "Ocorreu um erro ao reordenar as categorias.",
+        title: "Erro ao atualizar ordem",
+        description: "Ocorreu um erro ao atualizar a ordem da categoria.",
         variant: "destructive",
       });
-      // Recarregar as categorias para garantir consistência
-      await loadCategories();
     } finally {
       setIsSaving(false);
     }
@@ -264,7 +203,7 @@ const CategoryManager: React.FC = () => {
       {/* Add new category */}
       <div className="bg-gray-900/50 p-4 rounded-md mb-6">
         <h3 className="text-lg font-semibold text-white mb-3">Adicionar Categoria</h3>
-        <div className="flex gap-2">
+        <div className="flex flex-col md:flex-row gap-3">
           <Input
             placeholder="Nome da categoria"
             value={newCategory}
@@ -291,103 +230,93 @@ const CategoryManager: React.FC = () => {
         </div>
       </div>
       
-      {/* Category list */}
       <div className="space-y-2">
         <h3 className="text-lg font-semibold text-white">Lista de Categorias</h3>
         
-        <div className="bg-gray-900/50 rounded-md overflow-hidden">
-          {isLoading ? (
-            <div className="p-8 flex justify-center items-center">
-              <Loader2 className="h-8 w-8 animate-spin text-white/70" />
-            </div>
-          ) : categoriesList.length > 0 ? (
-            <table className="w-full text-white">
-              <thead className="bg-gray-800">
-                <tr>
-                  <th className="p-3 text-left">Nome</th>
-                  <th className="p-3 text-right">Produtos</th>
-                  <th className="p-3 text-right">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {categoriesList.map((category, index) => (
-                  <tr key={category.id} className="border-t border-gray-700">
-                    <td className="p-3">
+        <div className="bg-gray-900/50 rounded-md overflow-x-auto">
+          <table className="w-full text-white min-w-[600px]">
+            <thead className="bg-gray-800">
+              <tr>
+                <th className="p-3 text-left">Nome</th>
+                <th className="p-3 text-right">Ordem</th>
+                <th className="p-3 text-right">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {categories.map((category) => (
+                <tr key={category.id} className="border-t border-gray-700">
+                  <td className="p-3">
+                    {editMode === category.id ? (
+                      <Input
+                        value={editedCategory.name}
+                        onChange={e => setEditedCategory({...editedCategory, name: e.target.value})}
+                        className="bg-gray-800 border-gray-700 text-white"
+                        disabled={isSaving}
+                      />
+                    ) : (
+                      category.name
+                    )}
+                  </td>
+                  <td className="p-3 text-right">
+                    <div className="flex gap-2 justify-end items-center">
+                      <Button
+                        onClick={() => handleReorder(category.id, 'up')}
+                        size="sm"
+                        className="bg-gray-700 hover:bg-gray-600"
+                        disabled={isSaving || categories.indexOf(category) === 0}
+                      >
+                        <ArrowUp size={16} />
+                      </Button>
+                      <span className="w-8 text-center">{category.order_index}</span>
+                      <Button
+                        onClick={() => handleReorder(category.id, 'down')}
+                        size="sm"
+                        className="bg-gray-700 hover:bg-gray-600"
+                        disabled={isSaving || categories.indexOf(category) === categories.length - 1}
+                      >
+                        <ArrowDown size={16} />
+                      </Button>
+                    </div>
+                  </td>
+                  <td className="p-3 text-right">
+                    <div className="flex gap-2 justify-end">
                       {editMode === category.id ? (
-                        <Input
-                          value={editedCategory}
-                          onChange={e => setEditedCategory(e.target.value)}
-                          className="bg-gray-800 border-gray-700 text-white"
+                        <Button
+                          onClick={() => handleSaveEdit(category.id)}
+                          size="sm"
+                          className="bg-green-600 hover:bg-green-700"
                           disabled={isSaving}
-                        />
+                        >
+                          {isSaving ? (
+                            <Loader2 size={16} className="animate-spin" />
+                          ) : (
+                            <Save size={16} />
+                          )}
+                        </Button>
                       ) : (
-                        category.name
-                      )}
-                    </td>
-                    <td className="p-3 text-right">
-                      {productsCount[category.id] || 0}
-                    </td>
-                    <td className="p-3 text-right">
-                      <div className="flex gap-2 justify-end">
-                        <Button 
-                          onClick={() => moveCategory(index, 'up')}
+                        <Button
+                          onClick={() => handleEditCategory(category)}
                           size="sm"
-                          disabled={index === 0 || isSaving}
-                          className="bg-gray-600 hover:bg-gray-700 disabled:bg-gray-800"
-                        >
-                          <MoveUp size={16} />
-                        </Button>
-                        <Button 
-                          onClick={() => moveCategory(index, 'down')}
-                          size="sm"
-                          disabled={index === categoriesList.length - 1 || isSaving}
-                          className="bg-gray-600 hover:bg-gray-700 disabled:bg-gray-800"
-                        >
-                          <MoveDown size={16} />
-                        </Button>
-                        
-                        {editMode === category.id ? (
-                          <Button 
-                            onClick={() => handleSaveEdit(category.id)}
-                            size="sm"
-                            className="bg-green-600 hover:bg-green-700"
-                            disabled={isSaving}
-                          >
-                            {isSaving ? (
-                              <Loader2 size={16} className="animate-spin" />
-                            ) : (
-                              <Save size={16} />
-                            )}
-                          </Button>
-                        ) : (
-                          <Button 
-                            onClick={() => handleEditCategory(category)}
-                            size="sm"
-                            className="bg-blue-600 hover:bg-blue-700"
-                            disabled={isSaving}
-                          >
-                            <Pencil size={16} />
-                          </Button>
-                        )}
-                        <Button 
-                          onClick={() => handleDeleteCategory(category.id)}
-                          size="sm"
-                          className="bg-red-600 hover:bg-red-700"
+                          className="bg-blue-600 hover:bg-blue-700"
                           disabled={isSaving}
                         >
-                          <Trash size={16} />
+                          <Pencil size={16} />
                         </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <div className="p-4 text-center text-gray-400">
-              Nenhuma categoria encontrada
-            </div>
-          )}
+                      )}
+                      <Button
+                        onClick={() => handleDeleteCategory(category.id)}
+                        size="sm"
+                        className="bg-red-600 hover:bg-red-700"
+                        disabled={isSaving}
+                      >
+                        <Trash size={16} />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

@@ -1,4 +1,3 @@
-
 import { supabase } from './client';
 import { SupabaseProduct } from './types';
 
@@ -40,9 +39,10 @@ export const fetchAllProducts = async (): Promise<SupabaseProduct[]> => {
 
 // Add a new product
 export const addProduct = async (product: Omit<SupabaseProduct, 'id' | 'created_at'>): Promise<SupabaseProduct | null> => {
+  const productWithPaused = { ...product, is_paused: false };
   const { data, error } = await supabase
     .from('products')
-    .insert([product])
+    .insert([productWithPaused])
     .select()
     .single();
   
@@ -78,6 +78,21 @@ export const deleteProduct = async (id: number): Promise<boolean> => {
   
   if (error) {
     console.error('Erro ao excluir produto:', error);
+    return false;
+  }
+  
+  return true;
+};
+
+// Toggle product pause state
+export const toggleProductPause = async (id: number, isPaused: boolean): Promise<boolean> => {
+  const { error } = await supabase
+    .from('products')
+    .update({ is_paused: isPaused })
+    .eq('id', id);
+  
+  if (error) {
+    console.error('Erro ao alterar estado do produto:', error);
     return false;
   }
   
