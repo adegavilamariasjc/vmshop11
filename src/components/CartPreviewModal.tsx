@@ -1,12 +1,13 @@
 
 import React from 'react';
-import { ShoppingCart, Trash2, ArrowRight } from 'lucide-react';
+import { ShoppingCart, Trash2, ArrowRight, X } from 'lucide-react';
 import { Product } from '../types';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from "@/components/ui/dialog";
 import OrderSummary from './cart/OrderSummary';
 import CartSummary from './CartSummary';
@@ -62,6 +63,12 @@ const CartPreviewModal: React.FC<CartPreviewModalProps> = ({
             Carrinho
           </DialogTitle>
         </DialogHeader>
+        
+        {/* Botão de fechar visível */}
+        <DialogClose className="absolute right-4 top-4 rounded-sm opacity-100 ring-offset-background transition-opacity hover:opacity-70 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+          <X className="h-5 w-5 text-white" />
+          <span className="sr-only">Fechar</span>
+        </DialogClose>
 
         <div className="mt-4">
           <OrderSummary cart={cart} />
