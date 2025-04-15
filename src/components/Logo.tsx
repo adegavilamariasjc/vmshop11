@@ -49,16 +49,16 @@ const Logo: React.FC = () => {
         loop: true,
       }}
       setApi={setApi}
-      className="w-full max-w-[280px]"
+      className="w-full max-w-[400px]"
     >
       <CarouselContent>
         {images.map((image, index) => (
           <CarouselItem key={index} className="flex items-center justify-center">
-            <div className="h-[180px] w-full overflow-hidden">
+            <div className="h-[200px] w-[400px] overflow-hidden">
               <img
                 src={image.src}
                 alt={image.alt}
-                className="w-full h-full object-contain transition-opacity duration-300"
+                className="w-full h-full object-cover"
               />
             </div>
           </CarouselItem>
@@ -71,3 +71,4 @@ const Logo: React.FC = () => {
 };
 
 export default Logo;
+
