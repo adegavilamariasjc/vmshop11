@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import {
   Carousel,
@@ -52,11 +53,11 @@ const Logo: React.FC = () => {
       <CarouselContent>
         {images.map((image, index) => (
           <CarouselItem key={index} className="flex items-center justify-center">
-            <div className="h-[200px] w-[400px] overflow-hidden">
+            <div className="w-[400px] flex items-center justify-center">
               <img
                 src={image.src}
                 alt={image.alt}
-                className="w-full h-full object-cover"
+                className="w-full max-h-[200px] object-contain"
               />
             </div>
           </CarouselItem>
