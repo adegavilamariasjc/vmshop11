@@ -2,6 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ShoppingBag } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import CategorySelector from './CategorySelector';
 import ProductList from './ProductList';
 import { Product } from '../types';
@@ -23,6 +24,21 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
   onUpdateQuantity,
   onProceedToCheckout
 }) => {
+  const { toast } = useToast();
+  const cartTotal = cart.reduce((sum, item) => sum + (item.price || 0) * (item.qty || 1), 0);
+  
+  const handleProceedToCheckout = () => {
+    if (cartTotal < 20) {
+      toast({
+        title: "Valor mínimo não atingido",
+        description: "O pedido mínimo é de R$ 20,00",
+        variant: "destructive",
+      });
+      return;
+    }
+    onProceedToCheckout();
+  };
+
   return (
     <motion.div
       key="product-selection"
@@ -45,7 +61,7 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
       )}
       
       <motion.button
-        onClick={onProceedToCheckout}
+        onClick={handleProceedToCheckout}
         className="fixed bottom-6 right-6 bg-purple-dark text-white px-4 py-3 rounded-full shadow-lg flex items-center gap-2"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
@@ -53,7 +69,7 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
       >
         <ShoppingBag size={20} />
         <span className="font-semibold">
-          {cart.length > 0 ? `${cart.reduce((sum, p) => sum + (p.qty || 1), 0)} itens` : "Carrinho"}
+          {cart.length > 0 ? `${cart.reduce((sum, p) => sum + (p.qty || 1), 0)} itens - R$ ${cartTotal.toFixed(2)}` : "Carrinho"}
         </span>
       </motion.button>
     </motion.div>
