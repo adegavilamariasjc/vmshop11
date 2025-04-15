@@ -1,4 +1,3 @@
-
 // Type definitions for Supabase tables
 
 // Product type
@@ -9,7 +8,7 @@ export type SupabaseProduct = {
   category_id: number;
   created_at?: string;
   is_paused: boolean;
-  order_index?: number;
+  order_index: number;
 };
 
 // Category type
@@ -26,7 +25,7 @@ export type SupabaseBairro = {
   nome: string;
   taxa: number;
   created_at?: string;
-  order_index?: number;
+  order_index: number;
 };
 
 // Pedido type (order)

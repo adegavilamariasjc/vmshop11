@@ -1,4 +1,3 @@
-
 import { supabase } from './client';
 import { SupabaseProduct } from './types';
 
@@ -39,7 +38,7 @@ export const fetchAllProducts = async (): Promise<SupabaseProduct[]> => {
 };
 
 // Add a new product
-export const addProduct = async (product: Omit<SupabaseProduct, 'id' | 'created_at'>): Promise<SupabaseProduct | null> => {
+export const addProduct = async (product: Omit<SupabaseProduct, 'id' | 'created_at' | 'order_index'>): Promise<SupabaseProduct | null> => {
   const { data, error } = await supabase
     .from('products')
     .insert([product])
@@ -55,7 +54,7 @@ export const addProduct = async (product: Omit<SupabaseProduct, 'id' | 'created_
 };
 
 // Update an existing product
-export const updateProduct = async (id: number, updates: Partial<Omit<SupabaseProduct, 'id' | 'created_at'>>): Promise<boolean> => {
+export const updateProduct = async (id: number, updates: Partial<Omit<SupabaseProduct, 'id' | 'created_at' | 'order_index'>>): Promise<boolean> => {
   const { error } = await supabase
     .from('products')
     .update(updates)

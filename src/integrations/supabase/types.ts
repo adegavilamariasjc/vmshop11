@@ -31,16 +31,19 @@ export type Database = {
         Row: {
           id: number
           nome: string
+          order_index: number | null
           taxa: number
         }
         Insert: {
           id?: number
           nome: string
+          order_index?: number | null
           taxa: number
         }
         Update: {
           id?: number
           nome?: string
+          order_index?: number | null
           taxa?: number
         }
         Relationships: []
@@ -144,6 +147,7 @@ export type Database = {
           id: number
           is_paused: boolean
           name: string
+          order_index: number | null
           price: number
         }
         Insert: {
@@ -151,6 +155,7 @@ export type Database = {
           id?: number
           is_paused?: boolean
           name: string
+          order_index?: number | null
           price: number
         }
         Update: {
@@ -158,6 +163,7 @@ export type Database = {
           id?: number
           is_paused?: boolean
           name?: string
+          order_index?: number | null
           price?: number
         }
         Relationships: [
