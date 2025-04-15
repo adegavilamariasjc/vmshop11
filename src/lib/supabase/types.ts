@@ -1,3 +1,4 @@
+
 // Type definitions for Supabase tables
 
 // Product type

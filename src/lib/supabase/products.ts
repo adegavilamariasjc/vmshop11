@@ -1,3 +1,4 @@
+
 import { supabase } from './client';
 import { SupabaseProduct } from './types';
 
@@ -102,7 +103,7 @@ export const toggleProductPause = async (id: number, isPaused: boolean): Promise
 export const updateProductOrder = async (id: number, order_index: number): Promise<boolean> => {
   const { error } = await supabase
     .from('products')
-    .update({ order_index: order_index })
+    .update({ order_index })
     .eq('id', id);
   
   if (error) {

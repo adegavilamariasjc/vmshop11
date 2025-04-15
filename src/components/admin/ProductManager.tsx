@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Pencil, Trash, Plus, Save, Loader2, PauseCircle, PlayCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,7 @@ import {
   toggleProductPause, updateProductOrder
 } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
+import type { SupabaseCategory, SupabaseProduct } from '@/lib/supabase/types';
 
 const ProductManager: React.FC = () => {
   const { toast } = useToast();

@@ -5,13 +5,16 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@
 import { Input } from '@/components/ui/input';
 import { Pencil, Trash2, PlusCircle, Save, X } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { fetchBairros, addBairro, updateBairro, deleteBairro, updateBairroOrder } from '@/lib/supabase';
+import { 
+  fetchBairros, addBairro, updateBairro, deleteBairro, updateBairroOrder
+} from '@/lib/supabase';
 import type { SupabaseBairro } from '@/lib/supabase/types';
 
 interface Bairro {
   id: number;
   nome: string;
   taxa: number;
+  order_index?: number;
 }
 
 const BairroManager: React.FC = () => {
@@ -22,22 +25,14 @@ const BairroManager: React.FC = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchBairros();
+    fetchAllBairros();
   }, []);
 
-  const fetchBairros = async () => {
+  const fetchAllBairros = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('bairros')
-        .select('*')
-        .order('nome');
-      
-      if (error) {
-        throw error;
-      }
-      
-      setBairros(data);
+      const bairrosList = await fetchBairros();
+      setBairros(bairrosList);
     } catch (error) {
       console.error('Erro ao buscar bairros:', error);
       toast({
@@ -61,22 +56,21 @@ const BairroManager: React.FC = () => {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('bairros')
-        .insert([{ nome: newBairro.nome, taxa: newBairro.taxa }])
-        .select();
-      
-      if (error) {
-        throw error;
-      }
-      
-      setBairros([...bairros, data[0]]);
-      setNewBairro({ nome: '', taxa: 0 });
-      
-      toast({
-        title: 'Sucesso',
-        description: 'Bairro adicionado com sucesso.',
+      const addedBairro = await addBairro({ 
+        nome: newBairro.nome, 
+        taxa: newBairro.taxa,
+        order_index: bairros.length
       });
+      
+      if (addedBairro) {
+        setBairros([...bairros, addedBairro]);
+        setNewBairro({ nome: '', taxa: 0 });
+        
+        toast({
+          title: 'Sucesso',
+          description: 'Bairro adicionado com sucesso.',
+        });
+      }
     } catch (error) {
       console.error('Erro ao adicionar bairro:', error);
       toast({
@@ -95,22 +89,20 @@ const BairroManager: React.FC = () => {
     if (!editingBairro) return;
     
     try {
-      const { error } = await supabase
-        .from('bairros')
-        .update({ nome: editingBairro.nome, taxa: editingBairro.taxa })
-        .eq('id', editingBairro.id);
-      
-      if (error) {
-        throw error;
-      }
-      
-      setBairros(bairros.map(b => b.id === editingBairro.id ? editingBairro : b));
-      setEditingBairro(null);
-      
-      toast({
-        title: 'Sucesso',
-        description: 'Bairro atualizado com sucesso.',
+      const success = await updateBairro(editingBairro.id, { 
+        nome: editingBairro.nome, 
+        taxa: editingBairro.taxa
       });
+      
+      if (success) {
+        setBairros(bairros.map(b => b.id === editingBairro.id ? editingBairro : b));
+        setEditingBairro(null);
+        
+        toast({
+          title: 'Sucesso',
+          description: 'Bairro atualizado com sucesso.',
+        });
+      }
     } catch (error) {
       console.error('Erro ao atualizar bairro:', error);
       toast({
@@ -125,21 +117,16 @@ const BairroManager: React.FC = () => {
     if (!confirm('Tem certeza que deseja excluir este bairro?')) return;
     
     try {
-      const { error } = await supabase
-        .from('bairros')
-        .delete()
-        .eq('id', id);
+      const success = await deleteBairro(id);
       
-      if (error) {
-        throw error;
+      if (success) {
+        setBairros(bairros.filter(b => b.id !== id));
+        
+        toast({
+          title: 'Sucesso',
+          description: 'Bairro excluído com sucesso.',
+        });
       }
-      
-      setBairros(bairros.filter(b => b.id !== id));
-      
-      toast({
-        title: 'Sucesso',
-        description: 'Bairro excluído com sucesso.',
-      });
     } catch (error) {
       console.error('Erro ao excluir bairro:', error);
       toast({
@@ -183,7 +170,7 @@ const BairroManager: React.FC = () => {
         description: "Ocorreu um erro ao atualizar a ordem dos bairros",
         variant: "destructive"
       });
-      await fetchBairros();
+      await fetchAllBairros();
     }
   };
 

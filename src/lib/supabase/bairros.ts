@@ -1,3 +1,4 @@
+
 import { supabase } from './client';
 import { SupabaseBairro } from './types';
 
@@ -66,7 +67,7 @@ export const deleteBairro = async (id: number): Promise<boolean> => {
 export const updateBairroOrder = async (id: number, order_index: number): Promise<boolean> => {
   const { error } = await supabase
     .from('bairros')
-    .update({ order_index: order_index })
+    .update({ order_index })
     .eq('id', id);
   
   if (error) {
