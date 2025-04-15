@@ -3,6 +3,13 @@ import React from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Loader2 } from 'lucide-react';
 import { ProductItem } from './ProductItem';
+import { 
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody
+} from '@/components/ui/table';
 import type { SupabaseProduct } from '@/lib/supabase/types';
 
 interface ProductListProps {
@@ -52,16 +59,16 @@ export const ProductList: React.FC<ProductListProps> = ({
     <DragDropContext onDragEnd={onProductsReorder}>
       <Droppable droppableId="products">
         {(provided) => (
-          <div {...provided.droppableProps} ref={provided.innerRef}>
-            <table className="w-full text-white">
-              <thead className="bg-gray-800">
-                <tr>
-                  <th className="p-3 text-left">Nome</th>
-                  <th className="p-3 text-right">Preço</th>
-                  <th className="p-3 text-right">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
+          <div {...provided.droppableProps} ref={provided.innerRef} className="w-full">
+            <Table className="w-full text-white">
+              <TableHeader className="bg-gray-800">
+                <TableRow>
+                  <TableHead className="w-1/2 text-left">Nome</TableHead>
+                  <TableHead className="w-1/4 text-right">Preço</TableHead>
+                  <TableHead className="w-1/4 text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {products.map((product, index) => (
                   <Draggable
                     key={product.id.toString()}
@@ -69,7 +76,7 @@ export const ProductList: React.FC<ProductListProps> = ({
                     index={index}
                   >
                     {(provided) => (
-                      <tr
+                      <TableRow
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
@@ -83,13 +90,13 @@ export const ProductList: React.FC<ProductListProps> = ({
                           onDelete={onProductDelete}
                           isSaving={isSaving}
                         />
-                      </tr>
+                      </TableRow>
                     )}
                   </Draggable>
                 ))}
                 {provided.placeholder}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         )}
       </Droppable>

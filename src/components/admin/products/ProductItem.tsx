@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { TableCell } from '@/components/ui/table';
 import { Pencil, Save, Trash, PauseCircle, PlayCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { updateProduct, deleteProduct, toggleProductPause } from '@/lib/supabase';
@@ -126,15 +127,21 @@ export const ProductItem: React.FC<ProductItemProps> = ({ product, onUpdate, onD
   };
 
   return (
-    <td className="p-3">
-      {editMode ? (
-        <>
+    <>
+      <TableCell className="font-medium">
+        {editMode ? (
           <Input
             value={editedProduct.name}
             onChange={e => setEditedProduct({...editedProduct, name: e.target.value})}
             className="bg-gray-800 border-gray-700 text-white"
             disabled={isSaving}
           />
+        ) : (
+          <span>{product.name}</span>
+        )}
+      </TableCell>
+      <TableCell className="text-right">
+        {editMode ? (
           <Input
             type="number"
             value={editedProduct.price}
@@ -142,54 +149,53 @@ export const ProductItem: React.FC<ProductItemProps> = ({ product, onUpdate, onD
             className="bg-gray-800 border-gray-700 text-white w-24 ml-auto"
             disabled={isSaving}
           />
-        </>
-      ) : (
-        <>
-          <span>{product.name}</span>
-          <span className="text-right">R$ {product.price.toFixed(2)}</span>
-        </>
-      )}
-      <div className="flex gap-2 justify-end">
-        {editMode ? (
-          <Button 
-            onClick={handleSaveEdit}
-            size="sm"
-            className="bg-green-600 hover:bg-green-700"
-            disabled={isSaving}
-          >
-            {isSaving ? (
-              <Loader2 size={16} className="animate-spin" />
-            ) : (
-              <Save size={16} />
-            )}
-          </Button>
         ) : (
+          <span>R$ {product.price.toFixed(2)}</span>
+        )}
+      </TableCell>
+      <TableCell className="text-right">
+        <div className="flex gap-2 justify-end">
+          {editMode ? (
+            <Button 
+              onClick={handleSaveEdit}
+              size="sm"
+              className="bg-green-600 hover:bg-green-700"
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <Save size={16} />
+              )}
+            </Button>
+          ) : (
+            <Button 
+              onClick={() => setEditMode(true)}
+              size="sm"
+              className="bg-blue-600 hover:bg-blue-700"
+              disabled={isSaving}
+            >
+              <Pencil size={16} />
+            </Button>
+          )}
           <Button 
-            onClick={() => setEditMode(true)}
+            onClick={handleTogglePause}
             size="sm"
-            className="bg-blue-600 hover:bg-blue-700"
+            className={product.is_paused ? "bg-green-600 hover:bg-green-700" : "bg-yellow-600 hover:bg-yellow-700"}
             disabled={isSaving}
           >
-            <Pencil size={16} />
+            {product.is_paused ? <PlayCircle size={16} /> : <PauseCircle size={16} />}
           </Button>
-        )}
-        <Button 
-          onClick={handleTogglePause}
-          size="sm"
-          className={product.is_paused ? "bg-green-600 hover:bg-green-700" : "bg-yellow-600 hover:bg-yellow-700"}
-          disabled={isSaving}
-        >
-          {product.is_paused ? <PlayCircle size={16} /> : <PauseCircle size={16} />}
-        </Button>
-        <Button 
-          onClick={handleDelete}
-          size="sm"
-          className="bg-red-600 hover:bg-red-700"
-          disabled={isSaving}
-        >
-          <Trash size={16} />
-        </Button>
-      </div>
-    </td>
+          <Button 
+            onClick={handleDelete}
+            size="sm"
+            className="bg-red-600 hover:bg-red-700"
+            disabled={isSaving}
+          >
+            <Trash size={16} />
+          </Button>
+        </div>
+      </TableCell>
+    </>
   );
 };
