@@ -52,6 +52,11 @@ const CartPreviewModal: React.FC<CartPreviewModalProps> = ({
       description: "Todos os itens foram removidos do carrinho",
     });
     onClose();
+    
+    // Adiciona um pequeno delay antes de atualizar a página
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
   };
 
   return (
