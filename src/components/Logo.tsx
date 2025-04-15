@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import {
   Carousel,
@@ -19,11 +18,11 @@ const Logo: React.FC = () => {
       alt: "Logotipo da Loja"
     },
     {
-      src: "http://adegavm.com/ban1.png",
+      src: "https://adegavm.shop/ban1.png",
       alt: "Banner Promocional 1"
     },
     {
-      src: "http://adegavm.com/ban2.png",
+      src: "https://adegavm.shop/ban2.png",
       alt: "Banner Promocional 2"
     }
   ];
@@ -36,7 +35,6 @@ const Logo: React.FC = () => {
     });
   }, [api]);
 
-  // Auto-advance every 5 seconds
   useInterval(() => {
     if (!api) return;
     api.scrollNext();
@@ -71,4 +69,3 @@ const Logo: React.FC = () => {
 };
 
 export default Logo;
-
