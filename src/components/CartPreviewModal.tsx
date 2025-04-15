@@ -44,6 +44,15 @@ const CartPreviewModal: React.FC<CartPreviewModalProps> = ({
     onProceedToCheckout();
   };
 
+  const handleClearCart = () => {
+    onClearCart();
+    toast({
+      title: "Carrinho limpo",
+      description: "Todos os itens foram removidos do carrinho",
+    });
+    onClose();
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px]">
@@ -66,7 +75,7 @@ const CartPreviewModal: React.FC<CartPreviewModalProps> = ({
             <Button
               variant="destructive"
               className="w-full"
-              onClick={onClearCart}
+              onClick={handleClearCart}
               disabled={cart.length === 0}
             >
               <Trash2 className="h-4 w-4 mr-2" />

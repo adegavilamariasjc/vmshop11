@@ -30,10 +30,11 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
   const cartTotal = cart.reduce((sum, item) => sum + (item.price || 0) * (item.qty || 1), 0);
 
   const handleClearCart = () => {
-    cart.forEach(item => onUpdateQuantity(item, -item.qty!));
-    toast({
-      title: "Carrinho limpo",
-      description: "Todos os itens foram removidos do carrinho",
+    // Create a copy of the cart to iterate through
+    const cartItems = [...cart];
+    // Remove all items from the cart
+    cartItems.forEach(item => {
+      onUpdateQuantity(item, -(item.qty || 1));
     });
   };
 
