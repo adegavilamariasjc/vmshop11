@@ -97,3 +97,18 @@ export const toggleProductPause = async (id: number, isPaused: boolean): Promise
   
   return true;
 };
+
+// Update product order
+export const updateProductOrder = async (id: number, order_index: number): Promise<boolean> => {
+  const { error } = await supabase
+    .from('products')
+    .update({ order_index: order_index })
+    .eq('id', id);
+  
+  if (error) {
+    console.error('Erro ao atualizar ordem do produto:', error);
+    return false;
+  }
+  
+  return true;
+};

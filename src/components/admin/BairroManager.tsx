@@ -1,11 +1,12 @@
-
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Pencil, Trash2, PlusCircle, Save, X } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { fetchBairros, addBairro, updateBairro, deleteBairro, updateBairroOrder } from '@/lib/supabase';
+import type { SupabaseBairro } from '@/lib/supabase/types';
 
 interface Bairro {
   id: number;
@@ -153,6 +154,39 @@ const BairroManager: React.FC = () => {
     setEditingBairro(null);
   };
 
+  const handleDragEnd = async (result: any) => {
+    if (!result.destination) return;
+
+    const items = Array.from(bairros);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    const updatedItems = items.map((item, index) => ({
+      ...item,
+      order_index: index
+    }));
+
+    setBairros(updatedItems);
+
+    try {
+      for (const item of updatedItems) {
+        await updateBairroOrder(item.id, item.order_index || 0);
+      }
+      toast({
+        title: "Ordem atualizada",
+        description: "A ordem dos bairros foi atualizada com sucesso"
+      });
+    } catch (error) {
+      console.error("Erro ao atualizar ordem:", error);
+      toast({
+        title: "Erro ao atualizar ordem",
+        description: "Ocorreu um erro ao atualizar a ordem dos bairros",
+        variant: "destructive"
+      });
+      await fetchBairros();
+    }
+  };
+
   if (isLoading) {
     return <div className="text-center py-4 text-white">Carregando bairros...</div>;
   }
@@ -192,92 +226,107 @@ const BairroManager: React.FC = () => {
       </div>
       
       <div className="bg-black/50 rounded-md overflow-hidden">
-        <Table>
-          <TableHeader className="bg-gray-800">
-            <TableRow>
-              <TableHead className="text-white">Nome</TableHead>
-              <TableHead className="text-white text-right">Taxa (R$)</TableHead>
-              <TableHead className="text-white text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {bairros.map((bairro) => (
-              <TableRow key={bairro.id} className="border-gray-700 hover:bg-gray-800">
-                <TableCell className="text-white">
-                  {editingBairro?.id === bairro.id ? (
-                    <Input
-                      value={editingBairro.nome}
-                      onChange={(e) => setEditingBairro({ ...editingBairro, nome: e.target.value })}
-                      className="bg-gray-900 border-gray-700 text-white"
-                    />
-                  ) : (
-                    bairro.nome
-                  )}
-                </TableCell>
-                <TableCell className="text-white text-right">
-                  {editingBairro?.id === bairro.id ? (
-                    <Input
-                      type="number"
-                      value={editingBairro.taxa}
-                      onChange={(e) => setEditingBairro({ ...editingBairro, taxa: Number(e.target.value) })}
-                      className="bg-gray-900 border-gray-700 text-white w-24 ml-auto"
-                    />
-                  ) : (
-                    bairro.taxa.toFixed(2)
-                  )}
-                </TableCell>
-                <TableCell className="text-right">
-                  {editingBairro?.id === bairro.id ? (
-                    <div className="flex justify-end gap-2">
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={handleSaveEdit}
-                        className="text-green-500 hover:text-green-400 hover:bg-gray-700"
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId="bairros">
+            {(provided) => (
+              <div {...provided.droppableProps} ref={provided.innerRef}>
+                <Table>
+                  <TableHeader className="bg-gray-800">
+                    <TableRow>
+                      <TableHead className="text-white">Nome</TableHead>
+                      <TableHead className="text-white text-right">Taxa (R$)</TableHead>
+                      <TableHead className="text-white text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {bairros.map((bairro, index) => (
+                      <Draggable
+                        key={bairro.id.toString()}
+                        draggableId={bairro.id.toString()}
+                        index={index}
                       >
-                        <Save size={18} />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={handleCancelEdit}
-                        className="text-gray-400 hover:text-gray-300 hover:bg-gray-700"
-                      >
-                        <X size={18} />
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex justify-end gap-2">
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => handleEditBairro(bairro)}
-                        className="text-blue-500 hover:text-blue-400 hover:bg-gray-700"
-                      >
-                        <Pencil size={18} />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => handleDeleteBairro(bairro.id)}
-                        className="text-red-500 hover:text-red-400 hover:bg-gray-700"
-                      >
-                        <Trash2 size={18} />
-                      </Button>
-                    </div>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-            {bairros.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={3} className="text-center text-gray-400 py-6">
-                  Nenhum bairro cadastrado.
-                </TableCell>
-              </TableRow>
+                        {(provided) => (
+                          <TableRow
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            className="border-gray-700 hover:bg-gray-800 cursor-move"
+                          >
+                            <TableCell className="text-white">
+                              {editingBairro?.id === bairro.id ? (
+                                <Input
+                                  value={editingBairro.nome}
+                                  onChange={(e) => setEditingBairro({ ...editingBairro, nome: e.target.value })}
+                                  className="bg-gray-900 border-gray-700 text-white"
+                                />
+                              ) : (
+                                bairro.nome
+                              )}
+                            </TableCell>
+                            <TableCell className="text-white text-right">
+                              {editingBairro?.id === bairro.id ? (
+                                <Input
+                                  type="number"
+                                  value={editingBairro.taxa}
+                                  onChange={(e) => setEditingBairro({ ...editingBairro, taxa: Number(e.target.value) })}
+                                  className="bg-gray-900 border-gray-700 text-white w-24 ml-auto"
+                                />
+                              ) : (
+                                bairro.taxa.toFixed(2)
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {editingBairro?.id === bairro.id ? (
+                                <div className="flex justify-end gap-2">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon"
+                                    onClick={handleSaveEdit}
+                                    className="text-green-500 hover:text-green-400 hover:bg-gray-700"
+                                  >
+                                    <Save size={18} />
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon"
+                                    onClick={handleCancelEdit}
+                                    className="text-gray-400 hover:text-gray-300 hover:bg-gray-700"
+                                  >
+                                    <X size={18} />
+                                  </Button>
+                                </div>
+                              ) : (
+                                <div className="flex justify-end gap-2">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon"
+                                    onClick={() => handleEditBairro(bairro)}
+                                    className="text-blue-500 hover:text-blue-400 hover:bg-gray-700"
+                                  >
+                                    <Pencil size={18} />
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon"
+                                    onClick={() => handleDeleteBairro(bairro.id)}
+                                    className="text-red-500 hover:text-red-400 hover:bg-gray-700"
+                                  >
+                                    <Trash2 size={18} />
+                                  </Button>
+                                </div>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </TableBody>
+                </Table>
+              </div>
             )}
-          </TableBody>
-        </Table>
+          </Droppable>
+        </DragDropContext>
       </div>
     </div>
   );

@@ -1,4 +1,3 @@
-
 import { supabase } from './client';
 import { SupabaseBairro } from './types';
 
@@ -57,6 +56,21 @@ export const deleteBairro = async (id: number): Promise<boolean> => {
   
   if (error) {
     console.error('Erro ao excluir bairro:', error);
+    return false;
+  }
+  
+  return true;
+};
+
+// Update bairro order
+export const updateBairroOrder = async (id: number, order_index: number): Promise<boolean> => {
+  const { error } = await supabase
+    .from('bairros')
+    .update({ order_index: order_index })
+    .eq('id', id);
+  
+  if (error) {
+    console.error('Erro ao atualizar ordem do bairro:', error);
     return false;
   }
   

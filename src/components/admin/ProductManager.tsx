@@ -3,17 +3,10 @@ import { Pencil, Trash, Plus, Save, Loader2, PauseCircle, PlayCircle } from 'luc
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { 
-  fetchCategories, fetchProducts, addProduct, updateProduct, deleteProduct, toggleProductPause,
-  SupabaseCategory, SupabaseProduct
+  fetchCategories, fetchProducts, addProduct, updateProduct, deleteProduct, 
+  toggleProductPause, updateProductOrder
 } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 
@@ -272,6 +265,41 @@ const ProductManager: React.FC = () => {
     }
   };
 
+  const handleDragEnd = async (result: any) => {
+    if (!result.destination) return;
+
+    const items = Array.from(productsList);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    const updatedItems = items.map((item, index) => ({
+      ...item,
+      order_index: index
+    }));
+
+    setProductsList(updatedItems);
+
+    try {
+      for (const item of updatedItems) {
+        await updateProductOrder(item.id, item.order_index || 0);
+      }
+      toast({
+        title: "Ordem atualizada",
+        description: "A ordem dos produtos foi atualizada com sucesso"
+      });
+    } catch (error) {
+      console.error("Erro ao atualizar ordem:", error);
+      toast({
+        title: "Erro ao atualizar ordem",
+        description: "Ocorreu um erro ao atualizar a ordem dos produtos",
+        variant: "destructive"
+      });
+      if (selectedCategoryId) {
+        loadProducts(selectedCategoryId);
+      }
+    }
+  };
+
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-bold text-white mb-4">Gerenciar Produtos</h2>
@@ -345,89 +373,113 @@ const ProductManager: React.FC = () => {
               Selecione uma categoria para ver seus produtos
             </div>
           ) : productsList.length > 0 ? (
-            <table className="w-full text-white">
-              <thead className="bg-gray-800">
-                <tr>
-                  <th className="p-3 text-left">Nome</th>
-                  <th className="p-3 text-right">Preço</th>
-                  <th className="p-3 text-right">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {productsList.map((product) => (
-                  <tr key={product.id} className={`border-t border-gray-700 ${product.is_paused ? 'opacity-50' : ''}`}>
-                    <td className="p-3">
-                      {editMode === product.id ? (
-                        <Input
-                          value={editedProduct.name}
-                          onChange={e => setEditedProduct({...editedProduct, name: e.target.value})}
-                          className="bg-gray-800 border-gray-700 text-white"
-                          disabled={isSaving}
-                        />
-                      ) : (
-                        product.name
-                      )}
-                    </td>
-                    <td className="p-3 text-right">
-                      {editMode === product.id ? (
-                        <Input
-                          type="number"
-                          value={editedProduct.price || 0}
-                          onChange={e => setEditedProduct({...editedProduct, price: parseFloat(e.target.value) || 0})}
-                          className="bg-gray-800 border-gray-700 text-white w-24 ml-auto"
-                          disabled={isSaving}
-                        />
-                      ) : (
-                        `R$ ${product.price.toFixed(2)}`
-                      )}
-                    </td>
-                    <td className="p-3 text-right">
-                      <div className="flex gap-2 justify-end">
-                        {editMode === product.id ? (
-                          <Button 
-                            onClick={() => handleSaveEdit(product.id)}
-                            size="sm"
-                            className="bg-green-600 hover:bg-green-700"
-                            disabled={isSaving}
+            <DragDropContext onDragEnd={handleDragEnd}>
+              <Droppable droppableId="products">
+                {(provided) => (
+                  <div {...provided.droppableProps} ref={provided.innerRef}>
+                    <table className="w-full text-white">
+                      <thead className="bg-gray-800">
+                        <tr>
+                          <th className="p-3 text-left">Nome</th>
+                          <th className="p-3 text-right">Preço</th>
+                          <th className="p-3 text-right">Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {productsList.map((product, index) => (
+                          <Draggable
+                            key={product.id.toString()}
+                            draggableId={product.id.toString()}
+                            index={index}
                           >
-                            {isSaving ? (
-                              <Loader2 size={16} className="animate-spin" />
-                            ) : (
-                              <Save size={16} />
+                            {(provided) => (
+                              <tr
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                className={`border-t border-gray-700 hover:bg-gray-800/50 transition-colors cursor-move ${
+                                  product.is_paused ? 'opacity-50' : ''
+                                }`}
+                              >
+                                <td className="p-3">
+                                  {editMode === product.id ? (
+                                    <Input
+                                      value={editedProduct.name}
+                                      onChange={e => setEditedProduct({...editedProduct, name: e.target.value})}
+                                      className="bg-gray-800 border-gray-700 text-white"
+                                      disabled={isSaving}
+                                    />
+                                  ) : (
+                                    product.name
+                                  )}
+                                </td>
+                                <td className="p-3 text-right">
+                                  {editMode === product.id ? (
+                                    <Input
+                                      type="number"
+                                      value={editedProduct.price || 0}
+                                      onChange={e => setEditedProduct({...editedProduct, price: parseFloat(e.target.value) || 0})}
+                                      className="bg-gray-800 border-gray-700 text-white w-24 ml-auto"
+                                      disabled={isSaving}
+                                    />
+                                  ) : (
+                                    `R$ ${product.price.toFixed(2)}`
+                                  )}
+                                </td>
+                                <td className="p-3 text-right">
+                                  <div className="flex gap-2 justify-end">
+                                    {editMode === product.id ? (
+                                      <Button 
+                                        onClick={() => handleSaveEdit(product.id)}
+                                        size="sm"
+                                        className="bg-green-600 hover:bg-green-700"
+                                        disabled={isSaving}
+                                      >
+                                        {isSaving ? (
+                                          <Loader2 size={16} className="animate-spin" />
+                                        ) : (
+                                          <Save size={16} />
+                                        )}
+                                      </Button>
+                                    ) : (
+                                      <Button 
+                                        onClick={() => handleEditProduct(product)}
+                                        size="sm"
+                                        className="bg-blue-600 hover:bg-blue-700"
+                                        disabled={isSaving}
+                                      >
+                                        <Pencil size={16} />
+                                      </Button>
+                                    )}
+                                    <Button 
+                                      onClick={() => handleTogglePause(product.id, product.is_paused)}
+                                      size="sm"
+                                      className={product.is_paused ? "bg-green-600 hover:bg-green-700" : "bg-yellow-600 hover:bg-yellow-700"}
+                                      disabled={isSaving}
+                                    >
+                                      {product.is_paused ? <PlayCircle size={16} /> : <PauseCircle size={16} />}
+                                    </Button>
+                                    <Button 
+                                      onClick={() => handleDeleteProduct(product.id)}
+                                      size="sm"
+                                      className="bg-red-600 hover:bg-red-700"
+                                      disabled={isSaving}
+                                    >
+                                      <Trash size={16} />
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
                             )}
-                          </Button>
-                        ) : (
-                          <Button 
-                            onClick={() => handleEditProduct(product)}
-                            size="sm"
-                            className="bg-blue-600 hover:bg-blue-700"
-                            disabled={isSaving}
-                          >
-                            <Pencil size={16} />
-                          </Button>
-                        )}
-                        <Button 
-                          onClick={() => handleTogglePause(product.id, product.is_paused)}
-                          size="sm"
-                          className={product.is_paused ? "bg-green-600 hover:bg-green-700" : "bg-yellow-600 hover:bg-yellow-700"}
-                          disabled={isSaving}
-                        >
-                          {product.is_paused ? <PlayCircle size={16} /> : <PauseCircle size={16} />}
-                        </Button>
-                        <Button 
-                          onClick={() => handleDeleteProduct(product.id)}
-                          size="sm"
-                          className="bg-red-600 hover:bg-red-700"
-                          disabled={isSaving}
-                        >
-                          <Trash size={16} />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                          </Draggable>
+                        ))}
+                        {provided.placeholder}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
           ) : (
             <div className="p-4 text-center text-gray-400">
               Nenhum produto encontrado nesta categoria
