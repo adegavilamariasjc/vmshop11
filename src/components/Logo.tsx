@@ -1,15 +1,72 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import { useInterval } from "@/hooks/useInterval";
 
 const Logo: React.FC = () => {
+  const [api, setApi] = useState<any>(null);
+  const [current, setCurrent] = useState(0);
+  
+  const images = [
+    {
+      src: "https://adegavm.shop/logo.gif",
+      alt: "Logotipo da Loja"
+    },
+    {
+      src: "http://adegavm.com/ban1.png",
+      alt: "Banner Promocional 1"
+    },
+    {
+      src: "http://adegavm.com/ban2.png",
+      alt: "Banner Promocional 2"
+    }
+  ];
+
+  useEffect(() => {
+    if (!api) return;
+
+    api.on("select", () => {
+      setCurrent(api.selectedScrollSnap());
+    });
+  }, [api]);
+
+  // Auto-advance every 5 seconds
+  useInterval(() => {
+    if (!api) return;
+    api.scrollNext();
+  }, 5000);
+
   return (
-    <div className="w-full max-w-[280px] h-[180px] overflow-hidden">
-      <img
-        src="https://adegavm.shop/logo.gif"
-        alt="Logotipo da Loja"
-        className="w-full h-full object-contain"
-      />
-    </div>
+    <Carousel
+      opts={{
+        align: "start",
+        loop: true,
+      }}
+      setApi={setApi}
+      className="w-full max-w-[280px]"
+    >
+      <CarouselContent>
+        {images.map((image, index) => (
+          <CarouselItem key={index} className="flex items-center justify-center">
+            <div className="h-[180px] w-full overflow-hidden">
+              <img
+                src={image.src}
+                alt={image.alt}
+                className="w-full h-full object-contain transition-opacity duration-300"
+              />
+            </div>
+          </CarouselItem>
+        ))}
+      </CarouselContent>
+      <CarouselPrevious className="hidden sm:flex" />
+      <CarouselNext className="hidden sm:flex" />
+    </Carousel>
   );
 };
 
