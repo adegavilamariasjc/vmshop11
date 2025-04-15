@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -18,7 +17,7 @@ interface OrderSuccessModalProps {
   onClose: () => void;
   codigoPedido: string;
   isDuplicate?: boolean;
-  onConfirm: () => void; // Prop to handle actions after confirmation (WhatsApp)
+  onConfirm: () => void;
 }
 
 const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
@@ -29,7 +28,7 @@ const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
   onConfirm
 }) => {
   const navigate = useNavigate();
-  const [countdown, setCountdown] = useState(10); // 10 second countdown
+  const [countdown, setCountdown] = useState(5);
   const [buttonEnabled, setButtonEnabled] = useState(false);
 
   useEffect(() => {
@@ -53,20 +52,16 @@ const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
     };
   }, [isOpen, countdown]);
 
-  // Reset countdown when modal opens
   useEffect(() => {
     if (isOpen) {
-      setCountdown(10);
+      setCountdown(5);
       setButtonEnabled(false);
     }
   }, [isOpen]);
 
   const handleOk = async () => {
-    // Only send notification to the admin system if it's not a duplicate order
     if (!isDuplicate) {
       try {
-        // The pedido is already saved in the database, but we need to notify admins
-        // We'll use the Supabase channel system to notify that the order is confirmed
         const channel = supabase.channel('pedido-confirmado');
         await channel.subscribe();
         await channel.send({
@@ -79,14 +74,8 @@ const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
       }
     }
     
-    // Close modal 
     onClose();
-    
-    // Call the onConfirm callback (which handles WhatsApp opening) AFTER closing the modal
-    // This ensures the WhatsApp message is only sent after the user clicks OK
     onConfirm();
-    
-    // Navigate to home page
     navigate('/');
   };
 
