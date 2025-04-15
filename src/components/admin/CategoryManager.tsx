@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
-import { Pencil, Trash, Plus, Save, ArrowUp, ArrowDown, Loader2 } from 'lucide-react';
+import { Pencil, Trash, Plus, Save, Loader2 } from 'lucide-react';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { fetchCategories, addCategory, updateCategory, deleteCategory, reorderCategory } from '@/lib/supabase';
+import { fetchCategories, addCategory, updateCategory, deleteCategory } from '@/lib/supabase';
 import type { SupabaseCategory } from '@/lib/supabase/types';
 
 const CategoryManager: React.FC = () => {
@@ -100,19 +102,15 @@ const CategoryManager: React.FC = () => {
     setIsSaving(true);
 
     try {
-      const updates: Partial<Omit<SupabaseCategory, 'id' | 'created_at'>> = {
+      const success = await updateCategory(categoryId, {
         name: editedCategory.name
-      };
-      
-      const success = await updateCategory(categoryId, updates);
+      });
 
       if (success) {
         setCategories(categories.map(c =>
           c.id === categoryId ? {...c, name: editedCategory.name} : c
         ));
-
         setEditMode(null);
-
         toast({
           title: "Categoria atualizada",
           description: `${editedCategory.name} foi atualizada com sucesso`
@@ -148,7 +146,6 @@ const CategoryManager: React.FC = () => {
 
       if (success) {
         setCategories(categories.filter(c => c.id !== categoryId));
-
         toast({
           title: "Categoria excluída",
           description: "A categoria foi excluída com sucesso"
@@ -172,32 +169,39 @@ const CategoryManager: React.FC = () => {
     }
   };
 
-  const handleReorder = async (categoryId: number, direction: 'up' | 'down') => {
+  const handleDragEnd = async (result: any) => {
+    if (!result.destination) return;
+
+    const items = Array.from(categories);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    // Update the order_index for all affected items
+    const updatedItems = items.map((item, index) => ({
+      ...item,
+      order_index: index
+    }));
+
+    setCategories(updatedItems);
+
+    // Update the database
     setIsSaving(true);
-
     try {
-      const success = await reorderCategory(categoryId, direction);
-
-      if (success) {
-        loadCategories();
-        toast({
-          title: "Ordem atualizada",
-          description: "A ordem das categorias foi atualizada com sucesso."
-        });
-      } else {
-        toast({
-          title: "Erro ao atualizar ordem",
-          description: "Não foi possível atualizar a ordem da categoria no banco de dados.",
-          variant: "destructive",
-        });
+      for (const item of updatedItems) {
+        await updateCategory(item.id, { order_index: item.order_index });
       }
+      toast({
+        title: "Ordem atualizada",
+        description: "A ordem das categorias foi atualizada com sucesso"
+      });
     } catch (error) {
-      console.error("Erro ao atualizar ordem da categoria:", error);
+      console.error("Erro ao atualizar ordem:", error);
       toast({
         title: "Erro ao atualizar ordem",
-        description: "Ocorreu um erro ao atualizar a ordem da categoria.",
-        variant: "destructive",
+        description: "Ocorreu um erro ao atualizar a ordem das categorias",
+        variant: "destructive"
       });
+      loadCategories(); // Reload original order on error
     } finally {
       setIsSaving(false);
     }
@@ -209,17 +213,17 @@ const CategoryManager: React.FC = () => {
       
       <div className="bg-gray-900/50 p-4 rounded-md mb-6">
         <h3 className="text-lg font-semibold text-white mb-3">Adicionar Categoria</h3>
-        <div className="flex flex-col md:flex-row gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <Input
             placeholder="Nome da categoria"
             value={newCategory}
             onChange={e => setNewCategory(e.target.value)}
-            className="bg-gray-800 border-gray-700 text-white"
+            className="bg-gray-800 border-gray-700 text-white flex-1"
             disabled={isSaving}
           />
           <Button 
             onClick={handleAddCategory}
-            className="bg-green-600 hover:bg-green-700 text-white flex gap-1 items-center"
+            className="bg-green-600 hover:bg-green-700 text-white flex gap-1 items-center whitespace-nowrap"
             disabled={isSaving}
           >
             {isSaving ? (
@@ -239,90 +243,106 @@ const CategoryManager: React.FC = () => {
       <div className="space-y-2">
         <h3 className="text-lg font-semibold text-white">Lista de Categorias</h3>
         
-        <div className="bg-gray-900/50 rounded-md overflow-x-auto">
-          <table className="w-full text-white min-w-[600px]">
-            <thead className="bg-gray-800">
-              <tr>
-                <th className="p-3 text-left">Nome</th>
-                <th className="p-3 text-right">Ordem</th>
-                <th className="p-3 text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {categories.map((category) => (
-                <tr key={category.id} className="border-t border-gray-700">
-                  <td className="p-3">
-                    {editMode === category.id ? (
-                      <Input
-                        value={editedCategory.name}
-                        onChange={e => setEditedCategory({...editedCategory, name: e.target.value})}
-                        className="bg-gray-800 border-gray-700 text-white"
-                        disabled={isSaving}
-                      />
-                    ) : (
-                      category.name
-                    )}
-                  </td>
-                  <td className="p-3 text-right">
-                    <div className="flex gap-2 justify-end items-center">
-                      <Button
-                        onClick={() => handleReorder(category.id, 'up')}
-                        size="sm"
-                        className="bg-gray-700 hover:bg-gray-600"
-                        disabled={isSaving || categories.indexOf(category) === 0}
-                      >
-                        <ArrowUp size={16} />
-                      </Button>
-                      <span className="w-8 text-center">{category.order_index}</span>
-                      <Button
-                        onClick={() => handleReorder(category.id, 'down')}
-                        size="sm"
-                        className="bg-gray-700 hover:bg-gray-600"
-                        disabled={isSaving || categories.indexOf(category) === categories.length - 1}
-                      >
-                        <ArrowDown size={16} />
-                      </Button>
+        <div className="bg-gray-900/50 rounded-md overflow-hidden">
+          {isLoading ? (
+            <div className="p-8 flex justify-center items-center">
+              <Loader2 className="h-8 w-8 animate-spin text-white/70" />
+            </div>
+          ) : categories.length === 0 ? (
+            <div className="p-4 text-center text-gray-400">
+              Nenhuma categoria encontrada
+            </div>
+          ) : (
+            <DragDropContext onDragEnd={handleDragEnd}>
+              <Droppable droppableId="categories">
+                {(provided) => (
+                  <div
+                    {...provided.droppableProps}
+                    ref={provided.innerRef}
+                    className="w-full"
+                  >
+                    <div className="min-w-full overflow-x-auto">
+                      <table className="w-full text-white">
+                        <thead className="bg-gray-800">
+                          <tr>
+                            <th className="p-3 text-left">Nome</th>
+                            <th className="p-3 text-right">Ações</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {categories.map((category, index) => (
+                            <Draggable
+                              key={category.id.toString()}
+                              draggableId={category.id.toString()}
+                              index={index}
+                            >
+                              {(provided) => (
+                                <tr
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  {...provided.dragHandleProps}
+                                  className="border-t border-gray-700 hover:bg-gray-800/50 transition-colors cursor-move"
+                                >
+                                  <td className="p-3">
+                                    {editMode === category.id ? (
+                                      <Input
+                                        value={editedCategory.name}
+                                        onChange={e => setEditedCategory({...editedCategory, name: e.target.value})}
+                                        className="bg-gray-800 border-gray-700 text-white"
+                                        disabled={isSaving}
+                                      />
+                                    ) : (
+                                      category.name
+                                    )}
+                                  </td>
+                                  <td className="p-3">
+                                    <div className="flex gap-2 justify-end">
+                                      {editMode === category.id ? (
+                                        <Button
+                                          onClick={() => handleSaveEdit(category.id)}
+                                          size="sm"
+                                          className="bg-green-600 hover:bg-green-700"
+                                          disabled={isSaving}
+                                        >
+                                          {isSaving ? (
+                                            <Loader2 size={16} className="animate-spin" />
+                                          ) : (
+                                            <Save size={16} />
+                                          )}
+                                        </Button>
+                                      ) : (
+                                        <Button
+                                          onClick={() => handleEditCategory(category)}
+                                          size="sm"
+                                          className="bg-blue-600 hover:bg-blue-700"
+                                          disabled={isSaving}
+                                        >
+                                          <Pencil size={16} />
+                                        </Button>
+                                      )}
+                                      <Button
+                                        onClick={() => handleDeleteCategory(category.id)}
+                                        size="sm"
+                                        className="bg-red-600 hover:bg-red-700"
+                                        disabled={isSaving}
+                                      >
+                                        <Trash size={16} />
+                                      </Button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                            </Draggable>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
-                  </td>
-                  <td className="p-3 text-right">
-                    <div className="flex gap-2 justify-end">
-                      {editMode === category.id ? (
-                        <Button
-                          onClick={() => handleSaveEdit(category.id)}
-                          size="sm"
-                          className="bg-green-600 hover:bg-green-700"
-                          disabled={isSaving}
-                        >
-                          {isSaving ? (
-                            <Loader2 size={16} className="animate-spin" />
-                          ) : (
-                            <Save size={16} />
-                          )}
-                        </Button>
-                      ) : (
-                        <Button
-                          onClick={() => handleEditCategory(category)}
-                          size="sm"
-                          className="bg-blue-600 hover:bg-blue-700"
-                          disabled={isSaving}
-                        >
-                          <Pencil size={16} />
-                        </Button>
-                      )}
-                      <Button
-                        onClick={() => handleDeleteCategory(category.id)}
-                        size="sm"
-                        className="bg-red-600 hover:bg-red-700"
-                        disabled={isSaving}
-                      >
-                        <Trash size={16} />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
+          )}
         </div>
       </div>
     </div>
