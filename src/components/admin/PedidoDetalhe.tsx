@@ -77,52 +77,73 @@ const PedidoDetalhe: React.FC<PedidoDetalheProps> = ({
       return texto;
     }).join('\n\n');
     
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
+    const conteudoImpressao = `
+ADEGA VM
+PEDIDO #${pedido.codigo_pedido}
+${new Date(pedido.data_criacao).toLocaleString('pt-BR')}
+
+CLIENTE: ${pedido.cliente_nome}
+ENDEREÇO: ${pedido.cliente_endereco}, ${pedido.cliente_numero || ''}
+${pedido.cliente_complemento ? `COMPLEMENTO: ${pedido.cliente_complemento}` : ''}
+${pedido.cliente_referencia ? `REFERÊNCIA: ${pedido.cliente_referencia}` : ''}
+BAIRRO: ${pedido.cliente_bairro}
+WHATSAPP: ${pedido.cliente_whatsapp}
+${pedido.observacao ? `OBSERVAÇÃO: ${pedido.observacao}` : ''}
+
+ITENS DO PEDIDO:
+${itensFormatados}
+
+SUBTOTAL: R$ ${(pedido.total - pedido.taxa_entrega).toFixed(2)}
+TAXA DE ENTREGA: R$ ${pedido.taxa_entrega.toFixed(2)}
+TOTAL: R$ ${pedido.total.toFixed(2)}
+
+FORMA DE PAGAMENTO: ${pedido.forma_pagamento}
+${pedido.forma_pagamento === 'Dinheiro' && pedido.troco ? `TROCO PARA: R$ ${pedido.troco}` : ''}
+
+Obrigado pela preferência!
+ADEGA VM
+    `.trim();
     
-    const printDocument = iframe.contentWindow?.document;
-    if (!printDocument) {
-      document.body.removeChild(iframe);
-      setIsPrinting(false);
-      return;
+    const janela = window.open('', '_blank');
+    
+    if (janela) {
+      janela.document.write(`
+        <html>
+          <head>
+            <title>Pedido ${pedido.codigo_pedido}</title>
+            <style>
+              body {
+                font-family: monospace;
+                font-size: 12pt;
+                line-height: 1.2;
+                white-space: pre-wrap;
+                margin: 10mm;
+              }
+              @media print {
+                body {
+                  width: 80mm;
+                }
+              }
+            </style>
+          </head>
+          <body>
+${conteudoImpressao}
+            <script>
+              window.onload = function() {
+                window.print();
+                setTimeout(function() {
+                  window.close();
+                }, 500);
+              };
+            </script>
+          </body>
+        </html>
+      `);
+      
+      janela.document.close();
     }
     
-    printDocument.write(`
-      <html>
-        <head>
-          <title>Pedido ${pedido.codigo_pedido}</title>
-          <style>
-            body {
-              font-family: monospace;
-              font-size: 12pt;
-              line-height: 1.2;
-              white-space: pre-wrap;
-              margin: 10mm;
-              width: 80mm;
-            }
-            @media print {
-              body {
-                width: 80mm;
-              }
-            }
-          </style>
-        </head>
-        <body>${conteudoImpressao}</body>
-      </html>
-    `);
-    
-    printDocument.close();
-    
-    const printHandler = () => {
-      document.body.removeChild(iframe);
-      window.removeEventListener('afterprint', printHandler);
-      setIsPrinting(false);
-    };
-    
-    window.addEventListener('afterprint', printHandler);
-    
-    iframe.contentWindow?.print();
+    setIsPrinting(false);
   };
 
   const handleExcluirPedido = async () => {
