@@ -23,7 +23,7 @@ const PersonalInfoFields: React.FC<PersonalInfoFieldsProps> = ({
             type="text"
             value={nome}
             onChange={onChange}
-            className="w-full bg-gray-800 text-white border border-gray-700 rounded-md p-2 text-sm"
+            className="w-full bg-gray-800 text-white text-shadow-dark border border-gray-700 rounded-md p-2 text-sm"
             placeholder="Seu nome completo"
             required
           />
@@ -38,7 +38,7 @@ const PersonalInfoFields: React.FC<PersonalInfoFieldsProps> = ({
             type="text"
             value={whatsapp}
             onChange={onChange}
-            className="w-full bg-gray-800 text-white border border-gray-700 rounded-md p-2 text-sm"
+            className="w-full bg-gray-800 text-white text-shadow-dark border border-gray-700 rounded-md p-2 text-sm"
             placeholder="Ex: 12999999999"
             required
             maxLength={14}
