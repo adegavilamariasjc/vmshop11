@@ -2,6 +2,7 @@
 import React, { ReactNode, useEffect, useState } from 'react';
 import Logo from './Logo';
 import BackgroundVideoPlayer from './BackgroundVideoPlayer';
+import AudioPlayer from './AudioPlayer';
 
 interface PageLayoutProps {
   children: ReactNode;
@@ -36,6 +37,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
   
   return (
     <div className="min-h-screen w-full relative overflow-x-hidden">
+      <AudioPlayer />
       {/* Video Background with rotation - shorter play duration for more frequent transitions */}
       <BackgroundVideoPlayer 
         videoUrls={shuffledVideoUrls}
