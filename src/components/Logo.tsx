@@ -8,10 +8,12 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { useInterval } from "@/hooks/useInterval";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Logo: React.FC = () => {
   const [api, setApi] = useState<any>(null);
   const [current, setCurrent] = useState(0);
+  const isMobile = useIsMobile();
   
   const images = [
     {
@@ -48,16 +50,16 @@ const Logo: React.FC = () => {
         loop: true,
       }}
       setApi={setApi}
-      className="w-full max-w-[400px]"
+      className="w-full max-w-full sm:max-w-[400px]"
     >
       <CarouselContent>
         {images.map((image, index) => (
           <CarouselItem key={index} className="flex items-center justify-center">
-            <div className="w-[400px] flex items-center justify-center">
+            <div className="w-full sm:w-[400px] flex items-center justify-center">
               <img
                 src={image.src}
                 alt={image.alt}
-                className="w-full max-h-[200px] object-contain"
+                className="w-full h-auto max-h-[150px] sm:max-h-[200px] object-contain"
               />
             </div>
           </CarouselItem>

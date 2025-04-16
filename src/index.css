@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -95,6 +96,10 @@
     @apply border-border;
   }
 
+  html, body {
+    @apply w-full min-h-screen overflow-x-hidden;
+  }
+
   body {
     @apply bg-background text-foreground;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
@@ -111,30 +116,30 @@
   }
 }
 
-/* Completely transparent backgrounds */
+/* Updated background opacity for components */
 .bg-card, .bg-popover, .bg-dialog, .bg-alert, .bg-toast, .bg-sheet, .bg-drawer, .bg-hover-card {
-  background-color: transparent !important;
+  background-color: rgba(0, 0, 0, 0.2) !important;
   border-color: transparent !important;
 }
 
-/* Make all dialog and overlay elements transparent */
+/* Make all dialog and overlay elements have slight opacity */
 [data-radix-popper-content-wrapper], 
 [role="dialog"],
 [role="alertdialog"],
 [role="menu"], 
 [role="tooltip"], 
 [role="popover"] {
-  background-color: transparent !important;
+  background-color: rgba(0, 0, 0, 0.2) !important;
   border-color: transparent !important;
 }
 
-/* Ensure any dynamically created components are transparent */
+/* Ensure any dynamically created components have consistent opacity */
 .shadcn-component {
-  background-color: transparent !important;
+  background-color: rgba(0, 0, 0, 0.2) !important;
   border-color: transparent !important;
 }
 
-/* Ensure text remains visible on transparent backgrounds */
+/* Keep text visible */
 .shadcn-component-text {
   color: white !important;
 }
