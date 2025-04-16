@@ -1,3 +1,4 @@
+
 import { supabase } from './client';
 import { SupabaseProduct } from './types';
 
@@ -8,6 +9,7 @@ export const fetchProducts = async (categoryId: number): Promise<SupabaseProduct
       .from('products')
       .select('*')
       .eq('category_id', categoryId)
+      .order('order_index', { ascending: true })
       .order('name');
     
     if (error) {
@@ -27,6 +29,7 @@ export const fetchAllProducts = async (): Promise<SupabaseProduct[]> => {
   const { data, error } = await supabase
     .from('products')
     .select('*')
+    .order('order_index', { ascending: true })
     .order('name');
   
   if (error) {

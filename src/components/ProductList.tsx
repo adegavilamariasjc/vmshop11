@@ -42,6 +42,7 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
           .from('products')
           .select('name, price, is_paused')
           .eq('category_id', categoryData.id)
+          .order('order_index', { ascending: true })
           .order('name');
 
         if (productsError) {
