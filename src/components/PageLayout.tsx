@@ -38,15 +38,15 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen w-full relative overflow-x-hidden">
       <AudioPlayer />
-      {/* Video Background with rotation - shorter play duration for more frequent transitions */}
+      {/* Video Background with rotation */}
       <BackgroundVideoPlayer 
         videoUrls={shuffledVideoUrls}
         transitionDuration={2000}  // 2 seconds transition
         playDuration={15000}       // 15 seconds per video (reduced for more frequent rotations)
       />
       
-      {/* Content overlay */}
-      <div className="relative z-10 w-full max-w-md mx-auto min-h-screen bg-black/70 p-4 content-overlay">
+      {/* Content overlay - now completely transparent */}
+      <div className="relative z-10 w-full max-w-md mx-auto min-h-screen bg-transparent p-4 content-overlay">
         <div className="flex justify-center">
           <Logo />
         </div>
