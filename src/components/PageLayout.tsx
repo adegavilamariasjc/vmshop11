@@ -1,4 +1,3 @@
-
 import React, { ReactNode, useEffect, useState } from 'react';
 import Logo from './Logo';
 import BackgroundVideoPlayer from './BackgroundVideoPlayer';
@@ -44,8 +43,8 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
         playDuration={15000}
       />
       
-      {/* Content overlay - full width with 20% opacity black background */}
-      <div className="relative z-10 w-full min-h-screen bg-black/20 p-0">
+      {/* Content overlay - full width with 50% opacity black background */}
+      <div className="relative z-10 w-full min-h-screen bg-black/50 p-0">
         <div className="max-w-lg mx-auto w-full px-4">
           <div className="flex justify-center">
             <Logo />
