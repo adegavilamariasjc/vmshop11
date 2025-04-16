@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { Table, TableHeader, TableRow, TableHead, TableBody } from '@/components/ui/table';
 import { DragDropContext, Droppable, Draggable, DroppableProvided, DraggableProvided } from '@hello-pangea/dnd';
 import { BairroItem } from './BairroItem';
-import { DragHandle } from 'lucide-react';
+import { GripVertical } from 'lucide-react';
 import type { SupabaseBairro } from '@/lib/supabase/types';
 
 interface BairroListProps {
@@ -62,7 +61,7 @@ export const BairroList: React.FC<BairroListProps> = ({
                           className="py-2 pl-4 cursor-move" 
                           {...dragProvided.dragHandleProps}
                         >
-                          <DragHandle className="h-4 w-4 text-gray-400" />
+                          <GripVertical className="h-4 w-4 text-gray-400" />
                         </td>
                         <BairroItem
                           bairro={bairro}
