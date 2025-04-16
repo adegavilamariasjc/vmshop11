@@ -35,6 +35,12 @@ const BairroManager: React.FC = () => {
         bairrosLength={bairros.length}
       />
       
+      <div className="mt-4 mb-2">
+        <p className="text-gray-300 text-sm">
+          <span className="font-semibold">💡 Dica:</span> Arraste os bairros para reordenar.
+        </p>
+      </div>
+      
       <BairroList
         bairros={bairros}
         editingBairro={editingBairro}

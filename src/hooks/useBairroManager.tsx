@@ -14,7 +14,11 @@ export const useBairroManager = () => {
     setIsLoading(true);
     try {
       const bairrosList = await fetchBairros();
-      setBairros(bairrosList);
+      // Sort by order_index to ensure consistent display
+      const sortedBairros = bairrosList.sort((a, b) => 
+        (a.order_index ?? 0) - (b.order_index ?? 0)
+      );
+      setBairros(sortedBairros);
     } catch (error) {
       console.error('Erro ao buscar bairros:', error);
       toast({
@@ -84,34 +88,59 @@ export const useBairroManager = () => {
   };
 
   const handleDragEnd = async (result: any) => {
+    // If dropped outside the list or no destination
     if (!result.destination) return;
+    
+    // If dropped in the same position
+    if (result.destination.index === result.source.index) return;
 
-    const items = Array.from(bairros);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
+    // Clone the current array to avoid direct state mutations
+    const updatedBairros = Array.from(bairros);
+    
+    // Remove the dragged item from its position
+    const [draggedItem] = updatedBairros.splice(result.source.index, 1);
+    
+    // Insert it at the new position
+    updatedBairros.splice(result.destination.index, 0, draggedItem);
 
-    const updatedItems = items.map((item, index) => ({
+    // Update the order_index values
+    const reorderedBairros = updatedBairros.map((item, index) => ({
       ...item,
       order_index: index
     }));
 
-    setBairros(updatedItems);
+    // Update local state immediately for a responsive UI
+    setBairros(reorderedBairros);
+
+    // Show loading toast
+    const loadingToast = toast({
+      title: "Atualizando ordem",
+      description: "Salvando a nova ordem dos bairros...",
+    });
 
     try {
-      for (const item of updatedItems) {
+      // Update the database in sequence to maintain order integrity
+      for (const item of reorderedBairros) {
         await updateBairroOrder(item.id, item.order_index || 0);
       }
+      
+      // Show success message after all updates complete
       toast({
         title: "Ordem atualizada",
-        description: "A ordem dos bairros foi atualizada com sucesso"
+        description: "A ordem dos bairros foi atualizada com sucesso",
+        variant: "default"
       });
     } catch (error) {
       console.error("Erro ao atualizar ordem:", error);
+      
+      // Show error message and refresh data to get original order
       toast({
         title: "Erro ao atualizar ordem",
         description: "Ocorreu um erro ao atualizar a ordem dos bairros",
         variant: "destructive"
       });
+      
+      // Reload the original order
       await fetchAllBairros();
     }
   };

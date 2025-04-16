@@ -53,7 +53,11 @@ const ProductManager: React.FC = () => {
     setIsLoading(true);
     try {
       const fetchedProducts = await fetchProducts(categoryId);
-      setProductsList(fetchedProducts);
+      // Sort by order_index to ensure consistent display
+      const sortedProducts = fetchedProducts.sort((a, b) => 
+        (a.order_index ?? 0) - (b.order_index ?? 0)
+      );
+      setProductsList(sortedProducts);
     } catch (error) {
       console.error("Erro ao carregar produtos:", error);
       toast({
@@ -67,24 +71,43 @@ const ProductManager: React.FC = () => {
   };
 
   const handleProductsReorder = async (result: any) => {
+    // If dropped outside the list
     if (!result.destination) return;
+    
+    // If dropped in the same position
+    if (result.destination.index === result.source.index) return;
 
-    const items = Array.from(productsList);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
+    // Clone the current array to avoid direct state mutations
+    const updatedProducts = Array.from(productsList);
+    
+    // Remove the dragged item from its position
+    const [draggedItem] = updatedProducts.splice(result.source.index, 1);
+    
+    // Insert it at the new position
+    updatedProducts.splice(result.destination.index, 0, draggedItem);
 
-    const updatedItems = items.map((item, index) => ({
+    // Update the order_index values
+    const reorderedProducts = updatedProducts.map((item, index) => ({
       ...item,
       order_index: index
     }));
 
-    setProductsList(updatedItems);
+    // Update local state immediately for a responsive UI
+    setProductsList(reorderedProducts);
 
+    // Show loading toast
+    const loadingToast = toast({
+      title: "Atualizando ordem",
+      description: "Salvando a nova ordem dos produtos...",
+    });
+
+    setIsSaving(true);
     try {
-      setIsSaving(true);
-      for (const item of updatedItems) {
-        await updateProductOrder(item.id, item.order_index);
+      // Update the database in sequence
+      for (const item of reorderedProducts) {
+        await updateProductOrder(item.id, item.order_index ?? 0);
       }
+      
       toast({
         title: "Ordem atualizada",
         description: "A ordem dos produtos foi atualizada com sucesso"
@@ -96,8 +119,10 @@ const ProductManager: React.FC = () => {
         description: "Ocorreu um erro ao atualizar a ordem dos produtos",
         variant: "destructive"
       });
+      
+      // Reload original order
       if (selectedCategoryId) {
-        loadProducts(selectedCategoryId);
+        await loadProducts(selectedCategoryId);
       }
     } finally {
       setIsSaving(false);

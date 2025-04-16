@@ -1,3 +1,4 @@
+
 import { supabase } from './client';
 import { SupabaseBairro } from './types';
 
@@ -6,7 +7,7 @@ export const fetchBairros = async (): Promise<SupabaseBairro[]> => {
   const { data, error } = await supabase
     .from('bairros')
     .select('*')
-    .order('nome');
+    .order('order_index', { ascending: true, nullsFirst: false });
   
   if (error) {
     console.error('Erro ao buscar bairros:', error);

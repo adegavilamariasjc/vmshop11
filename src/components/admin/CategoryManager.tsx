@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { Pencil, Trash, Plus, Save, Loader2 } from 'lucide-react';
+import { Pencil, Trash, Plus, Save, Loader2, DragHandle } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,7 +24,8 @@ const CategoryManager: React.FC = () => {
     setIsLoading(true);
     try {
       const fetchedCategories = await fetchCategories();
-      setCategories(fetchedCategories);
+      const sortedCategories = fetchedCategories.sort((a, b) => a.order_index - b.order_index);
+      setCategories(sortedCategories);
     } catch (error) {
       console.error("Erro ao carregar categorias:", error);
       toast({
@@ -171,23 +171,28 @@ const CategoryManager: React.FC = () => {
 
   const handleDragEnd = async (result: any) => {
     if (!result.destination) return;
+    
+    if (result.destination.index === result.source.index) return;
 
-    const items = Array.from(categories);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
+    const updatedCategories = Array.from(categories);
+    const [draggedItem] = updatedCategories.splice(result.source.index, 1);
+    updatedCategories.splice(result.destination.index, 0, draggedItem);
 
-    // Update the order_index for all affected items
-    const updatedItems = items.map((item, index) => ({
+    const reorderedCategories = updatedCategories.map((item, index) => ({
       ...item,
       order_index: index
     }));
 
-    setCategories(updatedItems);
+    setCategories(reorderedCategories);
 
-    // Update the database
+    const loadingToast = toast({
+      title: "Atualizando ordem",
+      description: "Salvando a nova ordem das categorias...",
+    });
+
     setIsSaving(true);
     try {
-      for (const item of updatedItems) {
+      for (const item of reorderedCategories) {
         await updateCategory(item.id, { order_index: item.order_index });
       }
       toast({
@@ -201,7 +206,7 @@ const CategoryManager: React.FC = () => {
         description: "Ocorreu um erro ao atualizar a ordem das categorias",
         variant: "destructive"
       });
-      loadCategories(); // Reload original order on error
+      await loadCategories();
     } finally {
       setIsSaving(false);
     }
