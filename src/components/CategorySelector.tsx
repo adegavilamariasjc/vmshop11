@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
@@ -30,15 +29,12 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ activeCategory, onS
           return;
         }
         
-        // Extract category names from the data
         const categoryNames = data.map(category => category.name);
         setCategories(categoryNames);
         
-        // Auto-select first category if none is active
         if (categoryNames.length > 0 && !activeCategory) {
           onSelectCategory(categoryNames[0]);
         }
-        
       } catch (err) {
         console.error('Unexpected error:', err);
         setError('Erro inesperado ao carregar categorias');
@@ -75,7 +71,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ activeCategory, onS
   }
 
   return (
-    <div className="mb-6 overflow-x-auto pb-2 -mx-2 px-2">
+    <div className="mb-6 overflow-x-auto pb-2 -mx-4 px-4">
       <div className="flex space-x-2 min-w-max">
         {categories.map((category) => (
           <motion.button

@@ -36,7 +36,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
   }, []);
   
   return (
-    <div className="min-h-screen w-full relative overflow-x-hidden">
+    <div className="min-h-screen w-full relative overflow-hidden">
       <AudioPlayer />
       <BackgroundVideoPlayer 
         videoUrls={shuffledVideoUrls}
@@ -45,8 +45,8 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
       />
       
       {/* Content overlay - full width with 20% opacity black background */}
-      <div className="relative z-10 w-screen min-h-screen bg-black/20 p-0">
-        <div className="max-w-lg mx-auto w-full px-2">
+      <div className="relative z-10 w-full min-h-screen bg-black/20 p-0">
+        <div className="max-w-lg mx-auto w-full px-4">
           <div className="flex justify-center">
             <Logo />
           </div>
