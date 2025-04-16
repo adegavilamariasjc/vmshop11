@@ -10,6 +10,8 @@ const VideoBackground: React.FC<VideoBackgroundProps> = ({ videoUrls }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFirstVideoActive, setIsFirstVideoActive] = useState(true);
   const [playHistory, setPlayHistory] = useState<string[]>([]);
+  const [isFirstVideoReady, setIsFirstVideoReady] = useState(false);
+  const [isSecondVideoReady, setIsSecondVideoReady] = useState(false);
   
   const firstVideoRef = useRef<HTMLVideoElement>(null);
   const secondVideoRef = useRef<HTMLVideoElement>(null);
@@ -58,6 +60,13 @@ const VideoBackground: React.FC<VideoBackgroundProps> = ({ videoUrls }) => {
     const inactiveVideoRef = isFirstVideoActive ? secondVideoRef : firstVideoRef;
     
     if (inactiveVideoRef.current && nextVideo) {
+      // Reset ready state for the video that will be preloaded
+      if (isFirstVideoActive) {
+        setIsSecondVideoReady(false);
+      } else {
+        setIsFirstVideoReady(false);
+      }
+      
       inactiveVideoRef.current.src = nextVideo;
       inactiveVideoRef.current.load();
     }
@@ -65,29 +74,53 @@ const VideoBackground: React.FC<VideoBackgroundProps> = ({ videoUrls }) => {
 
   // Handle video ended event
   const handleVideoEnded = () => {
-    const nextIndex = (currentIndex + 1) % selectedVideos.length;
-    const nextVideo = selectedVideos[nextIndex];
-    
-    // Toggle which video element is active
-    setIsFirstVideoActive(!isFirstVideoActive);
-    
-    // Update play history
-    setPlayHistory(prev => [...prev, nextVideo]);
-    
-    // Update current index
-    setCurrentIndex(nextIndex);
-    
-    // If we've completed the cycle, prepare new videos for next round
-    if (nextIndex === 0) {
-      const newVideos = selectRandomVideos();
-      setSelectedVideos(newVideos);
+    // Only transition if the next video is ready
+    if ((isFirstVideoActive && isSecondVideoReady) || (!isFirstVideoActive && isFirstVideoReady)) {
+      const nextIndex = (currentIndex + 1) % selectedVideos.length;
+      const nextVideo = selectedVideos[nextIndex];
+      
+      // Toggle which video element is active
+      setIsFirstVideoActive(!isFirstVideoActive);
+      
+      // Update play history
+      setPlayHistory(prev => [...prev, nextVideo]);
+      
+      // Update current index
+      setCurrentIndex(nextIndex);
+      
+      // If we've completed the cycle, prepare new videos for next round
+      if (nextIndex === 0) {
+        const newVideos = selectRandomVideos();
+        setSelectedVideos(newVideos);
+      }
+    } else {
+      // If next video isn't ready, try to play current one a bit longer
+      // by resetting its time to almost the end
+      const currentVideoRef = isFirstVideoActive ? firstVideoRef : secondVideoRef;
+      if (currentVideoRef.current) {
+        const duration = currentVideoRef.current.duration;
+        if (duration) {
+          // Reset to 0.5 seconds before the end
+          currentVideoRef.current.currentTime = Math.max(0, duration - 0.5);
+          currentVideoRef.current.play();
+        }
+      }
     }
+  };
+
+  // Handle when videos are ready to play
+  const handleFirstVideoCanPlay = () => {
+    setIsFirstVideoReady(true);
+  };
+
+  const handleSecondVideoCanPlay = () => {
+    setIsSecondVideoReady(true);
   };
 
   if (selectedVideos.length === 0) return null;
 
   return (
-    <div className="fixed top-0 left-0 w-full h-full z-0 overflow-hidden">
+    <div className="fixed top-0 left-0 w-full h-full z-0 overflow-hidden bg-black">
       {/* First video element */}
       <video
         ref={firstVideoRef}
@@ -97,6 +130,7 @@ const VideoBackground: React.FC<VideoBackgroundProps> = ({ videoUrls }) => {
         playsInline
         preload="auto"
         onEnded={isFirstVideoActive ? handleVideoEnded : undefined}
+        onCanPlay={handleFirstVideoCanPlay}
       />
       
       {/* Second video element */}
@@ -108,6 +142,7 @@ const VideoBackground: React.FC<VideoBackgroundProps> = ({ videoUrls }) => {
         playsInline
         preload="auto"
         onEnded={!isFirstVideoActive ? handleVideoEnded : undefined}
+        onCanPlay={handleSecondVideoCanPlay}
       />
     </div>
   );

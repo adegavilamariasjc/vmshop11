@@ -14,11 +14,11 @@ interface PageLayoutProps {
 const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
   // Array of video URLs for background rotation
   const videoUrls = [
-    "https://adegavm.shop/bgs.mp4",
-    "https://adegavm.shop/1.mp4",
-    "https://adegavm.shop/2.mp4",
-    "https://adegavm.shop/3.mp4",
-    "https://adegavm.shop/4.mp4"
+    "/videos/bgs.mp4",
+    "/videos/1.mp4",
+    "/videos/2.mp4",
+    "/videos/3.mp4",
+    "/videos/4.mp4"
   ];
   
   const { isOpen } = useStoreStatus();
