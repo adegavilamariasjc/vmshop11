@@ -47,6 +47,7 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      className="w-full px-1"
     >
       <CategorySelector 
         activeCategory={activeCategory} 

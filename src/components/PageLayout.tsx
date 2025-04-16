@@ -44,9 +44,9 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
         playDuration={15000}
       />
       
-      {/* Content overlay - now with slight opacity and full viewport width */}
-      <div className="relative z-10 w-full min-h-screen bg-black/20 p-4">
-        <div className="max-w-lg mx-auto w-full">
+      {/* Content overlay - full width with 20% opacity black background */}
+      <div className="relative z-10 w-screen min-h-screen bg-black/20 p-0">
+        <div className="max-w-lg mx-auto w-full px-2">
           <div className="flex justify-center">
             <Logo />
           </div>
