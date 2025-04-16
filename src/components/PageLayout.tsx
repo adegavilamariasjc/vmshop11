@@ -1,8 +1,10 @@
+
 import React, { ReactNode, useEffect, useState } from 'react';
 import Logo from './Logo';
 import BackgroundVideoPlayer from './BackgroundVideoPlayer';
 import AudioPlayer from './AudioPlayer';
 import StoreStatus from './StoreStatus';
+import AdminLink from './AdminLink';  // Importar o AdminLink
 import { useStoreStatus } from '@/hooks/useStoreStatus';
 
 interface PageLayoutProps {
@@ -55,6 +57,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
           <div className="mb-4 mt-2">
             <StoreStatus />
           </div>
+          <AdminLink />  {/* Adicionar o AdminLink aqui */}
           {!isOpen ? (
             <div className="text-center p-6 bg-black/40 rounded-lg">
               <h2 className="text-xl text-white mb-2">Loja Fechada</h2>
