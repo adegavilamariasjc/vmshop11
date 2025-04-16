@@ -42,9 +42,23 @@ export const fetchAllProducts = async (): Promise<SupabaseProduct[]> => {
 
 // Add a new product
 export const addProduct = async (product: Omit<SupabaseProduct, 'id' | 'created_at' | 'order_index'>): Promise<SupabaseProduct | null> => {
+  // Get max order_index for the category
+  const { data: existingProducts, error: fetchError } = await supabase
+    .from('products')
+    .select('order_index')
+    .eq('category_id', product.category_id)
+    .order('order_index', { ascending: false })
+    .limit(1);
+  
+  let nextOrderIndex = 0;
+  if (!fetchError && existingProducts && existingProducts.length > 0) {
+    nextOrderIndex = (existingProducts[0].order_index ?? 0) + 1;
+  }
+
+  // Add the product with the new order_index
   const { data, error } = await supabase
     .from('products')
-    .insert([product])
+    .insert([{ ...product, order_index: nextOrderIndex }])
     .select()
     .single();
   
@@ -103,6 +117,7 @@ export const toggleProductPause = async (id: number, isPaused: boolean): Promise
 
 // Update product order
 export const updateProductOrder = async (id: number, order_index: number): Promise<boolean> => {
+  console.log(`Updating product ${id} order to ${order_index} in database`);
   const { error } = await supabase
     .from('products')
     .update({ order_index })

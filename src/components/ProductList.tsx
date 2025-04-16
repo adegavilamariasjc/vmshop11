@@ -13,7 +13,7 @@ interface ProductListProps {
 }
 
 const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct, onUpdateQuantity }) => {
-  const [products, setProducts] = useState<{name: string; price: number; is_paused?: boolean}[]>([]);
+  const [products, setProducts] = useState<{name: string; price: number; is_paused?: boolean; order_index?: number}[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,10 +37,10 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
           return;
         }
 
-        // Then fetch products for that category
+        // Then fetch products for that category with ordering
         const { data: productsData, error: productsError } = await supabase
           .from('products')
-          .select('name, price, is_paused')
+          .select('*')  // Select all fields including order_index
           .eq('category_id', categoryData.id)
           .order('order_index', { ascending: true })
           .order('name');
@@ -52,6 +52,7 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
           return;
         }
 
+        console.log('Fetched products with order:', productsData);
         setProducts(productsData || []);
       } catch (err) {
         console.error('Unexpected error:', err);

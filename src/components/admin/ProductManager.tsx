@@ -57,6 +57,7 @@ const ProductManager: React.FC = () => {
       const sortedProducts = fetchedProducts.sort((a, b) => 
         (a.order_index ?? 0) - (b.order_index ?? 0)
       );
+      console.log("Loaded sorted products:", sortedProducts);
       setProductsList(sortedProducts);
     } catch (error) {
       console.error("Erro ao carregar produtos:", error);
@@ -96,7 +97,7 @@ const ProductManager: React.FC = () => {
     setProductsList(reorderedProducts);
 
     // Show loading toast
-    const loadingToast = toast({
+    toast({
       title: "Atualizando ordem",
       description: "Salvando a nova ordem dos produtos...",
     });
@@ -105,6 +106,7 @@ const ProductManager: React.FC = () => {
     try {
       // Update the database in sequence
       for (const item of reorderedProducts) {
+        console.log(`Updating product ${item.id} order to ${item.order_index}`);
         await updateProductOrder(item.id, item.order_index ?? 0);
       }
       
