@@ -1,10 +1,10 @@
 
-import React, { ReactNode, useEffect, useState } from 'react';
+import React, { ReactNode } from 'react';
 import Logo from './Logo';
-import BackgroundVideoPlayer from './BackgroundVideoPlayer';
+import VideoBackground from './VideoBackground';
 import AudioPlayer from './AudioPlayer';
 import StoreStatus from './StoreStatus';
-import AdminLink from './AdminLink';  // Importar o AdminLink
+import AdminLink from './AdminLink';
 import { useStoreStatus } from '@/hooks/useStoreStatus';
 
 interface PageLayoutProps {
@@ -21,33 +21,12 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
     "https://adegavm.shop/4.mp4"
   ];
   
-  // Shuffle the array of videos on component mount for true randomness
-  const [shuffledVideoUrls, setShuffledVideoUrls] = useState<string[]>(videoUrls);
-  
-  useEffect(() => {
-    // Fisher-Yates shuffle algorithm to randomly order the videos
-    const shuffleArray = (array: string[]): string[] => {
-      const newArray = [...array];
-      for (let i = newArray.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-      }
-      return newArray;
-    };
-    
-    setShuffledVideoUrls(shuffleArray(videoUrls));
-  }, []);
-  
   const { isOpen } = useStoreStatus();
 
   return (
     <div className="min-h-screen w-full relative overflow-hidden">
       <AudioPlayer />
-      <BackgroundVideoPlayer 
-        videoUrls={shuffledVideoUrls}
-        transitionDuration={2000}
-        playDuration={15000}
-      />
+      <VideoBackground videoUrls={videoUrls} />
       
       <div className="relative z-10 w-full min-h-screen bg-black/50 p-0">
         <div className="max-w-lg mx-auto w-full px-4">
@@ -57,7 +36,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
           <div className="mb-4 mt-2">
             <StoreStatus />
           </div>
-          <AdminLink />  {/* Adicionar o AdminLink aqui */}
+          <AdminLink />
           {!isOpen ? (
             <div className="text-center p-6 bg-black/40 rounded-lg">
               <h2 className="text-xl text-white mb-2">Loja Fechada</h2>
