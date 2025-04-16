@@ -2,6 +2,8 @@ import React, { ReactNode, useEffect, useState } from 'react';
 import Logo from './Logo';
 import BackgroundVideoPlayer from './BackgroundVideoPlayer';
 import AudioPlayer from './AudioPlayer';
+import StoreStatus from './StoreStatus';
+import { useStoreStatus } from '@/hooks/useStoreStatus';
 
 interface PageLayoutProps {
   children: ReactNode;
@@ -34,6 +36,8 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
     setShuffledVideoUrls(shuffleArray(videoUrls));
   }, []);
   
+  const { isOpen } = useStoreStatus();
+
   return (
     <div className="min-h-screen w-full relative overflow-hidden">
       <AudioPlayer />
@@ -43,13 +47,25 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
         playDuration={15000}
       />
       
-      {/* Content overlay - full width with 50% opacity black background */}
       <div className="relative z-10 w-full min-h-screen bg-black/50 p-0">
         <div className="max-w-lg mx-auto w-full px-4">
           <div className="flex justify-center">
             <Logo />
           </div>
-          {children}
+          <div className="mb-4 mt-2">
+            <StoreStatus />
+          </div>
+          {!isOpen ? (
+            <div className="text-center p-6 bg-black/40 rounded-lg">
+              <h2 className="text-xl text-white mb-2">Loja Fechada</h2>
+              <p className="text-gray-300">
+                Nosso horário de funcionamento é das 18h às 5h. 
+                Aguardamos você mais tarde!
+              </p>
+            </div>
+          ) : (
+            children
+          )}
         </div>
       </div>
     </div>
