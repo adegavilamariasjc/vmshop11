@@ -101,13 +101,13 @@
   }
 }
 
-/* Added transparency for all paper-like components */
+/* Completely transparent backgrounds */
 .bg-card, .bg-popover, .bg-dialog, .bg-alert, .bg-toast, .bg-sheet, .bg-drawer, .bg-hover-card {
   background-color: transparent !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: transparent !important;
 }
 
-/* Make dialog background transparent */
+/* Make all dialog and overlay elements transparent */
 [data-radix-popper-content-wrapper], 
 [role="dialog"],
 [role="alertdialog"],
@@ -115,15 +115,22 @@
 [role="tooltip"], 
 [role="popover"] {
   background-color: transparent !important;
+  border-color: transparent !important;
 }
 
-/* For any dynamically created elements */
+/* Ensure any dynamically created components are transparent */
 .shadcn-component {
   background-color: transparent !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: transparent !important;
 }
 
-/* Ensure text is visible on transparent backgrounds */
+/* Ensure text remains visible on transparent backgrounds */
 .shadcn-component-text {
   color: white !important;
+}
+
+/* Additional global transparency */
+.bg-transparent,
+.absolute-transparent {
+  background-color: transparent !important;
 }
