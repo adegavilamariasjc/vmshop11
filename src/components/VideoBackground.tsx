@@ -9,37 +9,32 @@ const VideoBackground: React.FC<VideoBackgroundProps> = ({ videoUrls }) => {
   const [selectedVideos, setSelectedVideos] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFirstVideoActive, setIsFirstVideoActive] = useState(true);
-  const [playHistory, setPlayHistory] = useState<string[]>([]);
   const [isFirstVideoReady, setIsFirstVideoReady] = useState(false);
   const [isSecondVideoReady, setIsSecondVideoReady] = useState(false);
   
   const firstVideoRef = useRef<HTMLVideoElement>(null);
   const secondVideoRef = useRef<HTMLVideoElement>(null);
+  const transitionTimeoutRef = useRef<number | null>(null);
 
-  // Function to select 3 random videos without repeating the last played one
+  // Function to select random videos without repeating the last played one
   const selectRandomVideos = () => {
-    const availableVideos = [...videoUrls];
-    const lastPlayed = playHistory[playHistory.length - 1];
+    if (videoUrls.length <= 1) return videoUrls;
     
-    // Remove the last played video from selection pool to avoid repetition
-    if (lastPlayed) {
-      const lastPlayedIndex = availableVideos.findIndex(url => url === lastPlayed);
-      if (lastPlayedIndex !== -1) {
-        availableVideos.splice(lastPlayedIndex, 1);
-      }
-    }
+    const lastPlayed = selectedVideos.length > 0 ? selectedVideos[selectedVideos.length - 1] : null;
+    const availableVideos = lastPlayed 
+      ? videoUrls.filter(url => url !== lastPlayed)
+      : [...videoUrls];
     
-    // Shuffle and pick 3 videos
+    // Shuffle and pick videos (up to 3)
     const shuffled = [...availableVideos].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, 3);
+    return shuffled.slice(0, Math.min(3, availableVideos.length));
   };
 
-  // Initialize with 3 random videos
+  // Initialize with random videos
   useEffect(() => {
     if (videoUrls.length > 0) {
       const initialVideos = selectRandomVideos();
       setSelectedVideos(initialVideos);
-      setPlayHistory([initialVideos[0]]);
       
       // Initialize the first video
       if (firstVideoRef.current) {
@@ -47,9 +42,16 @@ const VideoBackground: React.FC<VideoBackgroundProps> = ({ videoUrls }) => {
         firstVideoRef.current.load();
       }
     }
+    
+    // Clear any timeout on unmount
+    return () => {
+      if (transitionTimeoutRef.current) {
+        window.clearTimeout(transitionTimeoutRef.current);
+      }
+    };
   }, [videoUrls]);
 
-  // Preload the next video when current index changes
+  // Preload the next video when needed
   useEffect(() => {
     if (selectedVideos.length === 0) return;
     
@@ -69,21 +71,22 @@ const VideoBackground: React.FC<VideoBackgroundProps> = ({ videoUrls }) => {
       
       inactiveVideoRef.current.src = nextVideo;
       inactiveVideoRef.current.load();
+      
+      // Log for debugging
+      console.log(`Preloading next video: ${nextVideo}`);
     }
   }, [currentIndex, isFirstVideoActive, selectedVideos]);
 
   // Handle video ended event
   const handleVideoEnded = () => {
-    // Only transition if the next video is ready
+    console.log("Video ended event triggered");
+    
+    // Only proceed if the next video is ready
     if ((isFirstVideoActive && isSecondVideoReady) || (!isFirstVideoActive && isFirstVideoReady)) {
       const nextIndex = (currentIndex + 1) % selectedVideos.length;
-      const nextVideo = selectedVideos[nextIndex];
       
       // Toggle which video element is active
       setIsFirstVideoActive(!isFirstVideoActive);
-      
-      // Update play history
-      setPlayHistory(prev => [...prev, nextVideo]);
       
       // Update current index
       setCurrentIndex(nextIndex);
@@ -91,30 +94,48 @@ const VideoBackground: React.FC<VideoBackgroundProps> = ({ videoUrls }) => {
       // If we've completed the cycle, prepare new videos for next round
       if (nextIndex === 0) {
         const newVideos = selectRandomVideos();
+        console.log("Selected new video sequence:", newVideos);
         setSelectedVideos(newVideos);
       }
     } else {
-      // If next video isn't ready, try to play current one a bit longer
-      // by resetting its time to almost the end
-      const currentVideoRef = isFirstVideoActive ? firstVideoRef : secondVideoRef;
-      if (currentVideoRef.current) {
-        const duration = currentVideoRef.current.duration;
-        if (duration) {
-          // Reset to 0.5 seconds before the end
-          currentVideoRef.current.currentTime = Math.max(0, duration - 0.5);
-          currentVideoRef.current.play();
-        }
-      }
+      console.log("Next video not ready yet, waiting...");
+      
+      // Force retry after a short delay if the next video isn't ready
+      transitionTimeoutRef.current = window.setTimeout(() => {
+        handleVideoEnded();
+      }, 500);
     }
   };
 
   // Handle when videos are ready to play
   const handleFirstVideoCanPlay = () => {
+    console.log("First video ready to play");
     setIsFirstVideoReady(true);
+    
+    // Start playing if this is the active video
+    if (isFirstVideoActive && firstVideoRef.current) {
+      firstVideoRef.current.play().catch(err => console.error("Error playing first video:", err));
+    }
   };
 
   const handleSecondVideoCanPlay = () => {
+    console.log("Second video ready to play");
     setIsSecondVideoReady(true);
+    
+    // Start playing if this is the active video
+    if (!isFirstVideoActive && secondVideoRef.current) {
+      secondVideoRef.current.play().catch(err => console.error("Error playing second video:", err));
+    }
+  };
+
+  // Handle potential video errors
+  const handleVideoError = (videoNum: number) => (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    console.error(`Error with video ${videoNum}:`, e);
+    
+    // Try to recover by moving to next video
+    if ((videoNum === 1 && isFirstVideoActive) || (videoNum === 2 && !isFirstVideoActive)) {
+      handleVideoEnded();
+    }
   };
 
   if (selectedVideos.length === 0) return null;
@@ -124,25 +145,27 @@ const VideoBackground: React.FC<VideoBackgroundProps> = ({ videoUrls }) => {
       {/* First video element */}
       <video
         ref={firstVideoRef}
-        className={`absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000 ${isFirstVideoActive ? 'opacity-100 z-1' : 'opacity-0 z-0'}`}
+        className={`absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000 ${isFirstVideoActive ? 'opacity-100' : 'opacity-0'}`}
         autoPlay
         muted
         playsInline
         preload="auto"
         onEnded={isFirstVideoActive ? handleVideoEnded : undefined}
         onCanPlay={handleFirstVideoCanPlay}
+        onError={handleVideoError(1)}
       />
       
       {/* Second video element */}
       <video
         ref={secondVideoRef}
-        className={`absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000 ${!isFirstVideoActive ? 'opacity-100 z-1' : 'opacity-0 z-0'}`}
+        className={`absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000 ${!isFirstVideoActive ? 'opacity-100' : 'opacity-0'}`}
         autoPlay
         muted
         playsInline
         preload="auto"
         onEnded={!isFirstVideoActive ? handleVideoEnded : undefined}
         onCanPlay={handleSecondVideoCanPlay}
+        onError={handleVideoError(2)}
       />
     </div>
   );
