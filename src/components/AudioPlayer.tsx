@@ -32,25 +32,23 @@ const AudioPlayer = () => {
   };
 
   return (
-    <div className="fixed top-4 right-4 z-50 flex gap-2">
+    <div className="fixed bottom-6 left-24 z-50 flex gap-2">
       <audio
         ref={audioRef}
         src={tracks[currentTrackIndex]}
         onEnded={nextTrack}
       />
       <Button
-        variant="outline"
         size="icon"
         onClick={togglePlayPause}
-        className="bg-black/50 hover:bg-black/70"
+        className="bg-purple-dark/70 hover:bg-purple-dark text-white p-3 rounded-full shadow-lg transition-all duration-200"
       >
         {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
       </Button>
       <Button
-        variant="outline"
         size="icon"
         onClick={nextTrack}
-        className="bg-black/50 hover:bg-black/70"
+        className="bg-purple-dark/70 hover:bg-purple-dark text-white p-3 rounded-full shadow-lg transition-all duration-200"
       >
         <SkipForward className="h-4 w-4" />
       </Button>
