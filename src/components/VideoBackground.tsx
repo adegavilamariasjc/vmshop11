@@ -14,7 +14,8 @@ const VideoBackground: React.FC<VideoBackgroundProps> = ({ videoUrls }) => {
   
   const firstVideoRef = useRef<HTMLVideoElement>(null);
   const secondVideoRef = useRef<HTMLVideoElement>(null);
-  const transitionTimeoutRef = useRef<number | null>(null);
+  const transitionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Function to select random videos without repeating the last played one
   const selectRandomVideos = () => {
@@ -46,7 +47,10 @@ const VideoBackground: React.FC<VideoBackgroundProps> = ({ videoUrls }) => {
     // Clear any timeout on unmount
     return () => {
       if (transitionTimeoutRef.current) {
-        window.clearTimeout(transitionTimeoutRef.current);
+        clearTimeout(transitionTimeoutRef.current);
+      }
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
       }
     };
   }, [videoUrls]);
@@ -72,7 +76,6 @@ const VideoBackground: React.FC<VideoBackgroundProps> = ({ videoUrls }) => {
       inactiveVideoRef.current.src = nextVideo;
       inactiveVideoRef.current.load();
       
-      // Log for debugging
       console.log(`Preloading next video: ${nextVideo}`);
     }
   }, [currentIndex, isFirstVideoActive, selectedVideos]);
@@ -81,29 +84,61 @@ const VideoBackground: React.FC<VideoBackgroundProps> = ({ videoUrls }) => {
   const handleVideoEnded = () => {
     console.log("Video ended event triggered");
     
-    // Only proceed if the next video is ready
-    if ((isFirstVideoActive && isSecondVideoReady) || (!isFirstVideoActive && isFirstVideoReady)) {
-      const nextIndex = (currentIndex + 1) % selectedVideos.length;
-      
-      // Toggle which video element is active
-      setIsFirstVideoActive(!isFirstVideoActive);
-      
-      // Update current index
-      setCurrentIndex(nextIndex);
-      
-      // If we've completed the cycle, prepare new videos for next round
-      if (nextIndex === 0) {
-        const newVideos = selectRandomVideos();
-        console.log("Selected new video sequence:", newVideos);
-        setSelectedVideos(newVideos);
-      }
+    // Cancel any pending retries
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+      retryTimeoutRef.current = null;
+    }
+    
+    // Check if the next video is ready
+    const isNextVideoReady = isFirstVideoActive ? isSecondVideoReady : isFirstVideoReady;
+    
+    if (isNextVideoReady) {
+      transitionToNextVideo();
     } else {
       console.log("Next video not ready yet, waiting...");
       
       // Force retry after a short delay if the next video isn't ready
-      transitionTimeoutRef.current = window.setTimeout(() => {
-        handleVideoEnded();
-      }, 500);
+      retryTimeoutRef.current = setTimeout(() => {
+        console.log("Retrying transition after delay");
+        transitionToNextVideo();
+      }, 1000);
+    }
+  };
+
+  // Function to handle the transition to the next video
+  const transitionToNextVideo = () => {
+    const nextIndex = (currentIndex + 1) % selectedVideos.length;
+    
+    // Toggle which video element is active
+    setIsFirstVideoActive(!isFirstVideoActive);
+    
+    // Update current index
+    setCurrentIndex(nextIndex);
+    
+    // Get video that will be active after transition
+    const nextVideoRef = isFirstVideoActive ? secondVideoRef : firstVideoRef;
+    
+    // Ensure the next video plays
+    if (nextVideoRef.current) {
+      const playPromise = nextVideoRef.current.play();
+      
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.error("Error playing next video:", error);
+          
+          // Try to recover by forcing a reload and play
+          nextVideoRef.current?.load();
+          setTimeout(() => nextVideoRef.current?.play(), 100);
+        });
+      }
+    }
+    
+    // If we've completed the cycle, prepare new videos for next round
+    if (nextIndex === 0) {
+      const newVideos = selectRandomVideos();
+      console.log("Selected new video sequence:", newVideos);
+      setSelectedVideos(newVideos);
     }
   };
 
@@ -114,7 +149,11 @@ const VideoBackground: React.FC<VideoBackgroundProps> = ({ videoUrls }) => {
     
     // Start playing if this is the active video
     if (isFirstVideoActive && firstVideoRef.current) {
-      firstVideoRef.current.play().catch(err => console.error("Error playing first video:", err));
+      const playPromise = firstVideoRef.current.play();
+      
+      if (playPromise !== undefined) {
+        playPromise.catch(err => console.error("Error playing first video:", err));
+      }
     }
   };
 
@@ -124,7 +163,11 @@ const VideoBackground: React.FC<VideoBackgroundProps> = ({ videoUrls }) => {
     
     // Start playing if this is the active video
     if (!isFirstVideoActive && secondVideoRef.current) {
-      secondVideoRef.current.play().catch(err => console.error("Error playing second video:", err));
+      const playPromise = secondVideoRef.current.play();
+      
+      if (playPromise !== undefined) {
+        playPromise.catch(err => console.error("Error playing second video:", err));
+      }
     }
   };
 
@@ -134,7 +177,7 @@ const VideoBackground: React.FC<VideoBackgroundProps> = ({ videoUrls }) => {
     
     // Try to recover by moving to next video
     if ((videoNum === 1 && isFirstVideoActive) || (videoNum === 2 && !isFirstVideoActive)) {
-      handleVideoEnded();
+      transitionToNextVideo();
     }
   };
 
