@@ -1,13 +1,13 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-export async function trackPageVisit() {
+export async function trackPageVisit(pagina = window.location.pathname, acao = 'pageload') {
   try {
     const { error } = await supabase
       .from('page_visits')
       .insert([{
-        pagina: window.location.pathname,
-        acao: 'pageload',
+        pagina,
+        acao,
         data_hora: new Date().toISOString()
       }]);
 
