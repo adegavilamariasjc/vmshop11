@@ -3,10 +3,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Printer, X, Check, Truck, ShoppingBag, Trash2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { fetchPedidoById, updatePedidoStatus, deletePedido, SupabasePedido } from '@/lib/supabase';
 import DelivererSelectModal from './DelivererSelectModal';
+import OrderHeader from './pedido-detalhe/OrderHeader';
+import CustomerInfo from './pedido-detalhe/CustomerInfo';
+import OrderItems from './pedido-detalhe/OrderItems';
+import OrderSummary from './pedido-detalhe/OrderSummary';
+import OrderStatusControls from './pedido-detalhe/OrderStatusControls';
+import OrderActions from './pedido-detalhe/OrderActions';
 
 interface PedidoDetalheProps {
   pedidoId: string;
@@ -205,39 +210,6 @@ ${conteudoImpressao}
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'pendente':
-        return <span className="status status-pendente">Pendente</span>;
-      case 'preparando':
-        return <span className="status status-preparando">Em Produção</span>;
-      case 'em_deslocamento':
-        return <span className="status status-em-deslocamento">Em Deslocamento</span>;
-      case 'entregue':
-        return <span className="status status-entregue">Entregue</span>;
-      case 'cancelado':
-        return <span className="status status-cancelado">Cancelado</span>;
-      default:
-        return <span className="status">{status}</span>;
-    }
-  };
-
-  const formatDateTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
-  };
-
-  const calcularSubtotal = () => {
-    if (!pedido) return 0;
-    return pedido.total - pedido.taxa_entrega;
-  };
-
   const handleAtualizarStatus = async (novoStatus: string) => {
     if (!pedido) return;
     
@@ -271,6 +243,22 @@ ${conteudoImpressao}
     }
   };
 
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
+  };
+
+  const calcularSubtotal = () => {
+    if (!pedido) return 0;
+    return pedido.total - pedido.taxa_entrega;
+  };
+
   return (
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="bg-gray-900 text-white border-gray-800 max-w-3xl max-h-[90vh]">
@@ -286,147 +274,47 @@ ${conteudoImpressao}
           <ScrollArea className="h-[calc(90vh-170px)] pr-4">
             <div className="grid md:grid-cols-2 gap-6">
               <div ref={impressaoRef}>
-                <div className="header">
-                  <div className="title">ADEGA VM</div>
-                  <div>PEDIDO #{pedido.codigo_pedido}</div>
-                  <div>{formatDateTime(pedido.data_criacao)}</div>
-                  <div className="print-hidden">{getStatusBadge(pedido.status)}</div>
-                </div>
+                <OrderHeader 
+                  orderCode={pedido.codigo_pedido}
+                  orderDate={pedido.data_criacao}
+                  status={pedido.status}
+                  formatDateTime={formatDateTime}
+                />
                 
-                <div className="info">
-                  <div><strong>Cliente:</strong> {pedido.cliente_nome}</div>
-                  <div><strong>Endereço:</strong> {pedido.cliente_endereco}, {pedido.cliente_numero}</div>
-                  {pedido.cliente_complemento && (
-                    <div><strong>Complemento:</strong> {pedido.cliente_complemento}</div>
-                  )}
-                  {pedido.cliente_referencia && (
-                    <div><strong>Referência:</strong> {pedido.cliente_referencia}</div>
-                  )}
-                  <div><strong>Bairro:</strong> {pedido.cliente_bairro}</div>
-                  <div><strong>WhatsApp:</strong> {pedido.cliente_whatsapp}</div>
-                  {pedido.observacao && (
-                    <div><strong>Observação:</strong> {pedido.observacao}</div>
-                  )}
-                </div>
+                <CustomerInfo
+                  name={pedido.cliente_nome}
+                  address={pedido.cliente_endereco}
+                  number={pedido.cliente_numero}
+                  complement={pedido.cliente_complemento}
+                  reference={pedido.cliente_referencia}
+                  district={pedido.cliente_bairro}
+                  whatsapp={pedido.cliente_whatsapp}
+                  observation={pedido.observacao}
+                />
                 
-                <div className="items">
-                  <h3><strong>ITENS DO PEDIDO</strong></h3>
-                  {pedido.itens.map((item: any, index: number) => (
-                    <div key={index} className="item">
-                      <div>
-                        {item.qty}x {item.name} 
-                        {item.alcohol ? ` (${item.alcohol})` : ""}
-                      </div>
-                      {item.ice && Object.entries(item.ice).some(([_, qty]: [string, any]) => qty > 0) && (
-                        <div style={{ marginLeft: '20px', fontSize: '14px' }}>
-                          Gelo: {Object.entries(item.ice)
-                            .filter(([_, qty]: [string, any]) => qty > 0)
-                            .map(([flavor, qty]: [string, any]) => `${flavor} x${qty}`)
-                            .join(", ")}
-                        </div>
-                      )}
-                      <div style={{ textAlign: 'right' }}>
-                        R$ {(item.price * item.qty).toFixed(2)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <OrderItems items={pedido.itens} />
                 
-                <div style={{ marginTop: '10px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <div>Subtotal:</div>
-                    <div>R$ {calcularSubtotal().toFixed(2)}</div>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <div>Taxa de entrega:</div>
-                    <div>R$ {pedido.taxa_entrega.toFixed(2)}</div>
-                  </div>
-                  <div className="total">
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <div>TOTAL:</div>
-                      <div>R$ {pedido.total.toFixed(2)}</div>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <strong>Forma de pagamento:</strong> {pedido.forma_pagamento}
-                    {pedido.forma_pagamento === 'Dinheiro' && pedido.troco && (
-                      <div>
-                        <strong>Troco para:</strong> R$ {pedido.troco}
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <OrderSummary
+                  subtotal={calcularSubtotal()}
+                  deliveryFee={pedido.taxa_entrega}
+                  total={pedido.total}
+                  paymentMethod={pedido.forma_pagamento}
+                  change={pedido.troco}
+                />
               </div>
               
               <div className="space-y-4 print-hidden">
-                <div className="bg-black/40 p-4 rounded-md">
-                  <h3 className="text-lg font-semibold mb-3">Status do Pedido</h3>
-                  <div className="flex gap-2 flex-wrap">
-                    <Button 
-                      variant={pedido.status === 'pendente' ? 'default' : 'outline'}
-                      className={`text-black font-medium ${pedido.status === 'pendente' ? 'bg-yellow-600 hover:bg-yellow-700' : 'border-gray-600'}`}
-                      onClick={() => handleAtualizarStatus('pendente')}
-                    >
-                      Pendente
-                    </Button>
-                    <Button 
-                      variant={pedido.status === 'preparando' ? 'default' : 'outline'}
-                      className={`text-black font-medium ${pedido.status === 'preparando' ? 'bg-blue-600 hover:bg-blue-700' : 'border-gray-600'}`}
-                      onClick={() => handleAtualizarStatus('preparando')}
-                    >
-                      <ShoppingBag size={16} className="mr-1" />
-                      Em Produção
-                    </Button>
-                    <Button 
-                      variant={pedido.status === 'em_deslocamento' ? 'default' : 'outline'}
-                      className={`text-black font-medium ${pedido.status === 'em_deslocamento' ? 'bg-orange-600 hover:bg-orange-700' : 'border-gray-600'}`}
-                      onClick={() => handleAtualizarStatus('em_deslocamento')}
-                    >
-                      <Truck size={16} className="mr-1" />
-                      Em Deslocamento
-                    </Button>
-                    <Button 
-                      variant={pedido.status === 'entregue' ? 'default' : 'outline'}
-                      className={`text-black font-medium ${pedido.status === 'entregue' ? 'bg-green-600 hover:bg-green-700' : 'border-gray-600'}`}
-                      onClick={() => handleAtualizarStatus('entregue')}
-                    >
-                      <Check size={16} className="mr-1" />
-                      Entregue
-                    </Button>
-                    <Button 
-                      variant={pedido.status === 'cancelado' ? 'default' : 'outline'}
-                      className={`text-black font-medium ${pedido.status === 'cancelado' ? 'bg-red-600 hover:bg-red-700' : 'border-gray-600'}`}
-                      onClick={() => handleAtualizarStatus('cancelado')}
-                    >
-                      <X size={16} className="mr-1" />
-                      Cancelado
-                    </Button>
-                  </div>
-                </div>
+                <OrderStatusControls 
+                  currentStatus={pedido.status} 
+                  onUpdateStatus={handleAtualizarStatus}
+                />
                 
-                <div className="bg-black/40 p-4 rounded-md">
-                  <h3 className="text-lg font-semibold mb-3">Ações</h3>
-                  <div className="flex flex-col gap-2">
-                    <Button 
-                      onClick={handlePrintRequest}
-                      disabled={isPrinting}
-                      className="w-full bg-purple-dark hover:bg-purple-600 text-black font-medium"
-                    >
-                      <Printer size={16} className="mr-2" />
-                      Imprimir Comanda
-                    </Button>
-                    
-                    <Button 
-                      onClick={handleExcluirPedido}
-                      disabled={isDeleting}
-                      className="w-full bg-red-600 hover:bg-red-700 text-black font-medium"
-                    >
-                      <Trash2 size={16} className="mr-2" />
-                      Excluir Pedido
-                    </Button>
-                  </div>
-                </div>
+                <OrderActions 
+                  onPrint={handlePrintRequest}
+                  onDelete={handleExcluirPedido}
+                  isPrinting={isPrinting}
+                  isDeleting={isDeleting}
+                />
               </div>
             </div>
           </ScrollArea>
