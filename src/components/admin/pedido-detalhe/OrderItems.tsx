@@ -6,6 +6,7 @@ interface OrderItem {
   name: string;
   price: number;
   alcohol?: string;
+  balyFlavor?: string;
   ice?: Record<string, any>;
 }
 
@@ -22,6 +23,7 @@ const OrderItems: React.FC<OrderItemsProps> = ({ items }) => {
           <div>
             {item.qty}x {item.name} 
             {item.alcohol ? ` (${item.alcohol})` : ""}
+            {item.balyFlavor ? ` (Baly: ${item.balyFlavor})` : ""}
           </div>
           {item.ice && Object.entries(item.ice).some(([_, qty]: [string, any]) => qty > 0) && (
             <div style={{ marginLeft: '20px', fontSize: '14px' }}>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -80,6 +79,9 @@ const PedidoDetalhe: React.FC<PedidoDetalheProps> = ({
       let texto = `${item.qty}x ${item.name}`;
       if (item.alcohol) {
         texto += ` (${item.alcohol})`;
+      }
+      if (item.balyFlavor) {
+        texto += ` (Baly: ${item.balyFlavor})`;
       }
       
       if (item.ice && Object.entries(item.ice).some(([_, qty]: [string, any]) => qty > 0)) {
