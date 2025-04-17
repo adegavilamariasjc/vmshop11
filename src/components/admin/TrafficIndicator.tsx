@@ -1,88 +1,19 @@
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Line, LineChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useInterval } from '@/hooks/useInterval';
-import { useToast } from '@/hooks/use-toast';
-
-// Define the expected shape of page_visits table data
-interface TrafficData {
-  id: string;
-  timestamp: string;
-  visitors: number;
-  page_path: string;
-}
+import { useTrafficData } from '@/hooks/useTrafficData';
 
 const TrafficIndicator = () => {
-  const { toast } = useToast();
-  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
-  
-  // Fetch traffic data from Supabase
-  const { data: trafficData, isLoading, error, refetch } = useQuery({
-    queryKey: ['traffic'],
-    queryFn: async () => {
-      try {
-        const { data, error } = await supabase
-          .from('page_visits')
-          .select('*')
-          .order('timestamp', { ascending: true })
-          .limit(24);
+  const { data, isLoading, error, lastUpdate } = useTrafficData();
 
-        if (error) throw error;
-        return data as TrafficData[];
-      } catch (err) {
-        console.error('Error fetching traffic data:', err);
-        return [];
-      }
-    },
-    refetchInterval: 15000, // Refresh every 15 seconds
-  });
-
-  // Set up realtime subscription
-  useEffect(() => {
-    // Enable Postgres changes for our table
-    const channel = supabase
-      .channel('traffic-changes')
-      .on('postgres_changes', { 
-        event: '*', 
-        schema: 'public', 
-        table: 'page_visits' 
-      }, (payload) => {
-        console.log('Real-time traffic change detected:', payload);
-        setLastUpdate(new Date());
-        refetch();
-        
-        toast({
-          title: "Atualização de tráfego",
-          description: "Novos dados de tráfego detectados",
-          duration: 3000,
-        });
-      })
-      .subscribe((status) => {
-        console.log('Subscription status:', status);
-      });
-
-    // Cleanup subscription when component unmounts
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [refetch, toast]);
-
-  // Additional polling interval for backup
-  useInterval(() => {
-    refetch();
-    setLastUpdate(new Date());
-  }, 10000); // Poll every 10 seconds even without real-time events
-
-  // Format data for the chart
-  const chartData = trafficData?.map(item => ({
+  // Formatar dados para o gráfico
+  const chartData = data.map(item => ({
     ...item,
-    time: new Date(item.timestamp).toLocaleTimeString()
-  })) || [];
+    time: new Date(item.data_hora).toLocaleTimeString(),
+    visitors: 1
+  }));
 
-  // Handle loading state
   if (isLoading) {
     return (
       <Card>
@@ -98,7 +29,6 @@ const TrafficIndicator = () => {
     );
   }
 
-  // Handle error state
   if (error) {
     return (
       <Card>
@@ -107,7 +37,7 @@ const TrafficIndicator = () => {
         </CardHeader>
         <CardContent>
           <div className="h-[200px] flex items-center justify-center text-red-500">
-            Erro ao carregar dados de tráfego.
+            Erro ao carregar dados de tráfego: {error.message}
           </div>
         </CardContent>
       </Card>
@@ -159,7 +89,7 @@ const TrafficIndicator = () => {
           {chartData.length === 0 ? (
             "Nenhum dado de tráfego disponível. Aguardando visitantes..."
           ) : (
-            `Mostrando dados de ${chartData.length} registros de tráfego`
+            `Mostrando ${chartData.length} registros de tráfego`
           )}
         </div>
       </CardContent>

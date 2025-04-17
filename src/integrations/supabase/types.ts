@@ -83,22 +83,28 @@ export type Database = {
       }
       page_visits: {
         Row: {
+          acao: string
+          data_hora: string | null
+          detalhes: Json | null
           id: string
-          page_path: string
-          timestamp: string
-          visitors: number
+          pagina: string
+          usuario_id: string | null
         }
         Insert: {
+          acao: string
+          data_hora?: string | null
+          detalhes?: Json | null
           id?: string
-          page_path: string
-          timestamp?: string
-          visitors?: number
+          pagina: string
+          usuario_id?: string | null
         }
         Update: {
+          acao?: string
+          data_hora?: string | null
+          detalhes?: Json | null
           id?: string
-          page_path?: string
-          timestamp?: string
-          visitors?: number
+          pagina?: string
+          usuario_id?: string | null
         }
         Relationships: []
       }
