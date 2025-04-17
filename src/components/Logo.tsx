@@ -66,6 +66,7 @@ const Logo: React.FC = () => {
     });
   }, [api]);
 
+  // Automatic carousel rotation every 5 seconds
   useInterval(() => {
     if (!api) return;
     api.scrollNext();
@@ -111,12 +112,8 @@ const Logo: React.FC = () => {
           </CarouselItem>
         ))}
       </CarouselContent>
-      {availableImages.length > 1 && (
-        <>
-          <CarouselPrevious className="hidden sm:flex" />
-          <CarouselNext className="hidden sm:flex" />
-        </>
-      )}
+      <CarouselPrevious className="hidden sm:flex" />
+      <CarouselNext className="hidden sm:flex" />
     </Carousel>
   );
 };
