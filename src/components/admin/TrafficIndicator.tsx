@@ -42,7 +42,7 @@ const TrafficIndicator = () => {
           {visitorCount}
         </div>
         <div className="text-sm text-muted-foreground">
-          {visitorCount === 1 ? 'Visitante' : 'Visitantes'} nos últimos 5 minutos
+          {visitorCount === 1 ? 'Visitante' : 'Visitantes'} no último minuto
         </div>
       </CardContent>
     </Card>

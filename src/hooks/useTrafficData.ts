@@ -12,13 +12,13 @@ export function useTrafficData() {
       try {
         setIsLoading(true);
         const now = new Date();
-        const fiveMinutesAgo = new Date(now.getTime() - 5 * 60000);
+        const oneMinuteAgo = new Date(now.getTime() - 60000); // Changed from 5 minutes to 1 minute
 
         const { count, error: fetchError } = await supabase
           .from('page_visits')
           .select('*', { count: 'exact', head: true })
           .eq('acao', 'pageload')
-          .gte('data_hora', fiveMinutesAgo.toISOString());
+          .gte('data_hora', oneMinuteAgo.toISOString());
 
         if (fetchError) throw fetchError;
         setVisitorCount(count || 0);
