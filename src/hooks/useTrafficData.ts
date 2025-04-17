@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -19,46 +19,65 @@ export function useTrafficData() {
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const { toast } = useToast();
 
-  const fetchTrafficData = async () => {
+  const fetchTrafficData = useCallback(async () => {
     try {
+      console.log('Fetching traffic data...');
+      setIsLoading(true);
+      
       const { data: visits, error: fetchError } = await supabase
         .from('page_visits')
         .select('*')
-        .order('data_hora', { ascending: true })
-        .limit(24);
+        .order('data_hora', { ascending: false })
+        .limit(50);
 
-      if (fetchError) throw fetchError;
-      setData(visits || []);
+      if (fetchError) {
+        console.error('Error fetching traffic data:', fetchError);
+        throw fetchError;
+      }
+      
+      console.log('Received traffic data:', visits?.length || 0, 'entries');
+      setData(visits?.reverse() || []);
       setLastUpdate(new Date());
     } catch (err) {
-      console.error('Error fetching traffic data:', err);
+      console.error('Error in fetchTrafficData:', err);
       setError(err as Error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
+    console.log('Setting up traffic data subscription...');
     fetchTrafficData();
 
     // Inscrever-se para atualizações em tempo real
     const channel = supabase
-      .channel('page_visits_changes')
+      .channel('any')
       .on(
         'postgres_changes',
         {
-          event: '*',
+          event: 'INSERT',
           schema: 'public',
-          table: 'page_visits'
+          table: 'page_visits',
         },
         (payload) => {
           console.log('Realtime update received:', payload);
+          
+          // Atualizar o estado com o novo dado
+          setData((currentData) => {
+            const newData = [...currentData, payload.new as TrafficData];
+            // Limitar a 50 itens para evitar sobrecarga
+            if (newData.length > 50) {
+              return newData.slice(newData.length - 50);
+            }
+            return newData;
+          });
+          
           setLastUpdate(new Date());
-          fetchTrafficData();
           
           toast({
-            title: "Novo dado de tráfego",
-            description: "Dados de tráfego atualizados em tempo real",
+            title: "Nova interação detectada",
+            description: `${payload.new.acao} em ${payload.new.pagina}`,
             duration: 3000,
           });
         }
@@ -68,9 +87,10 @@ export function useTrafficData() {
       });
 
     return () => {
+      console.log('Cleaning up realtime subscription');
       supabase.removeChannel(channel);
     };
-  }, [toast]);
+  }, [fetchTrafficData, toast]);
 
   return {
     data,
