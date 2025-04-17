@@ -27,7 +27,7 @@ export async function trackPageVisit(pagina: string, acao: string = 'visit', det
   }
 }
 
-// Adiciona um event listener global para capturar cliques
+// Adiciona um event listener global para capturar carregamentos de página
 export function setupGlobalTracking() {
   if (typeof window !== 'undefined') {
     // Verifica se o rastreamento já foi configurado
@@ -36,31 +36,6 @@ export function setupGlobalTracking() {
     // Rastreia a visita inicial da página
     const path = window.location.pathname;
     trackPageVisit(path, 'pageload');
-    
-    // Configura listener para cliques em botões e links
-    document.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement;
-      const clickedElement = target.closest('button, a, [role="button"]');
-      
-      if (clickedElement) {
-        const elementType = clickedElement.tagName.toLowerCase();
-        const elementText = clickedElement.textContent?.trim() || '';
-        const elementId = clickedElement.id || '';
-        const elementClass = Array.from(clickedElement.classList).join(' ');
-        
-        trackPageVisit(
-          window.location.pathname,
-          'click',
-          {
-            elementType,
-            elementText: elementText.substring(0, 50),
-            elementId,
-            elementClass,
-            timestamp: new Date().toISOString()
-          }
-        );
-      }
-    });
     
     // Configura history listener para mudanças de página
     const originalPushState = window.history.pushState;

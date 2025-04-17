@@ -18,17 +18,20 @@ export function useTrafficData() {
   const [error, setError] = useState<Error | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const { toast } = useToast();
+  const [visitorCount, setVisitorCount] = useState<{[key: string]: number}>({});
 
   const fetchTrafficData = useCallback(async () => {
     try {
       console.log('Fetching traffic data...');
       setIsLoading(true);
       
+      // Obter os últimos 50 registros ordenados por data mais recente
       const { data: visits, error: fetchError } = await supabase
         .from('page_visits')
         .select('*')
+        .eq('acao', 'pageload')
         .order('data_hora', { ascending: false })
-        .limit(50);
+        .limit(100);
 
       if (fetchError) {
         console.error('Error fetching traffic data:', fetchError);
@@ -36,6 +39,20 @@ export function useTrafficData() {
       }
       
       console.log('Received traffic data:', visits?.length || 0, 'entries');
+      
+      // Processar dados para contar visitantes por hora
+      const visitsByHour: {[key: string]: number} = {};
+      visits?.forEach(visit => {
+        const date = new Date(visit.data_hora);
+        const hourKey = `${date.getHours().toString().padStart(2, '0')}:00`;
+        
+        if (!visitsByHour[hourKey]) {
+          visitsByHour[hourKey] = 0;
+        }
+        visitsByHour[hourKey]++;
+      });
+      
+      setVisitorCount(visitsByHour);
       setData(visits?.reverse() || []);
       setLastUpdate(new Date());
     } catch (err) {
@@ -59,25 +76,37 @@ export function useTrafficData() {
           event: 'INSERT',
           schema: 'public',
           table: 'page_visits',
+          filter: 'acao=eq.pageload',
         },
         (payload) => {
           console.log('Realtime update received:', payload);
           
-          // Atualizar o estado com o novo dado
+          // Atualizar o estado com o novo visitante
           setData((currentData) => {
-            const newData = [...currentData, payload.new as TrafficData];
-            // Limitar a 50 itens para evitar sobrecarga
-            if (newData.length > 50) {
-              return newData.slice(newData.length - 50);
+            const newData = [payload.new as TrafficData, ...currentData];
+            // Limitar a 100 itens para evitar sobrecarga
+            if (newData.length > 100) {
+              return newData.slice(0, 100);
             }
             return newData;
+          });
+          
+          // Atualizar contagem de visitantes
+          setVisitorCount((currentCount) => {
+            const date = new Date(payload.new.data_hora);
+            const hourKey = `${date.getHours().toString().padStart(2, '0')}:00`;
+            
+            return {
+              ...currentCount,
+              [hourKey]: (currentCount[hourKey] || 0) + 1
+            };
           });
           
           setLastUpdate(new Date());
           
           toast({
-            title: "Nova interação detectada",
-            description: `${payload.new.acao} em ${payload.new.pagina}`,
+            title: "Novo visitante",
+            description: `Página: ${payload.new.pagina}`,
             duration: 3000,
           });
         }
@@ -97,6 +126,7 @@ export function useTrafficData() {
     isLoading,
     error,
     lastUpdate,
+    visitorCount,
     refetch: fetchTrafficData
   };
 }
