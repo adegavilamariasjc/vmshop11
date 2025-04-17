@@ -112,8 +112,12 @@ const Logo: React.FC = () => {
           </CarouselItem>
         ))}
       </CarouselContent>
-      <CarouselPrevious className="hidden sm:flex" />
-      <CarouselNext className="hidden sm:flex" />
+      {availableImages.length > 1 && (
+        <>
+          <CarouselPrevious className="hidden sm:flex" />
+          <CarouselNext className="hidden sm:flex" />
+        </>
+      )}
     </Carousel>
   );
 };
