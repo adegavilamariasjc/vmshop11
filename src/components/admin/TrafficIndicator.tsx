@@ -1,9 +1,10 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Line, LineChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase/client';
+import { useInterval } from '@/hooks/useInterval';
 
 interface TrafficData {
   id: string;
@@ -20,8 +21,10 @@ interface ChartConfig {
 }
 
 const TrafficIndicator = () => {
-  // Fetch traffic data from Supabase
-  const { data: trafficData, isLoading } = useQuery({
+  const [realtimeData, setRealtimeData] = useState<TrafficData[]>([]);
+  
+  // Fetch traffic data from Supabase with shorter interval
+  const { data: trafficData, isLoading, refetch } = useQuery({
     queryKey: ['traffic'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -33,8 +36,37 @@ const TrafficIndicator = () => {
       if (error) throw error;
       return data as TrafficData[];
     },
-    refetchInterval: 60000, // Refresh every minute
+    refetchInterval: 15000, // Refresh every 15 seconds
   });
+
+  // Set up realtime subscription
+  useEffect(() => {
+    // Subscribe to changes in the page_visits table
+    const channel = supabase
+      .channel('public:page_visits')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'page_visits' 
+      }, (payload) => {
+        console.log('Real-time change detected:', payload);
+        refetch(); // Trigger a refetch when we get real-time updates
+      })
+      .subscribe();
+
+    // Cleanup subscription when component unmounts
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [refetch]);
+
+  // Use shorter interval for more responsive UI updates
+  useInterval(() => {
+    refetch();
+  }, 10000); // Poll every 10 seconds even without real-time events
+
+  // Combine initial data with real-time updates
+  const displayData = trafficData || [];
 
   if (isLoading) {
     return (
@@ -61,12 +93,12 @@ const TrafficIndicator = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Tráfego do Site</CardTitle>
+        <CardTitle>Tráfego do Site (Tempo Real)</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="h-[200px]">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={trafficData}>
+            <LineChart data={displayData}>
               <XAxis 
                 dataKey="timestamp"
                 tickFormatter={(value) => {
