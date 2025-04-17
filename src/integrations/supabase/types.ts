@@ -81,6 +81,27 @@ export type Database = {
         }
         Relationships: []
       }
+      page_visits: {
+        Row: {
+          id: string
+          page_path: string
+          timestamp: string
+          visitors: number
+        }
+        Insert: {
+          id?: string
+          page_path: string
+          timestamp?: string
+          visitors?: number
+        }
+        Update: {
+          id?: string
+          page_path?: string
+          timestamp?: string
+          visitors?: number
+        }
+        Relationships: []
+      }
       pedidos: {
         Row: {
           cliente_bairro: string

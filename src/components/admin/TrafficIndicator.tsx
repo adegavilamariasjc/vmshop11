@@ -1,14 +1,22 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import { Line, LineChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase/client';
 
 interface TrafficData {
+  id: string;
   timestamp: string;
   visitors: number;
+  page_path: string;
+}
+
+interface ChartConfig {
+  [key: string]: {
+    label?: React.ReactNode;
+    color?: string;
+  };
 }
 
 const TrafficIndicator = () => {
@@ -43,6 +51,13 @@ const TrafficIndicator = () => {
     );
   }
 
+  const chartConfig: ChartConfig = {
+    visitors: {
+      label: 'Visitantes',
+      color: '#10b981'
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -50,29 +65,27 @@ const TrafficIndicator = () => {
       </CardHeader>
       <CardContent>
         <div className="h-[200px]">
-          <ChartContainer>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={trafficData}>
-                <XAxis 
-                  dataKey="timestamp"
-                  tickFormatter={(value) => {
-                    const date = new Date(value);
-                    return `${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
-                  }}
-                />
-                <YAxis />
-                <ChartTooltip />
-                <Line
-                  type="monotone"
-                  dataKey="visitors"
-                  strokeWidth={2}
-                  activeDot={{
-                    r: 4,
-                  }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </ChartContainer>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={trafficData}>
+              <XAxis 
+                dataKey="timestamp"
+                tickFormatter={(value) => {
+                  const date = new Date(value);
+                  return `${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
+                }}
+              />
+              <YAxis />
+              <Line
+                type="monotone"
+                dataKey="visitors"
+                stroke={chartConfig.visitors.color}
+                strokeWidth={2}
+                activeDot={{
+                  r: 4,
+                }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
       </CardContent>
     </Card>
