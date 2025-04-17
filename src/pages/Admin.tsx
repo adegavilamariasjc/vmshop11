@@ -9,6 +9,7 @@ import ProductManager from '../components/admin/ProductManager';
 import CategoryManager from '../components/admin/CategoryManager';
 import BairroManager from '../components/admin/BairroManager';
 import PedidosManager from '../components/admin/PedidosManager';
+import TrafficIndicator from '../components/admin/TrafficIndicator';
 import Logo from '../components/Logo';
 import BackgroundVideoPlayer from '../components/BackgroundVideoPlayer';
 
@@ -81,6 +82,11 @@ const Admin = () => {
             
             <div className="mt-8">
               <h1 className="text-2xl font-bold text-white mb-6">Painel Administrativo</h1>
+              
+              {/* Add Traffic Indicator before Tabs */}
+              <div className="mb-8">
+                <TrafficIndicator />
+              </div>
               
               <Tabs defaultValue="pedidos" className="w-full">
                 <TabsList className="grid grid-cols-4 mb-8 max-w-full overflow-x-auto">
