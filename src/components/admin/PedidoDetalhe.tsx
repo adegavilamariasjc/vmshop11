@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -5,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Printer, X, Check, Truck, ShoppingBag, Trash2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { fetchPedidoById, updatePedidoStatus, deletePedido, SupabasePedido } from '@/lib/supabase';
+import DelivererSelectModal from './DelivererSelectModal';
 
 interface PedidoDetalheProps {
   pedidoId: string;
@@ -25,6 +27,8 @@ const PedidoDetalhe: React.FC<PedidoDetalheProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [isPrinting, setIsPrinting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showDelivererModal, setShowDelivererModal] = useState(false);
+  const [selectedDeliverer, setSelectedDeliverer] = useState<string | null>(null);
   const impressaoRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -53,7 +57,16 @@ const PedidoDetalhe: React.FC<PedidoDetalheProps> = ({
     }
   };
 
-  const handleImprimir = () => {
+  const handlePrintRequest = () => {
+    setShowDelivererModal(true);
+  };
+
+  const handleDelivererSelect = (deliverer: string) => {
+    setSelectedDeliverer(deliverer);
+    handleImprimir(deliverer);
+  };
+
+  const handleImprimir = (deliverer: string) => {
     if (!pedido) return;
     
     setIsPrinting(true);
@@ -78,6 +91,8 @@ const PedidoDetalhe: React.FC<PedidoDetalheProps> = ({
     }).join('\n\n');
     
     const conteudoImpressao = `
+${deliverer}
+
 ADEGA VM
 PEDIDO #${pedido.codigo_pedido}
 ${new Date(pedido.data_criacao).toLocaleString('pt-BR')}
@@ -124,9 +139,16 @@ ADEGA VM
                   width: 80mm;
                 }
               }
+              .deliverer {
+                font-weight: bold;
+                font-size: 16pt;
+                text-align: center;
+                margin-bottom: 10mm;
+              }
             </style>
           </head>
           <body>
+<div class="deliverer">${deliverer}</div>
 ${conteudoImpressao}
             <script>
               window.onload = function() {
@@ -387,7 +409,7 @@ ${conteudoImpressao}
                   <h3 className="text-lg font-semibold mb-3">Ações</h3>
                   <div className="flex flex-col gap-2">
                     <Button 
-                      onClick={handleImprimir}
+                      onClick={handlePrintRequest}
                       disabled={isPrinting}
                       className="w-full bg-purple-dark hover:bg-purple-600 text-black font-medium"
                     >
@@ -424,6 +446,12 @@ ${conteudoImpressao}
           </Button>
         </DialogFooter>
       </DialogContent>
+      
+      <DelivererSelectModal 
+        open={showDelivererModal}
+        onOpenChange={setShowDelivererModal}
+        onConfirm={handleDelivererSelect}
+      />
     </Dialog>
   );
 };
