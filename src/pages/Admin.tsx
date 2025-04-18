@@ -18,9 +18,9 @@ const Admin = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Updated array of video URLs to include more variations
+  // Updated array of video URLs, excluding bgs.mp4 from randomization
   const videoUrls = [
-    "https://adegavm.shop/bgs.mp4",
+    "https://adegavm.shop/bgs.mp4",  // This will always play first or statically
     "https://adegavm.shop/1.mp4",
     "https://adegavm.shop/2.mp4",
     "https://adegavm.shop/3.mp4",
