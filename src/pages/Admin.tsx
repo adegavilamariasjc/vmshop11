@@ -18,13 +18,18 @@ const Admin = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Array of video URLs for background rotation
+  // Updated array of video URLs to include more variations
   const videoUrls = [
     "https://adegavm.shop/bgs.mp4",
     "https://adegavm.shop/1.mp4",
     "https://adegavm.shop/2.mp4",
     "https://adegavm.shop/3.mp4",
-    "https://adegavm.shop/4.mp4"
+    "https://adegavm.shop/4.mp4",
+    "https://adegavm.shop/5.mp4",
+    "https://adegavm.shop/6.mp4",
+    "https://adegavm.shop/7.mp4",
+    "https://adegavm.shop/8.mp4",
+    "https://adegavm.shop/9.mp4"
   ];
 
   const handleLogin = (password: string) => {
