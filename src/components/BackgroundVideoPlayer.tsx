@@ -48,6 +48,20 @@ const BackgroundVideoPlayer: React.FC<BackgroundVideoPlayerProps> = ({
     }, duration);
   };
 
+  const setBufferingStatus = (fn: (prev: { [key: number]: number }) => { [key: number]: number }) => {
+    setState(prev => ({
+      ...prev,
+      bufferingStatus: fn(prev.bufferingStatus)
+    }));
+  };
+
+  const setPreloadedVideos = (fn: (prev: { [key: number]: boolean }) => { [key: number]: boolean }) => {
+    setState(prev => ({
+      ...prev,
+      preloadedVideos: fn(prev.preloadedVideos)
+    }));
+  };
+
   const prepareNextVideoTransition = () => {
     if (isTransitioning) {
       refs.rotationInProgressRef.current = false;
