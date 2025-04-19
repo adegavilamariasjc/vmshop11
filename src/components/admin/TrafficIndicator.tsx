@@ -3,11 +3,13 @@ import React, { useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { useTrafficData } from '@/hooks/useTrafficData';
 import { setupGlobalTracking } from '@/utils/trackPageVisit';
+import { AlertCircle, Loader2 } from 'lucide-react';
 
 const TrafficIndicator = () => {
   const { metrics, isLoading, error } = useTrafficData();
   
   useEffect(() => {
+    // Ensure tracking is set up when this component loads
     setupGlobalTracking();
   }, []);
 
@@ -15,7 +17,8 @@ const TrafficIndicator = () => {
     return (
       <Card>
         <CardContent className="flex items-center justify-center p-6">
-          <div className="text-muted-foreground">
+          <div className="text-muted-foreground flex items-center gap-2">
+            <Loader2 className="animate-spin" size={18} />
             Carregando dados de visitantes...
           </div>
         </CardContent>
@@ -27,8 +30,9 @@ const TrafficIndicator = () => {
     return (
       <Card>
         <CardContent className="flex items-center justify-center p-6">
-          <div className="text-red-500">
-            Erro ao carregar dados de visitantes
+          <div className="text-red-500 flex items-center gap-2">
+            <AlertCircle size={18} />
+            Erro ao carregar dados de visitantes: {error.message}
           </div>
         </CardContent>
       </Card>

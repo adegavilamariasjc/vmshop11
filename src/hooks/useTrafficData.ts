@@ -26,27 +26,37 @@ export function useTrafficData() {
           h12: new Date(now.getTime() - 720 * 60000),
         };
 
-        const promises = Object.entries(intervals).map(([key, date]) => 
-          supabase
-            .from('page_visits')
-            .select('*', { count: 'exact', head: true })
-            .eq('acao', 'pageload')
-            .gte('data_hora', date.toISOString())
-        );
+        // Optimize by using a single query with different time filters
+        const { data, error } = await supabase
+          .from('page_visits')
+          .select('data_hora')
+          .eq('acao', 'pageload');
 
-        const results = await Promise.all(promises);
-        const counts = results.map(result => {
-          if (result.error) throw result.error;
-          return result.count || 0;
-        });
+        if (error) throw error;
 
-        setMetrics({
-          liveCount: counts[0],
-          last10m: counts[1],
-          last30m: counts[2],
-          last60m: counts[3],
-          last12h: counts[4],
-        });
+        if (data) {
+          // Calculate counts for each time interval
+          const counts = {
+            liveCount: 0,
+            last10m: 0,
+            last30m: 0,
+            last60m: 0,
+            last12h: 0,
+          };
+
+          // Process data for each time interval
+          data.forEach(visit => {
+            const visitDate = new Date(visit.data_hora || '');
+            
+            if (visitDate >= intervals.live) counts.liveCount++;
+            if (visitDate >= intervals.m10) counts.last10m++;
+            if (visitDate >= intervals.m30) counts.last30m++;
+            if (visitDate >= intervals.m60) counts.last60m++;
+            if (visitDate >= intervals.h12) counts.last12h++;
+          });
+
+          setMetrics(counts);
+        }
       } catch (err) {
         console.error('Error fetching visitor metrics:', err);
         setError(err as Error);
