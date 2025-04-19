@@ -12,9 +12,8 @@ interface PageLayoutProps {
 }
 
 const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
-  // Updated array of video URLs, excluding bgs.mp4 from randomization
+  // Updated array of video URLs, removed bgs.mp4
   const videoUrls = [
-    "https://adegavm.shop/bgs.mp4",  // This will always play first or statically
     "https://adegavm.shop/1.mp4",
     "https://adegavm.shop/2.mp4",
     "https://adegavm.shop/3.mp4",
@@ -60,3 +59,4 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
 };
 
 export default PageLayout;
+
