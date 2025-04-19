@@ -11,4 +11,3 @@ export const getVideoUrls = (): string[] => {
   
   return videoUrls;
 };
-
