@@ -1,4 +1,3 @@
-
 import React, { ReactNode } from 'react';
 import Logo from './Logo';
 import VideoBackground from './VideoBackground';
@@ -6,25 +5,14 @@ import AudioPlayer from './AudioPlayer';
 import StoreStatus from './StoreStatus';
 import AdminLink from './AdminLink';
 import { useStoreStatus } from '@/hooks/useStoreStatus';
+import { getVideoUrls } from '@/utils/videoUrls';
 
 interface PageLayoutProps {
   children: ReactNode;
 }
 
 const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
-  // Updated array of video URLs, removed bgs.mp4
-  const videoUrls = [
-    "https://adegavm.shop/1.mp4",
-    "https://adegavm.shop/2.mp4",
-    "https://adegavm.shop/3.mp4",
-    "https://adegavm.shop/4.mp4",
-    "https://adegavm.shop/5.mp4",
-    "https://adegavm.shop/6.mp4",
-    "https://adegavm.shop/7.mp4",
-    "https://adegavm.shop/8.mp4",
-    "https://adegavm.shop/9.mp4"
-  ];
-  
+  const videoUrls = getVideoUrls();
   const { isOpen } = useStoreStatus();
 
   return (
@@ -59,4 +47,3 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
 };
 
 export default PageLayout;
-

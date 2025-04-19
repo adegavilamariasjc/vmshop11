@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -12,28 +11,17 @@ import PedidosManager from '../components/admin/PedidosManager';
 import TrafficIndicator from '../components/admin/TrafficIndicator';
 import Logo from '../components/Logo';
 import BackgroundVideoPlayer from '../components/BackgroundVideoPlayer';
+import { getVideoUrls } from '@/utils/videoUrls';
 
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-
-  // Updated array of video URLs, removed bgs.mp4
-  const videoUrls = [
-    "https://adegavm.shop/1.mp4",
-    "https://adegavm.shop/2.mp4",
-    "https://adegavm.shop/3.mp4",
-    "https://adegavm.shop/4.mp4",
-    "https://adegavm.shop/5.mp4",
-    "https://adegavm.shop/6.mp4",
-    "https://adegavm.shop/7.mp4",
-    "https://adegavm.shop/8.mp4",
-    "https://adegavm.shop/9.mp4"
-  ];
+  
+  const videoUrls = getVideoUrls();
 
   const handleLogin = (password: string) => {
-    // Simple password authentication
-    if (password === "adega123") {  // You should change this to your own password
+    if (password === "adega123") {
       setIsAuthenticated(true);
       toast({
         title: "Login realizado com sucesso",
@@ -58,14 +46,12 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen w-full relative overflow-x-hidden">
-      {/* Video Background */}
       <BackgroundVideoPlayer 
         videoUrls={videoUrls}
-        transitionDuration={2000}  // 2 seconds transition
-        playDuration={30000}       // 30 seconds per video
+        transitionDuration={2000}
+        playDuration={30000}
       />
       
-      {/* Content overlay */}
       <div className="relative z-10 w-full lg:max-w-6xl mx-auto min-h-screen bg-black/70 p-4 content-overlay">
         {isAuthenticated ? (
           <>
@@ -87,7 +73,6 @@ const Admin = () => {
             <div className="mt-8">
               <h1 className="text-2xl font-bold text-white mb-6">Painel Administrativo</h1>
               
-              {/* Add Traffic Indicator before Tabs */}
               <div className="mb-8">
                 <TrafficIndicator />
               </div>
@@ -132,4 +117,3 @@ const Admin = () => {
 };
 
 export default Admin;
-
