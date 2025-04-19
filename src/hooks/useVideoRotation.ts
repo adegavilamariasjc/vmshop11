@@ -64,7 +64,7 @@ export const useVideoRotation = (videoUrls: string[], transitionDuration = 2000,
     setIsTransitioning(true);
     
     // Get the next video reference (opposite of current active video)
-    const nextVideoRef = currentVideo === videoRef1.current?.src ? videoRef2 : videoRef1;
+    const nextVideoRef = videoRef1.current?.src.includes(videoUrls[currentVideo]) ? videoRef2 : videoRef1;
     
     if (nextVideoRef.current) {
       nextVideoRef.current.src = videoUrls[nextVideoIndex];
