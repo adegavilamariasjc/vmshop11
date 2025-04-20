@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -46,14 +47,14 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
     {
       name: "Red Bull",
       flavors: ["Tradicional", "Melancia com Melão", "Pomelo", "Tropical", "Frutas Tropicais", "Pêssego", "Pera com Canela"],
-      extraCost: 60,
+      extraCost: 12,
       extraCostCopao: 12,
       maxQuantity: productType === 'copao' ? 1 : 5
     },
     {
       name: "Monster",
       flavors: ["Tradicional", "Mango Loco", "Melancia"],
-      extraCost: 60,
+      extraCost: 12,
       extraCostCopao: 12,
       maxQuantity: productType === 'copao' ? 1 : 5
     },
