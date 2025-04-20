@@ -147,7 +147,9 @@ export const useCart = () => {
     }
     
     const itemWithIce = { ...selectedProductForFlavor, ice: selectedIce };
+    
     setIsFlavorModalOpen(false);
+    setSelectedProductForFlavor(null);
     
     if (isCopao(itemWithIce)) {
       setPendingProductWithIce(itemWithIce);
@@ -232,6 +234,16 @@ export const useCart = () => {
       return;
     }
     
+    if (isFlavorModalOpen) setIsFlavorModalOpen(false);
+    if (isAlcoholModalOpen) setIsAlcoholModalOpen(false);
+    if (isBalyModalOpen) setIsBalyModalOpen(false);
+    if (isEnergyDrinkModalOpen) setIsEnergyDrinkModalOpen(false);
+    
+    if (pendingProductWithIce) setPendingProductWithIce(null);
+    if (selectedProductForFlavor) setSelectedProductForFlavor(null);
+    if (selectedProductForAlcohol) setSelectedProductForAlcohol(null);
+    if (selectedProductForBaly) setSelectedProductForBaly(null);
+    
     const missing = cart.filter(
       item =>
         (requiresFlavor(item.category || '') && (!item.ice || Object.values(item.ice).reduce((a, b) => a + b, 0) === 0)) ||
@@ -244,14 +256,14 @@ export const useCart = () => {
     if (missing.length > 0) {
       const itemPend = missing[0];
       
-      if (requiresFlavor(itemPend.category || '')) {
+      if (requiresFlavor(itemPend.category || '') && (!itemPend.ice || Object.values(itemPend.ice || {}).reduce((a, b) => a + b, 0) === 0)) {
         setSelectedProductForFlavor(itemPend);
         setIsFlavorModalOpen(true);
-      } else if (requiresAlcoholChoice(itemPend.category || '')) {
+      } else if (requiresAlcoholChoice(itemPend.category || '') && !itemPend.alcohol) {
         setSelectedProductForAlcohol(itemPend);
         setSelectedAlcohol(null);
         setIsAlcoholModalOpen(true);
-      } else if (containsBaly(itemPend.name)) {
+      } else if (containsBaly(itemPend.name) && !itemPend.balyFlavor) {
         setSelectedProductForBaly(itemPend);
         setIsBalyModalOpen(true);
       } else if (isCopao(itemPend) && !itemPend.energyDrink) {
@@ -275,8 +287,15 @@ export const useCart = () => {
   }) => {
     if (!pendingProductWithIce) return;
 
+    const firstEnergyDrink = energyDrinks.selections.length > 0 ? 
+      energyDrinks.selections[0].type : '';
+    const firstEnergyDrinkFlavor = energyDrinks.selections.length > 0 ? 
+      energyDrinks.selections[0].flavor : '';
+
     const finalProduct = {
       ...pendingProductWithIce,
+      energyDrink: firstEnergyDrink,
+      energyDrinkFlavor: firstEnergyDrinkFlavor,
       energyDrinks: energyDrinks.selections,
       price: (pendingProductWithIce.price || 0) + energyDrinks.totalExtraCost
     };

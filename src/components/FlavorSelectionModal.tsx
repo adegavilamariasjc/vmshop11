@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Minus, X } from 'lucide-react';
 import { Product } from '../types';
@@ -24,6 +24,14 @@ const FlavorSelectionModal: React.FC<FlavorSelectionModalProps> = ({
   onConfirm,
 }) => {
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  useEffect(() => {
+    // Reset submitting state when modal opens/closes
+    if (!isOpen) {
+      setIsSubmitting(false);
+    }
+  }, [isOpen]);
   
   if (!isOpen || !product) return null;
   
@@ -67,13 +75,33 @@ const FlavorSelectionModal: React.FC<FlavorSelectionModalProps> = ({
     updateIceQuantity(flavor, delta);
   };
   
+  const handleConfirm = () => {
+    if (totalIce === 0) {
+      toast({
+        title: "Seleção incompleta",
+        description: "Por favor, selecione ao menos 1 unidade de gelo.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Prevent multiple submissions
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    
+    // Call onConfirm with a slight delay to prevent race conditions
+    setTimeout(() => {
+      onConfirm();
+    }, 100);
+  };
+  
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-50"
-      onClick={onClose}
+      onClick={() => !isSubmitting && onClose()}
     >
       <motion.div 
         initial={{ scale: 0.9 }}
@@ -86,7 +114,11 @@ const FlavorSelectionModal: React.FC<FlavorSelectionModalProps> = ({
           <h2 className="text-lg font-bold text-white">
             Escolha o(s) sabor(es) de gelo para:
           </h2>
-          <button onClick={onClose} className="text-gray-300 hover:text-white">
+          <button 
+            onClick={() => !isSubmitting && onClose()} 
+            className="text-gray-300 hover:text-white"
+            disabled={isSubmitting}
+          >
             <X size={20} />
           </button>
         </div>
@@ -100,9 +132,9 @@ const FlavorSelectionModal: React.FC<FlavorSelectionModalProps> = ({
               
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => handleIceUpdate(flavor, -1)}
+                  onClick={() => !isSubmitting && handleIceUpdate(flavor, -1)}
                   className="w-8 h-8 flex items-center justify-center bg-gray-700 text-white rounded-full"
-                  disabled={!selectedIce[flavor]}
+                  disabled={!selectedIce[flavor] || isSubmitting}
                 >
                   <Minus size={16} />
                 </button>
@@ -112,9 +144,10 @@ const FlavorSelectionModal: React.FC<FlavorSelectionModalProps> = ({
                 </span>
                 
                 <button
-                  onClick={() => handleIceUpdate(flavor, 1)}
+                  onClick={() => !isSubmitting && handleIceUpdate(flavor, 1)}
                   className="w-8 h-8 flex items-center justify-center bg-purple-dark text-white rounded-full"
                   disabled={
+                    isSubmitting ||
                     (flavor === 'Água' && waterIceQuantity >= 5) ||
                     (flavor !== 'Água' && waterIceQuantity === 5) ||
                     (flavor === 'Água' && hasOtherIceSelected) ||
@@ -131,7 +164,7 @@ const FlavorSelectionModal: React.FC<FlavorSelectionModalProps> = ({
         <div className="text-sm text-gray-300 mb-4">
           Total selecionado: {totalIce} de {maxIce} unidades
           {waterIceQuantity === 5 && (
-            <div className="mt-2 text-purple-light">
+            <div className="mt-2 text-purple-light font-semibold">
               5 gelos de água = 1 saco grande de gelo
             </div>
           )}
@@ -139,22 +172,23 @@ const FlavorSelectionModal: React.FC<FlavorSelectionModalProps> = ({
         
         <div className="flex gap-3 justify-end">
           <button 
-            onClick={onClose}
+            onClick={() => !isSubmitting && onClose()}
             className="px-4 py-2 bg-gray-700 text-white rounded"
+            disabled={isSubmitting}
           >
             Cancelar
           </button>
           
           <button 
-            onClick={onConfirm}
+            onClick={handleConfirm}
             className={`px-4 py-2 rounded ${
-              totalIce === 0 
+              totalIce === 0 || isSubmitting
                 ? 'bg-gray-600 text-gray-300 cursor-not-allowed' 
                 : 'bg-purple-dark text-white'
             }`}
-            disabled={totalIce === 0}
+            disabled={totalIce === 0 || isSubmitting}
           >
-            Confirmar
+            {isSubmitting ? 'Processando...' : 'Confirmar'}
           </button>
         </div>
       </motion.div>

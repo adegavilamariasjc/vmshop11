@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Plus, Minus } from 'lucide-react';
+import { Plus, Minus, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface EnergyDrinkOption {
@@ -28,6 +29,26 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
 }) => {
   const { toast } = useToast();
   const [selections, setSelections] = useState<Record<string, Record<string, number>>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Reset selections and submitting state when modal is opened/closed
+  useEffect(() => {
+    if (!isOpen) {
+      setSubmitting(false);
+    } else {
+      setSelections({});
+    }
+  }, [isOpen]);
+  
+  const setSubmitting = (value: boolean) => {
+    setIsSubmitting(value);
+    // Safety timeout to auto-reset in case something fails
+    if (value) {
+      setTimeout(() => {
+        setIsSubmitting(false);
+      }, 5000);
+    }
+  };
   
   const energyDrinkOptions: EnergyDrinkOption[] = [
     {
@@ -85,6 +106,8 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
   };
   
   const handleAddEnergyDrink = (type: string, flavor: string) => {
+    if (isSubmitting) return;
+    
     const option = energyDrinkOptions.find(opt => opt.name === type);
     if (!option) return;
 
@@ -139,6 +162,7 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
   };
   
   const handleRemoveEnergyDrink = (type: string, flavor: string) => {
+    if (isSubmitting) return;
     if (!selections[type]?.[flavor]) return;
     
     setSelections(prev => {
@@ -162,6 +186,8 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
   };
   
   const handleConfirm = () => {
+    if (isSubmitting) return;
+    
     const totalSelections = Object.values(selections).reduce((sum, typeSelections) => 
       sum + Object.values(typeSelections).reduce((a, b) => a + b, 0), 0);
       
@@ -198,6 +224,9 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
       }
     }
     
+    // Prevent multiple submissions
+    setSubmitting(true);
+    
     const energyDrinkSelections: Array<{ type: string; flavor: string }> = [];
     let totalExtraCost = 0;
     
@@ -215,12 +244,16 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
       });
     });
     
-    onConfirm({ selections: energyDrinkSelections, totalExtraCost });
-    setSelections({});
+    // Use setTimeout to allow UI to update before closing
+    setTimeout(() => {
+      onConfirm({ selections: energyDrinkSelections, totalExtraCost });
+      setSelections({});
+      setSubmitting(false);
+    }, 100);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => !isSubmitting && !open && onClose()}>
       <DialogContent className="max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-lg font-bold text-white">
@@ -260,6 +293,7 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
                               <button
                                 onClick={() => handleRemoveEnergyDrink(option.name, flavor)}
                                 className="p-1 hover:bg-purple-dark/50 rounded"
+                                disabled={isSubmitting}
                               >
                                 <Minus className="h-3 w-3" />
                               </button>
@@ -269,6 +303,7 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
                           <button
                             onClick={() => handleAddEnergyDrink(option.name, flavor)}
                             className="p-1 hover:bg-purple-dark/50 rounded"
+                            disabled={isSubmitting}
                           >
                             <Plus className="h-3 w-3" />
                           </button>
@@ -286,8 +321,16 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
           <Button 
             onClick={handleConfirm}
             className="w-full bg-purple-dark hover:bg-purple-600"
+            disabled={isSubmitting}
           >
-            Confirmar Seleção
+            {isSubmitting ? (
+              <div className="flex items-center justify-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Processando...</span>
+              </div>
+            ) : (
+              <span>Confirmar Seleção</span>
+            )}
           </Button>
         </div>
       </DialogContent>
