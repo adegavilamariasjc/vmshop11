@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -40,14 +39,14 @@ const energyDrinkOptions: EnergyDrinkOption[] = [
     flavors: ["Tradicional", "Melancia com Melão", "Pomelo", "Tropical", "Frutas Tropicais", "Pêssego", "Pera com Canela"],
     extraCost: 60,
     extraCostCopao: 12,
-    maxQuantity: 5
+    maxQuantity: productType === 'copao' ? 1 : 5
   },
   {
     name: "Monster",
     flavors: ["Tradicional", "Mango Loco", "Melancia"],
     extraCost: 60,
     extraCostCopao: 12,
-    maxQuantity: 5
+    maxQuantity: productType === 'copao' ? 1 : 5
   },
   {
     name: "Fusion",
@@ -68,6 +67,8 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
   const [selections, setSelections] = useState<Record<string, Record<string, number>>>({});
   
   const getTotalCanCount = () => {
+    if (productType === 'copao') return 0; // Not needed for copao since individual limits are enforced
+    
     const redBullCount = selections['Red Bull'] 
       ? Object.values(selections['Red Bull']).reduce((sum, qty) => sum + qty, 0) 
       : 0;
@@ -136,8 +137,8 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
       return;
     }
 
-    // Check if adding another can would exceed the total limit of 5 cans (RedBull + Monster)
-    if ((type === 'Red Bull' || type === 'Monster') && getTotalCanCount() >= 5) {
+    // Check total can limit only for combos
+    if (productType === 'combo' && (type === 'Red Bull' || type === 'Monster') && getTotalCanCount() >= 5) {
       toast({
         title: "Limite atingido",
         description: "Você pode selecionar no máximo 5 latas no total (RedBull + Monster combinados).",
@@ -147,7 +148,7 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
     }
 
     const currentTypeTotal = Object.values(selections[type] || {}).reduce((sum, qty) => sum + qty, 0);
-    const maxForType = option.maxQuantity || 5;
+    const maxForType = productType === 'copao' ? 1 : (option.maxQuantity || 5);
 
     if (currentTypeTotal >= maxForType) {
       toast({
