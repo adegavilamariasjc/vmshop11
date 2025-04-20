@@ -6,6 +6,7 @@ import {
   DialogTrigger,
   DialogClose,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { X } from 'lucide-react';
 
@@ -28,10 +29,12 @@ const ImageModal: React.FC<ImageModalProps> = ({ src, alt }) => {
   }, []);
 
   useEffect(() => {
-    const modalImage = document.querySelector('.modal-image');
-    if (modalImage && isOpen) {
-      modalImage.addEventListener('wheel', handleWheel);
-      return () => modalImage.removeEventListener('wheel', handleWheel);
+    if (isOpen) {
+      const modalImage = document.querySelector('.modal-image');
+      if (modalImage) {
+        modalImage.addEventListener('wheel', handleWheel);
+        return () => modalImage.removeEventListener('wheel', handleWheel);
+      }
     }
   }, [handleWheel, isOpen]);
 
@@ -42,16 +45,20 @@ const ImageModal: React.FC<ImageModalProps> = ({ src, alt }) => {
   };
 
   return (
-    <Dialog onOpenChange={handleOpenChange} open={isOpen}>
-      <DialogTrigger asChild onClick={() => setIsOpen(true)}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>
         <img
           src={src}
           alt={alt}
           className="w-full h-auto max-h-[150px] sm:max-h-[200px] object-contain cursor-pointer hover:opacity-90 transition-opacity"
+          onClick={() => setIsOpen(true)}
         />
       </DialogTrigger>
       <DialogContent className="max-w-4xl p-0 bg-transparent border-0 relative">
         <DialogTitle className="sr-only">Image Preview</DialogTitle>
+        <DialogDescription className="sr-only">
+          Image preview with zoom functionality
+        </DialogDescription>
         <DialogClose className="absolute top-4 right-4 z-50 bg-black/50 rounded-full p-2 hover:bg-black/70 transition-colors">
           <X className="text-white w-6 h-6" />
         </DialogClose>
