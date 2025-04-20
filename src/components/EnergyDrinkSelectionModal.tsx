@@ -10,6 +10,7 @@ interface EnergyDrinkOption {
   extraCost: number;
   extraCostCopao?: number;
   maxQuantity?: number;
+  isLargeDrink?: boolean;
 }
 
 interface EnergyDrinkSelectionModalProps {
@@ -34,14 +35,16 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
       flavors: ["Tradicional"],
       extraCost: 0,
       extraCostCopao: 0,
-      maxQuantity: 1
+      maxQuantity: 1,
+      isLargeDrink: true
     },
     {
       name: "Baly",
       flavors: ["Melancia", "Tropical", "Maçã Verde", "Pêssego com Morango"],
       extraCost: 15,
       extraCostCopao: 0,
-      maxQuantity: 1
+      maxQuantity: 1,
+      isLargeDrink: true
     },
     {
       name: "Red Bull",
@@ -62,7 +65,8 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
       flavors: ["Fusion (1 litro)"],
       extraCost: 15,
       extraCostCopao: 10,
-      maxQuantity: 1
+      maxQuantity: 1,
+      isLargeDrink: true
     }
   ];
   
@@ -84,67 +88,33 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
     const option = energyDrinkOptions.find(opt => opt.name === type);
     if (!option) return;
 
-    // Check if trying to add Baly/Traditional while having Red Bull or vice versa
-    const hasRedBull = selections['Red Bull'] && Object.values(selections['Red Bull']).some(qty => qty > 0);
-    const hasMonster = selections['Monster'] && Object.values(selections['Monster']).some(qty => qty > 0);
-    const hasTraditional = selections['Energético Tradicional'] && Object.values(selections['Energético Tradicional']).some(qty => qty > 0);
-    const hasBaly = selections['Baly'] && Object.values(selections['Baly']).some(qty => qty > 0);
+    const hasLargeDrinks = Object.keys(selections).some(drinkType => 
+      energyDrinkOptions.find(opt => opt.name === drinkType)?.isLargeDrink
+    );
+    const isLargeDrink = option.isLargeDrink;
+    const hasCans = Object.keys(selections).some(drinkType => {
+      const opt = energyDrinkOptions.find(opt => opt.name === drinkType);
+      return !opt?.isLargeDrink && Object.values(selections[drinkType]).some(qty => qty > 0);
+    });
 
-    const isAddingRedBullOrMonster = type === 'Red Bull' || type === 'Monster';
-    const isAddingBalyOrTraditional = type === 'Baly' || type === 'Energético Tradicional';
+    if (productType === 'combo') {
+      if (isLargeDrink && hasCans) {
+        toast({
+          title: "Seleção não permitida",
+          description: "Não é possível misturar bebidas de 2L com latas no mesmo combo.",
+          variant: "destructive",
+        });
+        return;
+      }
 
-    if (isAddingRedBullOrMonster && (hasTraditional || hasBaly)) {
-      setSelections(prev => {
-        const newSelections = { ...prev };
-        delete newSelections['Energético Tradicional'];
-        delete newSelections['Baly'];
-        return {
-          ...newSelections,
-          [type]: {
-            ...prev[type],
-            [flavor]: (prev[type]?.[flavor] || 0) + 1
-          }
-        };
-      });
-      
-      toast({
-        title: "Seleção atualizada",
-        description: "Energético Tradicional e Baly foram removidos para permitir a seleção de Red Bull/Monster.",
-        variant: "default",
-      });
-      return;
-    }
-
-    if (isAddingBalyOrTraditional && (hasRedBull || hasMonster)) {
-      setSelections(prev => {
-        const newSelections = { ...prev };
-        delete newSelections['Red Bull'];
-        delete newSelections['Monster'];
-        return {
-          ...newSelections,
-          [type]: {
-            ...prev[type],
-            [flavor]: (prev[type]?.[flavor] || 0) + 1
-          }
-        };
-      });
-      
-      toast({
-        title: "Seleção atualizada",
-        description: "Red Bull e Monster foram removidos para permitir a seleção de Tradicional/Baly.",
-        variant: "default",
-      });
-      return;
-    }
-
-    // Check total can limit only for combos
-    if (productType === 'combo' && (type === 'Red Bull' || type === 'Monster') && getTotalCanCount() >= 5) {
-      toast({
-        title: "Limite atingido",
-        description: "Você pode selecionar no máximo 5 latas no total (RedBull + Monster combinados).",
-        variant: "destructive",
-      });
-      return;
+      if (!isLargeDrink && hasLargeDrinks) {
+        toast({
+          title: "Seleção não permitida",
+          description: "Você já selecionou uma bebida de 2L. Não é possível adicionar latas.",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     const currentTypeTotal = Object.values(selections[type] || {}).reduce((sum, qty) => sum + qty, 0);
@@ -204,13 +174,28 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
       return;
     }
 
-    if (productType === 'combo' && getTotalCanCount() !== 5) {
-      toast({
-        title: "Seleção incorreta",
-        description: "É necessário selecionar exatamente 5 latas de energético para o combo.",
-        variant: "destructive",
-      });
-      return;
+    const hasLargeDrink = Object.keys(selections).some(drinkType => 
+      energyDrinkOptions.find(opt => opt.name === drinkType)?.isLargeDrink
+    );
+
+    if (productType === 'combo') {
+      if (!hasLargeDrink && getTotalCanCount() !== 5) {
+        toast({
+          title: "Seleção incorreta",
+          description: "Para combos com latas, é necessário selecionar exatamente 5 latas de energético.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (hasLargeDrink && totalSelections !== 1) {
+        toast({
+          title: "Seleção incorreta",
+          description: "Para combos com bebidas de 2L, é necessário selecionar exatamente 1 unidade.",
+          variant: "destructive",
+        });
+        return;
+      }
     }
     
     const energyDrinkSelections: Array<{ type: string; flavor: string }> = [];
