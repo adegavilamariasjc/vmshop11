@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import {
   Carousel,
@@ -8,26 +7,26 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { useInterval } from "@/hooks/useInterval";
-import { useIsMobile } from "@/hooks/use-mobile";
+import ImageModal from './ImageModal';
 
 const Logo: React.FC = () => {
   const [api, setApi] = useState<any>(null);
   const [current, setCurrent] = useState(0);
-  const [timestamp, setTimestamp] = useState(Date.now());  // Add timestamp for cache busting
-  
+  const [timestamp, setTimestamp] = useState(Date.now());
+
   const [images, setImages] = useState([
     {
-      src: `https://adegavm.shop/logo.gif?t=${timestamp}`,  // Add timestamp query param
+      src: `https://adegavm.shop/logo.gif?t=${timestamp}`,
       alt: "Logotipo da Loja",
       fallbackSrc: "/placeholder.svg"
     },
     {
-      src: `https://adegavm.shop/ban1.png?t=${timestamp}`,  // Add timestamp query param
+      src: `https://adegavm.shop/ban1.png?t=${timestamp}`,
       alt: "Banner Promocional 1",
       fallbackSrc: "/placeholder.svg"
     },
     {
-      src: `https://adegavm.shop/ban2.png?t=${timestamp}`,  // Add timestamp query param
+      src: `https://adegavm.shop/ban2.png?t=${timestamp}`,
       alt: "Banner Promocional 2", 
       fallbackSrc: "/placeholder.svg"
     }
@@ -49,7 +48,6 @@ const Logo: React.FC = () => {
   }, 5000);
 
   const handleImageError = (src: string) => {
-    // Attempt to reload image by updating timestamp
     setTimestamp(Date.now());
     setImages(prevImages => 
       prevImages.map(img => 
@@ -77,12 +75,9 @@ const Logo: React.FC = () => {
         {images.map((image, index) => (
           <CarouselItem key={index} className="flex items-center justify-center">
             <div className="w-full sm:w-[400px] flex items-center justify-center">
-              <img
+              <ImageModal
                 src={image.src}
                 alt={image.alt}
-                onError={() => handleImageError(image.src)}
-                onLoad={() => handleImageLoad(image.src)}
-                className="w-full h-auto max-h-[150px] sm:max-h-[200px] object-contain"
               />
             </div>
           </CarouselItem>
