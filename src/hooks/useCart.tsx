@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -123,27 +122,21 @@ export const useCart = () => {
     }
     
     const itemWithIce = { ...selectedProductForFlavor, ice: selectedIce };
+    setIsFlavorModalOpen(false);
     
-    // For Copão products, go to energy drink selection
     if (itemWithIce.name.toLowerCase().includes('copão')) {
-      setIsFlavorModalOpen(false);
-      
       toast({
         title: "Gelo adicionado",
         description: "Agora selecione o energético para seu copão.",
       });
       
-      // Logic to handle energy drink selection is in ProductSelectionView
       return itemWithIce;
     }
-    // Check if the product contains Baly (for combos)
     else if (containsBaly(itemWithIce.name)) {
       setSelectedProductForBaly(itemWithIce);
-      setIsFlavorModalOpen(false);
       setIsBalyModalOpen(true);
     } else {
       handleUpdateQuantity(itemWithIce, 1);
-      setIsFlavorModalOpen(false);
       
       toast({
         title: "Item adicionado",
@@ -162,7 +155,6 @@ export const useCart = () => {
       price: (selectedProductForAlcohol.price || 0) + extraCost,
     };
     
-    // Verificar se o produto contém Baly (para combos)
     if (containsBaly(itemWithAlcohol.name)) {
       setSelectedProductForBaly(itemWithAlcohol);
       setIsAlcoholModalOpen(false);

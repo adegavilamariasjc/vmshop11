@@ -91,7 +91,7 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
         <ProductList
           category={activeCategory}
           cart={cart}
-          onAddProduct={onAddProduct}
+          onAddProduct={handleIceConfirmation}
           onUpdateQuantity={onUpdateQuantity}
         />
       )}

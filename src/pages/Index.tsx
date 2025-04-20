@@ -10,6 +10,7 @@ import CheckoutView from '../components/CheckoutView';
 import FlavorSelectionModal from '../components/FlavorSelectionModal';
 import AlcoholSelectionModal from '../components/AlcoholSelectionModal';
 import BalyFlavorSelectionModal from '../components/BalyFlavorSelectionModal';
+import EnergyDrinkSelectionModal from '../components/EnergyDrinkSelectionModal';
 import OrderSuccessModal from '../components/OrderSuccessModal';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
@@ -308,7 +309,12 @@ const Index = () => {
         product={selectedProductForFlavor}
         selectedIce={selectedIce}
         updateIceQuantity={updateIceQuantity}
-        onConfirm={confirmFlavorSelection}
+        onConfirm={() => {
+          const productWithIce = confirmFlavorSelection();
+          if (productWithIce && productWithIce.name.toLowerCase().includes('copão')) {
+            handleIceConfirmation(productWithIce);
+          }
+        }}
       />
       
       <AlcoholSelectionModal
