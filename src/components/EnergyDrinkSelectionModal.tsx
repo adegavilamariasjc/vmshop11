@@ -1,14 +1,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { X } from 'lucide-react';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader,
-  DialogTitle,
-  DialogClose 
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface EnergyDrinkOption {
   name: string;
@@ -31,22 +24,22 @@ const energyDrinkOptions: EnergyDrinkOption[] = [
   {
     name: "Baly",
     flavors: ["Melancia", "Tropical", "Maçã Verde", "Pêssego com Morango"],
-    extraCost: 0
+    extraCost: 15
   },
   {
     name: "Red Bull",
     flavors: ["Tradicional", "Melancia com Melão", "Pomelo", "Tropical", "Frutas Tropicais", "Pêssego", "Pera com Canela"],
-    extraCost: 10
+    extraCost: 60
   },
   {
     name: "Monster",
     flavors: ["Tradicional", "Mango Loco", "Melancia"],
-    extraCost: 10
+    extraCost: 60
   },
   {
     name: "Fusion",
-    flavors: ["Fusion"],
-    extraCost: 10
+    flavors: ["Fusion (1 litro)"],
+    extraCost: 15
   }
 ];
 
@@ -62,7 +55,7 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
       <DialogContent className="max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-lg font-bold text-white">
-            Qual energético deseja adicionar?
+            Qual energético acompanha o combo?
           </DialogTitle>
         </DialogHeader>
         
