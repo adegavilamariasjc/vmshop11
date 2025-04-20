@@ -19,44 +19,6 @@ interface EnergyDrinkSelectionModalProps {
   productType?: 'copao' | 'combo';
 }
 
-const energyDrinkOptions: EnergyDrinkOption[] = [
-  {
-    name: "Energético Tradicional",
-    flavors: ["Tradicional"],
-    extraCost: 0,
-    extraCostCopao: 0,
-    maxQuantity: 1
-  },
-  {
-    name: "Baly",
-    flavors: ["Melancia", "Tropical", "Maçã Verde", "Pêssego com Morango"],
-    extraCost: 15,
-    extraCostCopao: 0,
-    maxQuantity: 1
-  },
-  {
-    name: "Red Bull",
-    flavors: ["Tradicional", "Melancia com Melão", "Pomelo", "Tropical", "Frutas Tropicais", "Pêssego", "Pera com Canela"],
-    extraCost: 60,
-    extraCostCopao: 12,
-    maxQuantity: productType === 'copao' ? 1 : 5
-  },
-  {
-    name: "Monster",
-    flavors: ["Tradicional", "Mango Loco", "Melancia"],
-    extraCost: 60,
-    extraCostCopao: 12,
-    maxQuantity: productType === 'copao' ? 1 : 5
-  },
-  {
-    name: "Fusion",
-    flavors: ["Fusion (1 litro)"],
-    extraCost: 15,
-    extraCostCopao: 10,
-    maxQuantity: 1
-  }
-];
-
 const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
   isOpen,
   onClose,
@@ -65,6 +27,44 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
 }) => {
   const { toast } = useToast();
   const [selections, setSelections] = useState<Record<string, Record<string, number>>>({});
+  
+  const energyDrinkOptions: EnergyDrinkOption[] = [
+    {
+      name: "Energético Tradicional",
+      flavors: ["Tradicional"],
+      extraCost: 0,
+      extraCostCopao: 0,
+      maxQuantity: 1
+    },
+    {
+      name: "Baly",
+      flavors: ["Melancia", "Tropical", "Maçã Verde", "Pêssego com Morango"],
+      extraCost: 15,
+      extraCostCopao: 0,
+      maxQuantity: 1
+    },
+    {
+      name: "Red Bull",
+      flavors: ["Tradicional", "Melancia com Melão", "Pomelo", "Tropical", "Frutas Tropicais", "Pêssego", "Pera com Canela"],
+      extraCost: 60,
+      extraCostCopao: 12,
+      maxQuantity: productType === 'copao' ? 1 : 5
+    },
+    {
+      name: "Monster",
+      flavors: ["Tradicional", "Mango Loco", "Melancia"],
+      extraCost: 60,
+      extraCostCopao: 12,
+      maxQuantity: productType === 'copao' ? 1 : 5
+    },
+    {
+      name: "Fusion",
+      flavors: ["Fusion (1 litro)"],
+      extraCost: 15,
+      extraCostCopao: 10,
+      maxQuantity: 1
+    }
+  ];
   
   const getTotalCanCount = () => {
     if (productType === 'copao') return 0; // Not needed for copao since individual limits are enforced
