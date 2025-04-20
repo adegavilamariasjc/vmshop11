@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -29,6 +30,7 @@ export const useCart = () => {
   const [selectedIce, setSelectedIce] = useState<Record<string, number>>({});
   const [selectedAlcohol, setSelectedAlcohol] = useState<AlcoholOption | null>(null);
   const [pendingProductWithIce, setPendingProductWithIce] = useState<Product | null>(null);
+  const [currentProductType, setCurrentProductType] = useState<'copao' | 'combo'>('combo');
 
   useEffect(() => {
     if (selectedProductForFlavor) {
@@ -47,9 +49,21 @@ export const useCart = () => {
       isEnergyDrinkModalOpen,
       pendingProductWithIce: pendingProductWithIce ? pendingProductWithIce.name : 'none',
       selectedProductForFlavor: selectedProductForFlavor ? selectedProductForFlavor.name : 'none',
-      selectedProductCategory: selectedProductForFlavor ? selectedProductForFlavor.category : 'none'
+      selectedProductCategory: selectedProductForFlavor ? selectedProductForFlavor.category : 'none',
+      currentProductType
     });
-  }, [isFlavorModalOpen, isAlcoholModalOpen, isBalyModalOpen, isEnergyDrinkModalOpen, pendingProductWithIce, selectedProductForFlavor]);
+  }, [isFlavorModalOpen, isAlcoholModalOpen, isBalyModalOpen, isEnergyDrinkModalOpen, pendingProductWithIce, selectedProductForFlavor, currentProductType]);
+
+  // Helper function to determine if a product is a copão
+  const isCopao = (product: Product): boolean => {
+    return product.name.toLowerCase().includes('copão');
+  };
+
+  // Helper function to determine if a product is a combo
+  const isCombo = (product: Product): boolean => {
+    return product.category === "Combos" || 
+          (product.category && product.category.toLowerCase().includes('combo'));
+  };
 
   const handleSelectCategory = (category: string) => {
     setActiveCategory(activeCategory === category ? null : category);
@@ -139,11 +153,21 @@ export const useCart = () => {
     const itemWithIce = { ...selectedProductForFlavor, ice: selectedIce };
     setIsFlavorModalOpen(false);
     
-    // Check if the item is a combo (category contains "Combo") to show energy drink selection
-    if (itemWithIce.category === "Combos" || 
-        (itemWithIce.category && itemWithIce.category.toLowerCase().includes('combo')) || 
-        itemWithIce.name.toLowerCase().includes('copão')) {
+    // Check if the item is a copão to show energy drink selection with copão pricing
+    if (isCopao(itemWithIce)) {
       setPendingProductWithIce(itemWithIce);
+      setCurrentProductType('copao');
+      setIsEnergyDrinkModalOpen(true);
+      
+      toast({
+        title: "Gelo adicionado",
+        description: "Agora selecione o energético para seu copão.",
+      });
+    }
+    // Check if the item is a combo to show energy drink selection with combo pricing
+    else if (isCombo(itemWithIce)) {
+      setPendingProductWithIce(itemWithIce);
+      setCurrentProductType('combo');
       setIsEnergyDrinkModalOpen(true);
       
       toast({
@@ -221,10 +245,8 @@ export const useCart = () => {
         (requiresFlavor(item.category || '') && (!item.ice || Object.values(item.ice).reduce((a, b) => a + b, 0) === 0)) ||
         (requiresAlcoholChoice(item.category || '') && !item.alcohol) ||
         (containsBaly(item.name) && !item.balyFlavor) ||
-        (item.name.toLowerCase().includes('copão') && !item.energyDrink) ||
-        ((item.category === "Combos" || 
-          (item.category && item.category.toLowerCase().includes('combo'))) && 
-          !item.energyDrink)
+        (isCopao(item) && !item.energyDrink) ||
+        (isCombo(item) && !item.energyDrink)
     );
     
     if (missing.length > 0) {
@@ -240,11 +262,13 @@ export const useCart = () => {
       } else if (containsBaly(itemPend.name)) {
         setSelectedProductForBaly(itemPend);
         setIsBalyModalOpen(true);
-      } else if ((itemPend.category === "Combos" || 
-                 (itemPend.category && itemPend.category.toLowerCase().includes('combo')) || 
-                 itemPend.name.toLowerCase().includes('copão')) && 
-                 !itemPend.energyDrink) {
+      } else if (isCopao(itemPend) && !itemPend.energyDrink) {
         setPendingProductWithIce(itemPend);
+        setCurrentProductType('copao');
+        setIsEnergyDrinkModalOpen(true);
+      } else if (isCombo(itemPend) && !itemPend.energyDrink) {
+        setPendingProductWithIce(itemPend);
+        setCurrentProductType('combo');
         setIsEnergyDrinkModalOpen(true);
       }
     } else {
@@ -286,6 +310,8 @@ export const useCart = () => {
     selectedProductForBaly,
     selectedIce,
     selectedAlcohol,
+    pendingProductWithIce,
+    currentProductType,
     setShowSummary,
     handleSelectCategory,
     handleAddProduct,

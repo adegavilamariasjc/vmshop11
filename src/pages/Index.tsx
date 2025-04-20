@@ -32,6 +32,7 @@ const Index = () => {
     selectedProductForBaly,
     selectedIce,
     selectedAlcohol,
+    currentProductType,
     setShowSummary,
     handleSelectCategory,
     handleAddProduct,
@@ -106,8 +107,8 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
-    console.log("Index component, isEnergyDrinkModalOpen:", isEnergyDrinkModalOpen);
-  }, [isEnergyDrinkModalOpen]);
+    console.log("Index component, isEnergyDrinkModalOpen:", isEnergyDrinkModalOpen, "productType:", currentProductType);
+  }, [isEnergyDrinkModalOpen, currentProductType]);
 
   const checkDuplicateOrder = async (clienteNome: string, clienteWhatsapp: string, total: number) => {
     try {
@@ -353,6 +354,7 @@ const Index = () => {
           setPendingProductWithIce(null);
         }}
         onConfirm={handleEnergyDrinkSelection}
+        productType={currentProductType}
       />
       
       <OrderSuccessModal
