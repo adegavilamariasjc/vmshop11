@@ -327,9 +327,7 @@ const Index = () => {
         product={selectedProductForFlavor}
         selectedIce={selectedIce}
         updateIceQuantity={updateIceQuantity}
-        onConfirm={() => {
-          confirmFlavorSelection();
-        }}
+        onConfirm={confirmFlavorSelection}
       />
       
       <AlcoholSelectionModal

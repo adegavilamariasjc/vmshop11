@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -140,24 +139,16 @@ export const useCart = () => {
     const itemWithIce = { ...selectedProductForFlavor, ice: selectedIce };
     setIsFlavorModalOpen(false);
     
-    // Check if the item is a combo (category "Combos") to show energy drink selection
-    if (itemWithIce.category === "Combos") {
+    // Check if the item is a combo (category contains "Combo") to show energy drink selection
+    if (itemWithIce.category === "Combos" || 
+        (itemWithIce.category && itemWithIce.category.toLowerCase().includes('combo')) || 
+        itemWithIce.name.toLowerCase().includes('copão')) {
       setPendingProductWithIce(itemWithIce);
       setIsEnergyDrinkModalOpen(true);
       
       toast({
         title: "Gelo adicionado",
         description: "Agora selecione o energético para seu combo.",
-      });
-    }
-    // Check if the item is a "Copão" to show energy drink selection
-    else if (itemWithIce.name.toLowerCase().includes('copão')) {
-      setPendingProductWithIce(itemWithIce);
-      setIsEnergyDrinkModalOpen(true);
-      
-      toast({
-        title: "Gelo adicionado",
-        description: "Agora selecione o energético para seu copão.",
       });
     }
     else if (containsBaly(itemWithIce.name)) {
@@ -231,7 +222,9 @@ export const useCart = () => {
         (requiresAlcoholChoice(item.category || '') && !item.alcohol) ||
         (containsBaly(item.name) && !item.balyFlavor) ||
         (item.name.toLowerCase().includes('copão') && !item.energyDrink) ||
-        (item.category === "Combos" && !item.energyDrink)
+        ((item.category === "Combos" || 
+          (item.category && item.category.toLowerCase().includes('combo'))) && 
+          !item.energyDrink)
     );
     
     if (missing.length > 0) {
@@ -247,7 +240,10 @@ export const useCart = () => {
       } else if (containsBaly(itemPend.name)) {
         setSelectedProductForBaly(itemPend);
         setIsBalyModalOpen(true);
-      } else if ((itemPend.category === "Combos" || itemPend.name.toLowerCase().includes('copão')) && !itemPend.energyDrink) {
+      } else if ((itemPend.category === "Combos" || 
+                 (itemPend.category && itemPend.category.toLowerCase().includes('combo')) || 
+                 itemPend.name.toLowerCase().includes('copão')) && 
+                 !itemPend.energyDrink) {
         setPendingProductWithIce(itemPend);
         setIsEnergyDrinkModalOpen(true);
       }

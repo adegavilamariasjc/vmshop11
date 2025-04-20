@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 interface EnergyDrinkOption {
   name: string;
@@ -57,6 +58,9 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
           <DialogTitle className="text-lg font-bold text-white">
             Qual energético acompanha o combo?
           </DialogTitle>
+          <DialogDescription className="text-gray-300 text-sm">
+            Selecione o tipo e o sabor do energético
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
