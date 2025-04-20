@@ -22,11 +22,13 @@ export const useCart = () => {
   const [isFlavorModalOpen, setIsFlavorModalOpen] = useState(false);
   const [isAlcoholModalOpen, setIsAlcoholModalOpen] = useState(false);
   const [isBalyModalOpen, setIsBalyModalOpen] = useState(false);
+  const [isEnergyDrinkModalOpen, setIsEnergyDrinkModalOpen] = useState(false);
   const [selectedProductForFlavor, setSelectedProductForFlavor] = useState<Product | null>(null);
   const [selectedProductForAlcohol, setSelectedProductForAlcohol] = useState<Product | null>(null);
   const [selectedProductForBaly, setSelectedProductForBaly] = useState<Product | null>(null);
   const [selectedIce, setSelectedIce] = useState<Record<string, number>>({});
   const [selectedAlcohol, setSelectedAlcohol] = useState<AlcoholOption | null>(null);
+  const [pendingProductWithIce, setPendingProductWithIce] = useState<Product | null>(null);
 
   useEffect(() => {
     if (selectedProductForFlavor) {
@@ -225,6 +227,26 @@ export const useCart = () => {
     }
   };
 
+  const handleEnergyDrinkSelection = (energyDrink: { type: string; flavor: string; extraCost: number }) => {
+    if (!pendingProductWithIce) return;
+
+    const finalProduct = {
+      ...pendingProductWithIce,
+      energyDrink: energyDrink.type,
+      energyDrinkFlavor: energyDrink.flavor,
+      price: (pendingProductWithIce.price || 0) + energyDrink.extraCost
+    };
+
+    handleUpdateQuantity(finalProduct, 1);
+    setIsEnergyDrinkModalOpen(false);
+    setPendingProductWithIce(null);
+
+    toast({
+      title: "Energético selecionado",
+      description: `${energyDrink.type} - ${energyDrink.flavor} adicionado ao pedido.`,
+    });
+  };
+
   return {
     cart,
     activeCategory,
@@ -232,6 +254,7 @@ export const useCart = () => {
     isFlavorModalOpen,
     isAlcoholModalOpen,
     isBalyModalOpen,
+    isEnergyDrinkModalOpen,
     selectedProductForFlavor,
     selectedProductForAlcohol,
     selectedProductForBaly,
@@ -249,6 +272,9 @@ export const useCart = () => {
     setIsFlavorModalOpen,
     setIsAlcoholModalOpen,
     setIsBalyModalOpen,
-    setSelectedAlcohol
+    setSelectedAlcohol,
+    setIsEnergyDrinkModalOpen,
+    setPendingProductWithIce,
+    handleEnergyDrinkSelection
   };
 };

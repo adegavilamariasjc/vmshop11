@@ -43,7 +43,10 @@ const Index = () => {
     setIsFlavorModalOpen,
     setIsAlcoholModalOpen,
     setIsBalyModalOpen,
-    setSelectedAlcohol
+    setSelectedAlcohol,
+    setSelectedProductForBaly,
+    setIsEnergyDrinkModalOpen,
+    setPendingProductWithIce
   } = useCart();
 
   const [codigoPedido] = useState(gerarCodigoPedido());
@@ -267,6 +270,15 @@ const Index = () => {
     }
   };
 
+  const handleIceConfirmation = (productWithIce: Product) => {
+    if (productWithIce.name.toLowerCase().includes('copão')) {
+      setPendingProductWithIce(productWithIce);
+      setIsEnergyDrinkModalOpen(true);
+    } else {
+      handleAddProduct(productWithIce);
+    }
+  };
+
   if (isLoading) {
     return (
       <PageLayout>
@@ -331,6 +343,15 @@ const Index = () => {
         onClose={() => setIsBalyModalOpen(false)}
         product={selectedProductForBaly}
         onConfirm={confirmBalySelection}
+      />
+      
+      <EnergyDrinkSelectionModal
+        isOpen={isEnergyDrinkModalOpen}
+        onClose={() => {
+          setIsEnergyDrinkModalOpen(false);
+          setPendingProductWithIce(null);
+        }}
+        onConfirm={handleEnergyDrinkSelection}
       />
       
       <OrderSuccessModal
