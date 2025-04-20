@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Plus, Minus, X } from 'lucide-react';
 import { Product } from '../types';
 import { iceFlavors, getMaxIce } from '../data/products';
+import { useToast } from '@/hooks/use-toast';
 
 interface FlavorSelectionModalProps {
   isOpen: boolean;
@@ -22,10 +23,49 @@ const FlavorSelectionModal: React.FC<FlavorSelectionModalProps> = ({
   updateIceQuantity,
   onConfirm,
 }) => {
+  const { toast } = useToast();
+  
   if (!isOpen || !product) return null;
   
   const maxIce = getMaxIce(product.category || '');
   const totalIce = Object.values(selectedIce).reduce((sum, v) => sum + v, 0);
+  const waterIceQuantity = selectedIce['Água'] || 0;
+  const hasOtherIceSelected = Object.entries(selectedIce)
+    .some(([flavor, qty]) => flavor !== 'Água' && qty > 0);
+  
+  const handleIceUpdate = (flavor: string, delta: number) => {
+    // Se está tentando adicionar gelo de água e já tem outros gelos
+    if (flavor === 'Água' && delta > 0 && hasOtherIceSelected) {
+      toast({
+        title: "Seleção não permitida",
+        description: "Não é possível selecionar gelo de água quando outros tipos já foram selecionados.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Se está tentando adicionar outro tipo de gelo e já tem 5 gelos de água
+    if (flavor !== 'Água' && delta > 0 && waterIceQuantity === 5) {
+      toast({
+        title: "Seleção não permitida",
+        description: "Você já selecionou 5 gelos de água (1 saco grande). Não é possível adicionar outros tipos.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Se está tentando adicionar gelo de água além do limite de 5
+    if (flavor === 'Água' && waterIceQuantity + delta > 5) {
+      toast({
+        title: "Limite atingido",
+        description: "O máximo permitido é 5 gelos de água (1 saco grande).",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    updateIceQuantity(flavor, delta);
+  };
   
   return (
     <motion.div
@@ -60,7 +100,7 @@ const FlavorSelectionModal: React.FC<FlavorSelectionModalProps> = ({
               
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => updateIceQuantity(flavor, -1)}
+                  onClick={() => handleIceUpdate(flavor, -1)}
                   className="w-8 h-8 flex items-center justify-center bg-gray-700 text-white rounded-full"
                   disabled={!selectedIce[flavor]}
                 >
@@ -72,9 +112,14 @@ const FlavorSelectionModal: React.FC<FlavorSelectionModalProps> = ({
                 </span>
                 
                 <button
-                  onClick={() => updateIceQuantity(flavor, 1)}
+                  onClick={() => handleIceUpdate(flavor, 1)}
                   className="w-8 h-8 flex items-center justify-center bg-purple-dark text-white rounded-full"
-                  disabled={totalIce >= maxIce}
+                  disabled={
+                    (flavor === 'Água' && waterIceQuantity >= 5) ||
+                    (flavor !== 'Água' && waterIceQuantity === 5) ||
+                    (flavor === 'Água' && hasOtherIceSelected) ||
+                    totalIce >= maxIce
+                  }
                 >
                   <Plus size={16} />
                 </button>
@@ -85,6 +130,11 @@ const FlavorSelectionModal: React.FC<FlavorSelectionModalProps> = ({
         
         <div className="text-sm text-gray-300 mb-4">
           Total selecionado: {totalIce} de {maxIce} unidades
+          {waterIceQuantity === 5 && (
+            <div className="mt-2 text-purple-light">
+              5 gelos de água = 1 saco grande de gelo
+            </div>
+          )}
         </div>
         
         <div className="flex gap-3 justify-end">
