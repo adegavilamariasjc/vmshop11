@@ -1,4 +1,3 @@
-
 export interface Product {
   name: string;
   price: number;
@@ -7,6 +6,8 @@ export interface Product {
   ice?: Record<string, number>;
   alcohol?: string;
   balyFlavor?: string;
+  energyDrink?: string;
+  energyDrinkFlavor?: string;
 }
 
 export interface Bairro {
