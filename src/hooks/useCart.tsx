@@ -134,8 +134,6 @@ export const useCart = () => {
         title: "Gelo adicionado",
         description: "Agora selecione o energético para seu copão.",
       });
-      
-      return;
     }
     else if (containsBaly(itemWithIce.name)) {
       setSelectedProductForBaly(itemWithIce);

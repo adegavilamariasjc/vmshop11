@@ -66,16 +66,16 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
           </DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-4 max-h-[65vh] overflow-y-auto pr-1">
+        <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
           {energyDrinkOptions.map((option) => (
-            <div key={option.name} className="bg-gray-800/50 rounded-lg p-3">
-              <h3 className="text-purple-light font-semibold mb-2 flex items-center gap-2">
+            <div key={option.name} className="bg-gray-800/50 rounded-lg p-2">
+              <h3 className="text-purple-light font-semibold mb-1 flex items-center gap-2 text-sm">
                 🔹 {option.name}
                 {option.extraCost > 0 && (
-                  <span className="text-sm text-gray-300">(+R${option.extraCost.toFixed(2)})</span>
+                  <span className="text-xs text-gray-300">(+R${option.extraCost.toFixed(2)})</span>
                 )}
               </h3>
-              <div className="grid gap-1">
+              <div className="grid grid-cols-2 gap-1 text-xs">
                 {option.flavors.map((flavor) => (
                   <button
                     key={`${option.name}-${flavor}`}
@@ -84,7 +84,7 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
                       flavor: flavor,
                       extraCost: option.extraCost
                     })}
-                    className="text-left px-3 py-1.5 rounded bg-gray-700/50 hover:bg-purple-dark/50 text-white transition-colors text-sm"
+                    className="text-left px-2 py-1 rounded bg-gray-700/50 hover:bg-purple-dark/50 text-white transition-colors"
                   >
                     • {flavor}
                   </button>

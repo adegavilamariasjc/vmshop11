@@ -324,10 +324,7 @@ const Index = () => {
         selectedIce={selectedIce}
         updateIceQuantity={updateIceQuantity}
         onConfirm={() => {
-          const productWithIce = confirmFlavorSelection();
-          if (productWithIce && productWithIce.name.toLowerCase().includes('copão')) {
-            handleIceConfirmation(productWithIce);
-          }
+          confirmFlavorSelection();
         }}
       />
       
