@@ -13,19 +13,21 @@ import { useIsMobile } from "@/hooks/use-mobile";
 const Logo: React.FC = () => {
   const [api, setApi] = useState<any>(null);
   const [current, setCurrent] = useState(0);
+  const [timestamp, setTimestamp] = useState(Date.now());  // Add timestamp for cache busting
+  
   const [images, setImages] = useState([
     {
-      src: "https://adegavm.shop/logo.gif",
+      src: `https://adegavm.shop/logo.gif?t=${timestamp}`,  // Add timestamp query param
       alt: "Logotipo da Loja",
-      fallbackSrc: "/placeholder.svg" // Add a local fallback image
+      fallbackSrc: "/placeholder.svg"
     },
     {
-      src: "https://adegavm.shop/ban1.png",
+      src: `https://adegavm.shop/ban1.png?t=${timestamp}`,  // Add timestamp query param
       alt: "Banner Promocional 1",
       fallbackSrc: "/placeholder.svg"
     },
     {
-      src: "https://adegavm.shop/ban2.png",
+      src: `https://adegavm.shop/ban2.png?t=${timestamp}`,  // Add timestamp query param
       alt: "Banner Promocional 2", 
       fallbackSrc: "/placeholder.svg"
     }
@@ -47,11 +49,12 @@ const Logo: React.FC = () => {
   }, 5000);
 
   const handleImageError = (src: string) => {
-    // Remove the failed image URL from the list
+    // Attempt to reload image by updating timestamp
+    setTimestamp(Date.now());
     setImages(prevImages => 
       prevImages.map(img => 
-        img.src === src 
-          ? { ...img, src: img.fallbackSrc || '/placeholder.svg' } 
+        img.src.includes(src) 
+          ? { ...img, src: `${img.src.split('?')[0]}?t=${Date.now()}` } 
           : img
       )
     );
