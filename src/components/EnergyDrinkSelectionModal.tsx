@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -31,7 +30,6 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
   const [selections, setSelections] = useState<Record<string, Record<string, number>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Reset selections and submitting state when modal is opened/closed
   useEffect(() => {
     if (!isOpen) {
       setSubmitting(false);
@@ -42,7 +40,6 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
   
   const setSubmitting = (value: boolean) => {
     setIsSubmitting(value);
-    // Safety timeout to auto-reset in case something fails
     if (value) {
       setTimeout(() => {
         setIsSubmitting(false);
@@ -54,8 +51,8 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
     {
       name: "Energético Tradicional",
       flavors: ["Tradicional"],
-      extraCost: 0,
-      extraCostCopao: 0,
+      extraCost: 10,
+      extraCostCopao: 10,
       maxQuantity: 1,
       isLargeDrink: true
     },
@@ -92,7 +89,7 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
   ];
   
   const getTotalCanCount = () => {
-    if (productType === 'copao') return 0; // Not needed for copao since individual limits are enforced
+    if (productType === 'copao') return 0;
     
     const redBullCount = selections['Red Bull'] 
       ? Object.values(selections['Red Bull']).reduce((sum, qty) => sum + qty, 0) 
@@ -224,7 +221,6 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
       }
     }
     
-    // Prevent multiple submissions
     setSubmitting(true);
     
     const energyDrinkSelections: Array<{ type: string; flavor: string }> = [];
@@ -244,7 +240,6 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
       });
     });
     
-    // Use setTimeout to allow UI to update before closing
     setTimeout(() => {
       onConfirm({ selections: energyDrinkSelections, totalExtraCost });
       setSelections({});
