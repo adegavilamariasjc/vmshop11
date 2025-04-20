@@ -39,6 +39,19 @@ export const useCart = () => {
     }
   }, [selectedProductForFlavor]);
 
+  // Debug log to track modal states
+  useEffect(() => {
+    console.log('Modal states:', {
+      isFlavorModalOpen,
+      isAlcoholModalOpen,
+      isBalyModalOpen,
+      isEnergyDrinkModalOpen,
+      pendingProductWithIce: pendingProductWithIce ? pendingProductWithIce.name : 'none',
+      selectedProductForFlavor: selectedProductForFlavor ? selectedProductForFlavor.name : 'none',
+      selectedProductCategory: selectedProductForFlavor ? selectedProductForFlavor.category : 'none'
+    });
+  }, [isFlavorModalOpen, isAlcoholModalOpen, isBalyModalOpen, isEnergyDrinkModalOpen, pendingProductWithIce, selectedProductForFlavor]);
+
   const handleSelectCategory = (category: string) => {
     setActiveCategory(activeCategory === category ? null : category);
   };

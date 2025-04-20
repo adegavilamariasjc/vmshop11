@@ -105,6 +105,10 @@ const Index = () => {
     fetchBairros();
   }, []);
 
+  useEffect(() => {
+    console.log("Index component, isEnergyDrinkModalOpen:", isEnergyDrinkModalOpen);
+  }, [isEnergyDrinkModalOpen]);
+
   const checkDuplicateOrder = async (clienteNome: string, clienteWhatsapp: string, total: number) => {
     try {
       const thirtyMinutesAgo = new Date();

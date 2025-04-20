@@ -48,8 +48,8 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
   onClose,
   onConfirm,
 }) => {
-  if (!isOpen) return null;
-
+  console.log("EnergyDrinkSelectionModal rendered, isOpen:", isOpen);
+  
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-h-[85vh] overflow-y-auto">
