@@ -13,22 +13,25 @@ import { useIsMobile } from "@/hooks/use-mobile";
 const Logo: React.FC = () => {
   const [api, setApi] = useState<any>(null);
   const [current, setCurrent] = useState(0);
-  const isMobile = useIsMobile();
-  
-  const images = [
+  const [images, setImages] = useState([
     {
       src: "https://adegavm.shop/logo.gif",
-      alt: "Logotipo da Loja"
+      alt: "Logotipo da Loja",
+      fallbackSrc: "/placeholder.svg" // Add a local fallback image
     },
     {
       src: "https://adegavm.shop/ban1.png",
-      alt: "Banner Promocional 1"
+      alt: "Banner Promocional 1",
+      fallbackSrc: "/placeholder.svg"
     },
     {
       src: "https://adegavm.shop/ban2.png",
-      alt: "Banner Promocional 2"
+      alt: "Banner Promocional 2", 
+      fallbackSrc: "/placeholder.svg"
     }
-  ];
+  ]);
+
+  const [loadedImages, setLoadedImages] = useState<string[]>([]);
 
   useEffect(() => {
     if (!api) return;
@@ -42,6 +45,21 @@ const Logo: React.FC = () => {
     if (!api) return;
     api.scrollNext();
   }, 5000);
+
+  const handleImageError = (src: string) => {
+    // Remove the failed image URL from the list
+    setImages(prevImages => 
+      prevImages.map(img => 
+        img.src === src 
+          ? { ...img, src: img.fallbackSrc || '/placeholder.svg' } 
+          : img
+      )
+    );
+  };
+
+  const handleImageLoad = (src: string) => {
+    setLoadedImages(prev => [...prev, src]);
+  };
 
   return (
     <Carousel
@@ -59,6 +77,8 @@ const Logo: React.FC = () => {
               <img
                 src={image.src}
                 alt={image.alt}
+                onError={() => handleImageError(image.src)}
+                onLoad={() => handleImageLoad(image.src)}
                 className="w-full h-auto max-h-[150px] sm:max-h-[200px] object-contain"
               />
             </div>
