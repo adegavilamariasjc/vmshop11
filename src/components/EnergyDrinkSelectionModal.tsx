@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -69,6 +70,59 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
   const handleAddEnergyDrink = (type: string, flavor: string) => {
     const option = energyDrinkOptions.find(opt => opt.name === type);
     if (!option) return;
+
+    // Check if trying to add Baly/Traditional while having Red Bull or vice versa
+    const hasRedBull = selections['Red Bull'] && Object.values(selections['Red Bull']).some(qty => qty > 0);
+    const hasMonster = selections['Monster'] && Object.values(selections['Monster']).some(qty => qty > 0);
+    const hasTraditional = selections['Energético Tradicional'] && Object.values(selections['Energético Tradicional']).some(qty => qty > 0);
+    const hasBaly = selections['Baly'] && Object.values(selections['Baly']).some(qty => qty > 0);
+
+    const isAddingRedBullOrMonster = type === 'Red Bull' || type === 'Monster';
+    const isAddingBalyOrTraditional = type === 'Baly' || type === 'Energético Tradicional';
+
+    if (isAddingRedBullOrMonster && (hasTraditional || hasBaly)) {
+      setSelections(prev => {
+        const newSelections = { ...prev };
+        delete newSelections['Energético Tradicional'];
+        delete newSelections['Baly'];
+        return {
+          ...newSelections,
+          [type]: {
+            ...prev[type],
+            [flavor]: (prev[type]?.[flavor] || 0) + 1
+          }
+        };
+      });
+      
+      toast({
+        title: "Seleção atualizada",
+        description: "Energético Tradicional e Baly foram removidos para permitir a seleção de Red Bull/Monster.",
+        variant: "default",
+      });
+      return;
+    }
+
+    if (isAddingBalyOrTraditional && (hasRedBull || hasMonster)) {
+      setSelections(prev => {
+        const newSelections = { ...prev };
+        delete newSelections['Red Bull'];
+        delete newSelections['Monster'];
+        return {
+          ...newSelections,
+          [type]: {
+            ...prev[type],
+            [flavor]: (prev[type]?.[flavor] || 0) + 1
+          }
+        };
+      });
+      
+      toast({
+        title: "Seleção atualizada",
+        description: "Red Bull e Monster foram removidos para permitir a seleção de Tradicional/Baly.",
+        variant: "default",
+      });
+      return;
+    }
 
     const currentTypeTotal = Object.values(selections[type] || {}).reduce((sum, qty) => sum + qty, 0);
     const maxForType = option.maxQuantity || 5;
