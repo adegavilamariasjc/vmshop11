@@ -47,30 +47,36 @@ const ImageModal: React.FC<ImageModalProps> = ({ src, alt }) => {
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <img
-          src={src}
-          alt={alt}
-          className="w-full h-auto max-h-[150px] sm:max-h-[200px] object-contain cursor-pointer hover:opacity-90 transition-opacity"
+        <div 
+          className="cursor-pointer"
           onClick={() => setIsOpen(true)}
-        />
-      </DialogTrigger>
-      <DialogContent className="max-w-4xl p-0 bg-transparent border-0 relative">
-        <DialogTitle className="sr-only">Image Preview</DialogTitle>
-        <DialogDescription className="sr-only">
-          Image preview with zoom functionality
-        </DialogDescription>
-        <DialogClose className="absolute top-4 right-4 z-50 bg-black/50 rounded-full p-2 hover:bg-black/70 transition-colors">
-          <X className="text-white w-6 h-6" />
-        </DialogClose>
-        <div className="overflow-auto w-full h-full flex items-center justify-center">
+        >
           <img
             src={src}
             alt={alt}
-            className="modal-image w-full h-auto max-h-[80vh] object-contain transition-transform cursor-zoom-in"
-            style={{ transform: `scale(${scale})` }}
+            className="w-full h-auto max-h-[150px] sm:max-h-[200px] object-contain hover:opacity-90 transition-opacity"
           />
         </div>
-      </DialogContent>
+      </DialogTrigger>
+      {isOpen && (
+        <DialogContent className="max-w-4xl p-0 bg-transparent border-0 relative">
+          <DialogTitle className="sr-only">Image Preview</DialogTitle>
+          <DialogDescription className="sr-only">
+            Image preview with zoom functionality
+          </DialogDescription>
+          <DialogClose className="absolute top-4 right-4 z-50 bg-black/50 rounded-full p-2 hover:bg-black/70 transition-colors">
+            <X className="text-white w-6 h-6" />
+          </DialogClose>
+          <div className="overflow-auto w-full h-full flex items-center justify-center">
+            <img
+              src={src}
+              alt={alt}
+              className="modal-image w-full h-auto max-h-[80vh] object-contain transition-transform cursor-zoom-in"
+              style={{ transform: `scale(${scale})` }}
+            />
+          </div>
+        </DialogContent>
+      )}
     </Dialog>
   );
 };
