@@ -8,8 +8,7 @@ interface OrderItem {
   alcohol?: string;
   balyFlavor?: string;
   ice?: Record<string, any>;
-  energyDrink?: string;
-  energyDrinkFlavor?: string;
+  energyDrinks?: Array<{ type: string; flavor: string }>;
 }
 
 interface OrderItemsProps {
@@ -27,6 +26,7 @@ const OrderItems: React.FC<OrderItemsProps> = ({ items }) => {
             {item.alcohol ? ` (${item.alcohol})` : ""}
             {item.balyFlavor ? ` (Baly: ${item.balyFlavor})` : ""}
           </div>
+          
           {item.ice && Object.entries(item.ice).some(([_, qty]: [string, any]) => qty > 0) && (
             <div style={{ marginLeft: '20px', fontSize: '14px' }}>
               Gelo: {Object.entries(item.ice)
@@ -35,11 +35,15 @@ const OrderItems: React.FC<OrderItemsProps> = ({ items }) => {
                 .join(", ")}
             </div>
           )}
-          {item.energyDrink && (
+          
+          {item.energyDrinks && item.energyDrinks.length > 0 && (
             <div style={{ marginLeft: '20px', fontSize: '14px' }}>
-              Energético: {item.energyDrink}{item.energyDrinkFlavor !== 'Tradicional' ? ` - ${item.energyDrinkFlavor}` : ''}
+              Energéticos: {item.energyDrinks.map(ed => 
+                `${ed.type}${ed.flavor !== 'Tradicional' ? ` - ${ed.flavor}` : ''}`
+              ).join(", ")}
             </div>
           )}
+          
           <div style={{ textAlign: 'right' }}>
             R$ {(item.price * item.qty).toFixed(2)}
           </div>

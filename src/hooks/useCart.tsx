@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -40,7 +39,6 @@ export const useCart = () => {
     }
   }, [selectedProductForFlavor]);
 
-  // Debug log to track modal states
   useEffect(() => {
     console.log('Modal states:', {
       isFlavorModalOpen,
@@ -54,12 +52,10 @@ export const useCart = () => {
     });
   }, [isFlavorModalOpen, isAlcoholModalOpen, isBalyModalOpen, isEnergyDrinkModalOpen, pendingProductWithIce, selectedProductForFlavor, currentProductType]);
 
-  // Helper function to determine if a product is a copão
   const isCopao = (product: Product): boolean => {
     return product.name.toLowerCase().includes('copão');
   };
 
-  // Helper function to determine if a product is a combo
   const isCombo = (product: Product): boolean => {
     return product.category === "Combos" || 
           (product.category && product.category.toLowerCase().includes('combo'));
@@ -153,7 +149,6 @@ export const useCart = () => {
     const itemWithIce = { ...selectedProductForFlavor, ice: selectedIce };
     setIsFlavorModalOpen(false);
     
-    // Check if the item is a copão to show energy drink selection with copão pricing
     if (isCopao(itemWithIce)) {
       setPendingProductWithIce(itemWithIce);
       setCurrentProductType('copao');
@@ -163,9 +158,7 @@ export const useCart = () => {
         title: "Gelo adicionado",
         description: "Agora selecione o energético para seu copão.",
       });
-    }
-    // Check if the item is a combo to show energy drink selection with combo pricing
-    else if (isCombo(itemWithIce)) {
+    } else if (isCombo(itemWithIce)) {
       setPendingProductWithIce(itemWithIce);
       setCurrentProductType('combo');
       setIsEnergyDrinkModalOpen(true);
@@ -174,8 +167,7 @@ export const useCart = () => {
         title: "Gelo adicionado",
         description: "Agora selecione o energético para seu combo.",
       });
-    }
-    else if (containsBaly(itemWithIce.name)) {
+    } else if (containsBaly(itemWithIce.name)) {
       setSelectedProductForBaly(itemWithIce);
       setIsBalyModalOpen(true);
     } else {
@@ -277,14 +269,16 @@ export const useCart = () => {
     }
   };
 
-  const handleEnergyDrinkSelection = (energyDrink: { type: string; flavor: string; extraCost: number }) => {
+  const handleEnergyDrinkSelection = (energyDrinks: { 
+    selections: Array<{ type: string; flavor: string }>;
+    totalExtraCost: number;
+  }) => {
     if (!pendingProductWithIce) return;
 
     const finalProduct = {
       ...pendingProductWithIce,
-      energyDrink: energyDrink.type,
-      energyDrinkFlavor: energyDrink.flavor,
-      price: (pendingProductWithIce.price || 0) + energyDrink.extraCost
+      energyDrinks: energyDrinks.selections,
+      price: (pendingProductWithIce.price || 0) + energyDrinks.totalExtraCost
     };
 
     handleUpdateQuantity(finalProduct, 1);
@@ -292,8 +286,8 @@ export const useCart = () => {
     setPendingProductWithIce(null);
 
     toast({
-      title: "Energético selecionado",
-      description: `${energyDrink.type} - ${energyDrink.flavor} adicionado ao pedido.`,
+      title: "Energéticos selecionados",
+      description: `${energyDrinks.selections.length} energético(s) adicionado(s) ao pedido.`,
     });
   };
 
@@ -331,3 +325,5 @@ export const useCart = () => {
     handleEnergyDrinkSelection
   };
 };
+
+export default useCart;
