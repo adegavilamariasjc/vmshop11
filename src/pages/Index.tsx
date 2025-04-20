@@ -3,7 +3,7 @@ import { useCart } from '../hooks/useCart';
 import { AnimatePresence } from 'framer-motion';
 import { gerarCodigoPedido } from '../data/products';
 import { formatWhatsAppMessage } from '../utils/formatWhatsApp';
-import { FormData } from '../types';
+import { FormData, Product } from '../types';
 import PageLayout from '../components/PageLayout';
 import ProductSelectionView from '../components/ProductSelectionView';
 import CheckoutView from '../components/CheckoutView';
@@ -26,6 +26,7 @@ const Index = () => {
     isFlavorModalOpen,
     isAlcoholModalOpen,
     isBalyModalOpen,
+    isEnergyDrinkModalOpen,
     selectedProductForFlavor,
     selectedProductForAlcohol,
     selectedProductForBaly,
@@ -46,7 +47,8 @@ const Index = () => {
     setSelectedAlcohol,
     setSelectedProductForBaly,
     setIsEnergyDrinkModalOpen,
-    setPendingProductWithIce
+    setPendingProductWithIce,
+    handleEnergyDrinkSelection
   } = useCart();
 
   const [codigoPedido] = useState(gerarCodigoPedido());

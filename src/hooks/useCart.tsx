@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -273,6 +274,7 @@ export const useCart = () => {
     setIsAlcoholModalOpen,
     setIsBalyModalOpen,
     setSelectedAlcohol,
+    setSelectedProductForBaly,
     setIsEnergyDrinkModalOpen,
     setPendingProductWithIce,
     handleEnergyDrinkSelection
