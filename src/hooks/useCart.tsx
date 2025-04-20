@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -128,12 +127,15 @@ export const useCart = () => {
     setIsFlavorModalOpen(false);
     
     if (itemWithIce.name.toLowerCase().includes('copão')) {
+      setPendingProductWithIce(itemWithIce);
+      setIsEnergyDrinkModalOpen(true);
+      
       toast({
         title: "Gelo adicionado",
         description: "Agora selecione o energético para seu copão.",
       });
       
-      return itemWithIce;
+      return;
     }
     else if (containsBaly(itemWithIce.name)) {
       setSelectedProductForBaly(itemWithIce);

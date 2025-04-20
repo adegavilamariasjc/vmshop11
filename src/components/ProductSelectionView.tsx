@@ -6,8 +6,6 @@ import { useToast } from '@/hooks/use-toast';
 import CategorySelector from './CategorySelector';
 import ProductList from './ProductList';
 import CartPreviewModal from './CartPreviewModal';
-import FlavorSelectionModal from './FlavorSelectionModal';
-import EnergyDrinkSelectionModal from './EnergyDrinkSelectionModal';
 import { Product } from '../types';
 
 interface ProductSelectionViewProps {
@@ -28,39 +26,8 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
   onProceedToCheckout
 }) => {
   const [isCartModalOpen, setIsCartModalOpen] = useState(false);
-  const [isEnergyDrinkModalOpen, setIsEnergyDrinkModalOpen] = useState(false);
-  const [pendingProductWithIce, setPendingProductWithIce] = useState<Product | null>(null);
   const { toast } = useToast();
   const cartTotal = cart.reduce((sum, item) => sum + (item.price || 0) * (item.qty || 1), 0);
-
-  const handleEnergyDrinkSelection = (energyDrink: { type: string; flavor: string; extraCost: number }) => {
-    if (!pendingProductWithIce) return;
-
-    const finalProduct = {
-      ...pendingProductWithIce,
-      energyDrink: energyDrink.type,
-      energyDrinkFlavor: energyDrink.flavor,
-      price: (pendingProductWithIce.price || 0) + energyDrink.extraCost
-    };
-
-    onAddProduct(finalProduct);
-    setIsEnergyDrinkModalOpen(false);
-    setPendingProductWithIce(null);
-
-    toast({
-      title: "Energético selecionado",
-      description: `${energyDrink.type} - ${energyDrink.flavor} adicionado ao pedido.`,
-    });
-  };
-
-  const handleIceConfirmation = (product: Product) => {
-    if (product.name.toLowerCase().includes('copão')) {
-      setPendingProductWithIce(product);
-      setIsEnergyDrinkModalOpen(true);
-    } else {
-      onAddProduct(product);
-    }
-  };
 
   const handleClearCart = () => {
     // Create a deep copy of the cart to prevent manipulation during iteration
@@ -91,7 +58,7 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
         <ProductList
           category={activeCategory}
           cart={cart}
-          onAddProduct={handleIceConfirmation}
+          onAddProduct={onAddProduct}
           onUpdateQuantity={onUpdateQuantity}
         />
       )}
@@ -115,15 +82,6 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
         cart={cart}
         onClearCart={handleClearCart}
         onProceedToCheckout={onProceedToCheckout}
-      />
-
-      <EnergyDrinkSelectionModal
-        isOpen={isEnergyDrinkModalOpen}
-        onClose={() => {
-          setIsEnergyDrinkModalOpen(false);
-          setPendingProductWithIce(null);
-        }}
-        onConfirm={handleEnergyDrinkSelection}
       />
     </motion.div>
   );

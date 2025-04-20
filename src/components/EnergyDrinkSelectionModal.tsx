@@ -2,6 +2,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { X } from 'lucide-react';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader,
+  DialogTitle,
+  DialogClose 
+} from "@/components/ui/dialog";
 
 interface EnergyDrinkOption {
   name: string;
@@ -51,39 +58,24 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/90 flex items-center justify-center p-4 z-50"
-      onClick={onClose}
-    >
-      <motion.div 
-        initial={{ scale: 0.9 }}
-        animate={{ scale: 1 }}
-        exit={{ scale: 0.9 }}
-        className="bg-black/80 border border-white/20 rounded-lg p-5 w-full max-w-md"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-bold text-white">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-lg font-bold text-white">
             Qual energético deseja adicionar?
-          </h2>
-          <button onClick={onClose} className="text-gray-300 hover:text-white">
-            <X size={20} />
-          </button>
-        </div>
-
-        <div className="space-y-6">
+          </DialogTitle>
+        </DialogHeader>
+        
+        <div className="space-y-4 max-h-[65vh] overflow-y-auto pr-1">
           {energyDrinkOptions.map((option) => (
-            <div key={option.name} className="bg-gray-800/50 rounded-lg p-4">
+            <div key={option.name} className="bg-gray-800/50 rounded-lg p-3">
               <h3 className="text-purple-light font-semibold mb-2 flex items-center gap-2">
                 🔹 {option.name}
                 {option.extraCost > 0 && (
                   <span className="text-sm text-gray-300">(+R${option.extraCost.toFixed(2)})</span>
                 )}
               </h3>
-              <div className="grid gap-2">
+              <div className="grid gap-1">
                 {option.flavors.map((flavor) => (
                   <button
                     key={`${option.name}-${flavor}`}
@@ -92,7 +84,7 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
                       flavor: flavor,
                       extraCost: option.extraCost
                     })}
-                    className="text-left px-3 py-2 rounded bg-gray-700/50 hover:bg-purple-dark/50 text-white transition-colors"
+                    className="text-left px-3 py-1.5 rounded bg-gray-700/50 hover:bg-purple-dark/50 text-white transition-colors text-sm"
                   >
                     • {flavor}
                   </button>
@@ -101,8 +93,8 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
             </div>
           ))}
         </div>
-      </motion.div>
-    </motion.div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
