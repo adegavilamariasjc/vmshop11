@@ -7,11 +7,19 @@ interface CartItemProps {
 }
 
 const CartItem: React.FC<CartItemProps> = ({ item }) => {
+  // Function to get the full product name for certain categories
+  const getFullProductName = (product: Product) => {
+    if (product.category?.toLowerCase() === 'batidas' && !product.name.toLowerCase().includes('batida de')) {
+      return `Batida de ${product.name}`;
+    }
+    return product.name;
+  };
+
   return (
     <div className="mb-3">
       <div className="flex justify-between">
         <span className="text-white text-shadow-dark">
-          {item.qty || 1}x {item.name} 
+          {item.qty || 1}x {getFullProductName(item)} 
           {item.alcohol ? ` (${item.alcohol})` : ""}
           {item.balyFlavor ? ` (Baly: ${item.balyFlavor})` : ""}
         </span>

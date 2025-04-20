@@ -75,6 +75,13 @@ const Index = () => {
   const [whatsAppUrl, setWhatsAppUrl] = useState("");
   const { toast } = useToast();
 
+  const getFullProductName = (name: string, category?: string): string => {
+    if (category?.toLowerCase() === 'batidas' && !name.toLowerCase().includes('batida de')) {
+      return `Batida de ${name}`;
+    }
+    return name;
+  };
+
   useEffect(() => {
     const fetchBairros = async () => {
       setIsLoading(true);
@@ -193,6 +200,7 @@ const Index = () => {
     
     const itensPedido = cart
       .map(p => {
+        const fullName = getFullProductName(p.name, p.category);
         const iceText = p.ice
           ? " \n   Gelo: " +
             Object.entries(p.ice)
@@ -206,7 +214,7 @@ const Index = () => {
           ? ` (Energético: ${p.energyDrink}${p.energyDrinkFlavor !== 'Tradicional' ? ' - ' + p.energyDrinkFlavor : ''})`
           : "";
           
-        return `${p.qty}x ${p.name}${alcoholText}${balyText}${energyDrinkText}${iceText} - R$${((p.price || 0) * (p.qty || 1)).toFixed(2)}`;
+        return `${p.qty}x ${fullName}${alcoholText}${balyText}${energyDrinkText}${iceText} - R$${((p.price || 0) * (p.qty || 1)).toFixed(2)}`;
       })
       .join("\n");
     

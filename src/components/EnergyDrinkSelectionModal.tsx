@@ -52,7 +52,7 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
       name: "Energético Tradicional",
       flavors: ["Tradicional"],
       extraCost: 10,
-      extraCostCopao: 10,
+      extraCostCopao: 0,
       maxQuantity: 1,
       isLargeDrink: true
     },
@@ -108,16 +108,28 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
     const option = energyDrinkOptions.find(opt => opt.name === type);
     if (!option) return;
 
-    const hasLargeDrinks = Object.keys(selections).some(drinkType => 
-      energyDrinkOptions.find(opt => opt.name === drinkType)?.isLargeDrink
-    );
-    const isLargeDrink = option.isLargeDrink;
-    const hasCans = Object.keys(selections).some(drinkType => {
-      const opt = energyDrinkOptions.find(opt => opt.name === drinkType);
-      return !opt?.isLargeDrink && Object.values(selections[drinkType]).some(qty => qty > 0);
-    });
+    if (productType === 'copao') {
+      const totalSelections = Object.values(selections).reduce((sum, typeSelections) => 
+        sum + Object.values(typeSelections).reduce((a, b) => a + b, 0), 0);
+        
+      if (totalSelections >= 1) {
+        toast({
+          title: "Limite atingido",
+          description: "Para copão, você pode selecionar apenas 1 energético.",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else {
+      const hasLargeDrinks = Object.keys(selections).some(drinkType => 
+        energyDrinkOptions.find(opt => opt.name === drinkType)?.isLargeDrink
+      );
+      const isLargeDrink = option.isLargeDrink;
+      const hasCans = Object.keys(selections).some(drinkType => {
+        const opt = energyDrinkOptions.find(opt => opt.name === drinkType);
+        return !opt?.isLargeDrink && Object.values(selections[drinkType]).some(qty => qty > 0);
+      });
 
-    if (productType === 'combo') {
       if (isLargeDrink && hasCans) {
         toast({
           title: "Seleção não permitida",
@@ -197,11 +209,20 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
       return;
     }
 
-    const hasLargeDrink = Object.keys(selections).some(drinkType => 
-      energyDrinkOptions.find(opt => opt.name === drinkType)?.isLargeDrink
-    );
+    if (productType === 'copao') {
+      if (totalSelections !== 1) {
+        toast({
+          title: "Seleção incorreta",
+          description: "Para copão, é necessário selecionar exatamente 1 energético.",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else {
+      const hasLargeDrink = Object.keys(selections).some(drinkType => 
+        energyDrinkOptions.find(opt => opt.name === drinkType)?.isLargeDrink
+      );
 
-    if (productType === 'combo') {
       if (!hasLargeDrink && getTotalCanCount() !== 5) {
         toast({
           title: "Seleção incorreta",
@@ -255,7 +276,9 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
             Qual energético acompanha o {productType === 'copao' ? 'copão' : 'combo'}?
           </DialogTitle>
           <DialogDescription className="text-gray-300 text-sm">
-            Selecione os energéticos desejados (máx. 5 latas no total para Red Bull e Monster, 1 para os demais)
+            {productType === 'copao' 
+              ? 'Selecione 1 energético para o seu copão'
+              : 'Selecione os energéticos desejados (máx. 5 latas no total para Red Bull e Monster, 1 para os demais)'}
           </DialogDescription>
         </DialogHeader>
         

@@ -5,6 +5,7 @@ interface OrderItem {
   qty: number;
   name: string;
   price: number;
+  category?: string;
   alcohol?: string;
   balyFlavor?: string;
   ice?: Record<string, any>;
@@ -16,13 +17,21 @@ interface OrderItemsProps {
 }
 
 const OrderItems: React.FC<OrderItemsProps> = ({ items }) => {
+  // Function to get the full product name for certain categories
+  const getFullProductName = (item: OrderItem) => {
+    if (item.category?.toLowerCase() === 'batidas' && !item.name.toLowerCase().includes('batida de')) {
+      return `Batida de ${item.name}`;
+    }
+    return item.name;
+  };
+
   return (
     <div className="items">
       <h3><strong>ITENS DO PEDIDO</strong></h3>
       {items.map((item, index) => (
         <div key={index} className="item">
           <div>
-            {item.qty}x {item.name} 
+            {item.qty}x {getFullProductName(item)} 
             {item.alcohol ? ` (${item.alcohol})` : ""}
             {item.balyFlavor ? ` (Baly: ${item.balyFlavor})` : ""}
           </div>
