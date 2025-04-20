@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,7 @@ interface EnergyDrinkOption {
   flavors: string[];
   extraCost: number;
   extraCostCopao?: number;
+  maxQuantity?: number;
 }
 
 interface EnergyDrinkSelectionModalProps {
@@ -24,31 +24,36 @@ const energyDrinkOptions: EnergyDrinkOption[] = [
     name: "Energético Tradicional",
     flavors: ["Tradicional"],
     extraCost: 0,
-    extraCostCopao: 0
+    extraCostCopao: 0,
+    maxQuantity: 1
   },
   {
     name: "Baly",
     flavors: ["Melancia", "Tropical", "Maçã Verde", "Pêssego com Morango"],
     extraCost: 15,
-    extraCostCopao: 0
+    extraCostCopao: 0,
+    maxQuantity: 1
   },
   {
     name: "Red Bull",
     flavors: ["Tradicional", "Melancia com Melão", "Pomelo", "Tropical", "Frutas Tropicais", "Pêssego", "Pera com Canela"],
     extraCost: 60,
-    extraCostCopao: 12
+    extraCostCopao: 12,
+    maxQuantity: 5
   },
   {
     name: "Monster",
     flavors: ["Tradicional", "Mango Loco", "Melancia"],
     extraCost: 60,
-    extraCostCopao: 12
+    extraCostCopao: 12,
+    maxQuantity: 5
   },
   {
     name: "Fusion",
     flavors: ["Fusion (1 litro)"],
     extraCost: 15,
-    extraCostCopao: 10
+    extraCostCopao: 10,
+    maxQuantity: 1
   }
 ];
 
@@ -62,18 +67,21 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
   const [selections, setSelections] = useState<Record<string, Record<string, number>>>({});
   
   const handleAddEnergyDrink = (type: string, flavor: string) => {
-    const currentTotal = Object.values(selections).reduce((sum, typeSelections) => 
-      sum + Object.values(typeSelections).reduce((a, b) => a + b, 0), 0);
-      
-    if (currentTotal >= 5) {
+    const option = energyDrinkOptions.find(opt => opt.name === type);
+    if (!option) return;
+
+    const currentTypeTotal = Object.values(selections[type] || {}).reduce((sum, qty) => sum + qty, 0);
+    const maxForType = option.maxQuantity || 5;
+
+    if (currentTypeTotal >= maxForType) {
       toast({
         title: "Limite atingido",
-        description: "Você pode selecionar no máximo 5 energéticos.",
+        description: `Você pode selecionar no máximo ${maxForType} ${type}${maxForType > 1 ? 's' : ''}.`,
         variant: "destructive",
       });
       return;
     }
-    
+
     setSelections(prev => ({
       ...prev,
       [type]: {
@@ -95,7 +103,6 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
         }
       };
       
-      // Remove empty entries
       if (newSelections[type][flavor] === 0) {
         delete newSelections[type][flavor];
       }
@@ -149,7 +156,7 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
             Qual energético acompanha o {productType === 'copao' ? 'copão' : 'combo'}?
           </DialogTitle>
           <DialogDescription className="text-gray-300 text-sm">
-            Selecione até 5 energéticos
+            Selecione os energéticos desejados (máx. 5 para Red Bull e Monster, 1 para os demais)
           </DialogDescription>
         </DialogHeader>
         
