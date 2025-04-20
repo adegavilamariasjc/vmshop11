@@ -9,6 +9,7 @@ export interface Product {
   balyFlavor?: string;
   energyDrink?: string;
   energyDrinkFlavor?: string;
+  energyDrinks?: Array<{ type: string; flavor: string }>;
 }
 
 export interface Bairro {
