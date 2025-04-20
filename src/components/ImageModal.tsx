@@ -16,6 +16,7 @@ interface ImageModalProps {
 
 const ImageModal: React.FC<ImageModalProps> = ({ src, alt }) => {
   const [scale, setScale] = useState(1);
+  const [isOpen, setIsOpen] = useState(false);
   
   const handleWheel = useCallback((e: WheelEvent) => {
     e.preventDefault();
@@ -28,20 +29,21 @@ const ImageModal: React.FC<ImageModalProps> = ({ src, alt }) => {
 
   useEffect(() => {
     const modalImage = document.querySelector('.modal-image');
-    if (modalImage) {
+    if (modalImage && isOpen) {
       modalImage.addEventListener('wheel', handleWheel);
       return () => modalImage.removeEventListener('wheel', handleWheel);
     }
-  }, [handleWheel]);
+  }, [handleWheel, isOpen]);
 
   // Reset zoom when modal closes
   const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
     if (!open) setScale(1);
   };
 
   return (
-    <Dialog onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
+    <Dialog onOpenChange={handleOpenChange} open={isOpen}>
+      <DialogTrigger asChild onClick={() => setIsOpen(true)}>
         <img
           src={src}
           alt={alt}
