@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -126,7 +127,18 @@ export const useCart = () => {
     const itemWithIce = { ...selectedProductForFlavor, ice: selectedIce };
     setIsFlavorModalOpen(false);
     
-    if (itemWithIce.name.toLowerCase().includes('copão')) {
+    // Check if the item is a combo (category "Combos") to show energy drink selection
+    if (itemWithIce.category === "Combos") {
+      setPendingProductWithIce(itemWithIce);
+      setIsEnergyDrinkModalOpen(true);
+      
+      toast({
+        title: "Gelo adicionado",
+        description: "Agora selecione o energético para seu combo.",
+      });
+    }
+    // Check if the item is a "Copão" to show energy drink selection
+    else if (itemWithIce.name.toLowerCase().includes('copão')) {
       setPendingProductWithIce(itemWithIce);
       setIsEnergyDrinkModalOpen(true);
       
@@ -205,7 +217,8 @@ export const useCart = () => {
         (requiresFlavor(item.category || '') && (!item.ice || Object.values(item.ice).reduce((a, b) => a + b, 0) === 0)) ||
         (requiresAlcoholChoice(item.category || '') && !item.alcohol) ||
         (containsBaly(item.name) && !item.balyFlavor) ||
-        (item.name.toLowerCase().includes('copão') && !item.energyDrink)
+        (item.name.toLowerCase().includes('copão') && !item.energyDrink) ||
+        (item.category === "Combos" && !item.energyDrink)
     );
     
     if (missing.length > 0) {
@@ -221,6 +234,9 @@ export const useCart = () => {
       } else if (containsBaly(itemPend.name)) {
         setSelectedProductForBaly(itemPend);
         setIsBalyModalOpen(true);
+      } else if ((itemPend.category === "Combos" || itemPend.name.toLowerCase().includes('copão')) && !itemPend.energyDrink) {
+        setPendingProductWithIce(itemPend);
+        setIsEnergyDrinkModalOpen(true);
       }
     } else {
       setShowSummary(true);
