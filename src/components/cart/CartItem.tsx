@@ -28,6 +28,12 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
             .join(", ")}
         </div>
       )}
+      
+      {item.energyDrink && (
+        <div className="text-sm text-gray-300 text-shadow-light ml-3">
+          Energético: {item.energyDrink}{item.energyDrinkFlavor !== 'Tradicional' ? ` - ${item.energyDrinkFlavor}` : ''}
+        </div>
+      )}
     </div>
   );
 };

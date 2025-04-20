@@ -8,6 +8,8 @@ interface OrderItem {
   alcohol?: string;
   balyFlavor?: string;
   ice?: Record<string, any>;
+  energyDrink?: string;
+  energyDrinkFlavor?: string;
 }
 
 interface OrderItemsProps {
@@ -31,6 +33,11 @@ const OrderItems: React.FC<OrderItemsProps> = ({ items }) => {
                 .filter(([_, qty]: [string, any]) => qty > 0)
                 .map(([flavor, qty]: [string, any]) => `${flavor} x${qty}`)
                 .join(", ")}
+            </div>
+          )}
+          {item.energyDrink && (
+            <div style={{ marginLeft: '20px', fontSize: '14px' }}>
+              Energético: {item.energyDrink}{item.energyDrinkFlavor !== 'Tradicional' ? ` - ${item.energyDrinkFlavor}` : ''}
             </div>
           )}
           <div style={{ textAlign: 'right' }}>
