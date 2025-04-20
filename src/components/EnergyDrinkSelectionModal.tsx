@@ -67,6 +67,18 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
   const { toast } = useToast();
   const [selections, setSelections] = useState<Record<string, Record<string, number>>>({});
   
+  const getTotalCanCount = () => {
+    const redBullCount = selections['Red Bull'] 
+      ? Object.values(selections['Red Bull']).reduce((sum, qty) => sum + qty, 0) 
+      : 0;
+    
+    const monsterCount = selections['Monster'] 
+      ? Object.values(selections['Monster']).reduce((sum, qty) => sum + qty, 0) 
+      : 0;
+    
+    return redBullCount + monsterCount;
+  };
+  
   const handleAddEnergyDrink = (type: string, flavor: string) => {
     const option = energyDrinkOptions.find(opt => opt.name === type);
     if (!option) return;
@@ -120,6 +132,16 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
         title: "Seleção atualizada",
         description: "Red Bull e Monster foram removidos para permitir a seleção de Tradicional/Baly.",
         variant: "default",
+      });
+      return;
+    }
+
+    // Check if adding another can would exceed the total limit of 5 cans (RedBull + Monster)
+    if ((type === 'Red Bull' || type === 'Monster') && getTotalCanCount() >= 5) {
+      toast({
+        title: "Limite atingido",
+        description: "Você pode selecionar no máximo 5 latas no total (RedBull + Monster combinados).",
+        variant: "destructive",
       });
       return;
     }
@@ -210,7 +232,7 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
             Qual energético acompanha o {productType === 'copao' ? 'copão' : 'combo'}?
           </DialogTitle>
           <DialogDescription className="text-gray-300 text-sm">
-            Selecione os energéticos desejados (máx. 5 para Red Bull e Monster, 1 para os demais)
+            Selecione os energéticos desejados (máx. 5 latas no total para Red Bull e Monster, 1 para os demais)
           </DialogDescription>
         </DialogHeader>
         
