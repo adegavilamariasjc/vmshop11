@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -200,6 +199,15 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
       toast({
         title: "Seleção incompleta",
         description: "Por favor, selecione pelo menos 1 energético.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (productType === 'combo' && getTotalCanCount() !== 5) {
+      toast({
+        title: "Seleção incorreta",
+        description: "É necessário selecionar exatamente 5 latas de energético para o combo.",
         variant: "destructive",
       });
       return;
