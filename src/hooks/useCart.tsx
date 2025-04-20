@@ -28,7 +28,6 @@ export const useCart = () => {
   const [selectedProductForBaly, setSelectedProductForBaly] = useState<Product | null>(null);
   const [selectedIce, setSelectedIce] = useState<Record<string, number>>({});
   const [selectedAlcohol, setSelectedAlcohol] = useState<AlcoholOption | null>(null);
-  const [pendingProductWithIce, setPendingProductWithIce] = useState<Product | null>(null);
 
   useEffect(() => {
     if (selectedProductForFlavor) {
@@ -69,7 +68,9 @@ export const useCart = () => {
           ((p.ice && item.ice && JSON.stringify(p.ice) === JSON.stringify(item.ice)) ||
            (!p.ice && !item.ice)) &&
           p.alcohol === item.alcohol &&
-          p.balyFlavor === item.balyFlavor
+          p.balyFlavor === item.balyFlavor &&
+          p.energyDrink === item.energyDrink &&
+          p.energyDrinkFlavor === item.energyDrinkFlavor
       );
       
       if (existingItem) {
@@ -80,7 +81,9 @@ export const useCart = () => {
             ((p.ice && item.ice && JSON.stringify(p.ice) === JSON.stringify(item.ice)) ||
              (!p.ice && !item.ice)) &&
             p.alcohol === item.alcohol &&
-            p.balyFlavor === item.balyFlavor
+            p.balyFlavor === item.balyFlavor &&
+            p.energyDrink === item.energyDrink &&
+            p.energyDrinkFlavor === item.energyDrinkFlavor
               ? { ...p, qty: Math.max(0, (p.qty || 1) + delta) }
               : p
           )
@@ -121,9 +124,20 @@ export const useCart = () => {
     
     const itemWithIce = { ...selectedProductForFlavor, ice: selectedIce };
     
-    // Verificar se o produto contém Baly (para combos)
-    if (containsBaly(itemWithIce.name)) {
-      setPendingProductWithIce(itemWithIce);
+    // For Copão products, go to energy drink selection
+    if (itemWithIce.name.toLowerCase().includes('copão')) {
+      setIsFlavorModalOpen(false);
+      
+      toast({
+        title: "Gelo adicionado",
+        description: "Agora selecione o energético para seu copão.",
+      });
+      
+      // Logic to handle energy drink selection is in ProductSelectionView
+      return itemWithIce;
+    }
+    // Check if the product contains Baly (for combos)
+    else if (containsBaly(itemWithIce.name)) {
       setSelectedProductForBaly(itemWithIce);
       setIsFlavorModalOpen(false);
       setIsBalyModalOpen(true);
@@ -167,21 +181,10 @@ export const useCart = () => {
   const confirmBalySelection = (flavor: string) => {
     if (!selectedProductForBaly || !flavor) return;
     
-    let itemWithBaly;
-    
-    // Verificar se é um produto pendente com gelo
-    if (pendingProductWithIce && selectedProductForBaly.name === pendingProductWithIce.name) {
-      itemWithBaly = {
-        ...pendingProductWithIce,
-        balyFlavor: flavor
-      };
-      setPendingProductWithIce(null);
-    } else {
-      itemWithBaly = {
-        ...selectedProductForBaly,
-        balyFlavor: flavor
-      };
-    }
+    const itemWithBaly = {
+      ...selectedProductForBaly,
+      balyFlavor: flavor
+    };
     
     handleUpdateQuantity(itemWithBaly, 1);
     setIsBalyModalOpen(false);
@@ -206,7 +209,8 @@ export const useCart = () => {
       item =>
         (requiresFlavor(item.category || '') && (!item.ice || Object.values(item.ice).reduce((a, b) => a + b, 0) === 0)) ||
         (requiresAlcoholChoice(item.category || '') && !item.alcohol) ||
-        (containsBaly(item.name) && !item.balyFlavor)
+        (containsBaly(item.name) && !item.balyFlavor) ||
+        (item.name.toLowerCase().includes('copão') && !item.energyDrink)
     );
     
     if (missing.length > 0) {

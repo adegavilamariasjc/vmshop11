@@ -191,7 +191,11 @@ const Index = () => {
           : "";
         const alcoholText = p.alcohol ? ` (Álcool: ${p.alcohol})` : "";
         const balyText = p.balyFlavor ? ` (Baly: ${p.balyFlavor})` : "";
-        return `${p.qty}x ${p.name}${alcoholText}${balyText}${iceText} - R$${((p.price || 0) * (p.qty || 1)).toFixed(2)}`;
+        const energyDrinkText = p.energyDrink 
+          ? ` (Energético: ${p.energyDrink}${p.energyDrinkFlavor !== 'Tradicional' ? ' - ' + p.energyDrinkFlavor : ''})`
+          : "";
+          
+        return `${p.qty}x ${p.name}${alcoholText}${balyText}${energyDrinkText}${iceText} - R$${((p.price || 0) * (p.qty || 1)).toFixed(2)}`;
       })
       .join("\n");
     
