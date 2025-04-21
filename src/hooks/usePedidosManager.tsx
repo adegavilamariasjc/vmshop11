@@ -17,8 +17,6 @@ export interface Pedido {
   timeInProduction?: number; // Time in minutes the order has been in production
 }
 
-type ConnectionStatus = 'connected' | 'connecting' | 'disconnected';
-
 export const usePedidosManager = () => {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -27,16 +25,13 @@ export const usePedidosManager = () => {
   const [hasNewPedido, setHasNewPedido] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connecting');
   const [lastCheckedTimestamp, setLastCheckedTimestamp] = useState<string | null>(null);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const productionTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const reconnectTimerRef = useRef<NodeJS.Timeout | null>(null);
   const channelRef = useRef<any>(null);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const visibilityChangeRef = useRef<boolean>(false);
   
   const { toast } = useToast();
 
@@ -60,7 +55,7 @@ export const usePedidosManager = () => {
       setLastCheckedTimestamp(getTimestampFrom5MinutesAgo());
     }
 
-    // Start polling every 15 seconds (reduced from 30)
+    // Start polling every 15 seconds
     pollIntervalRef.current = setInterval(async () => {
       try {
         const timestamp = lastCheckedTimestamp || getTimestampFrom5MinutesAgo();
@@ -96,7 +91,7 @@ export const usePedidosManager = () => {
             fetchPedidosData();
             
             toast({
-              title: "Novo Pedido Recebido! (via polling)",
+              title: "Novo Pedido Recebido!",
               description: "Um cliente finalizou um pedido no sistema.",
             });
           }
@@ -104,7 +99,7 @@ export const usePedidosManager = () => {
       } catch (e) {
         console.error('Error in polling mechanism:', e);
       }
-    }, 15000); // Poll every 15 seconds (reduced from 30)
+    }, 15000); // Poll every 15 seconds
     
     return () => {
       if (pollIntervalRef.current) {
@@ -114,9 +109,9 @@ export const usePedidosManager = () => {
     };
   }, [lastCheckedTimestamp, hasNewPedido, toast]);
 
-  // Improved setup for realtime subscriptions with auto-reconnect and visibility handling
+  // Simplified setup for realtime subscriptions - no connection status handling
   const setupNotificationSystem = useCallback(() => {
-    console.log('Setting up notification system - new implementation');
+    console.log('Setting up notification system - simplified implementation');
     
     // Create audio element if it doesn't exist
     if (!audioRef.current) {
@@ -132,7 +127,7 @@ export const usePedidosManager = () => {
       channelRef.current = null;
     }
     
-    // Initialize supabase realtime channel with improved error handling
+    // Initialize supabase realtime channel with simplified logic
     const channel = supabase
       .channel('pedidos-changes-robust')
       .on('postgres_changes', 
@@ -143,9 +138,6 @@ export const usePedidosManager = () => {
         }, 
         (payload) => {
           console.log('Realtime: Novo pedido recebido:', payload);
-          
-          // Set connection status to connected since we're receiving events
-          setConnectionStatus('connected');
           
           // Trigger notification
           startRingingAlert();
@@ -166,81 +158,23 @@ export const usePedidosManager = () => {
           setLastCheckedTimestamp(new Date().toISOString());
         }
       )
-      .on('system', { event: 'disconnected' }, () => {
-        console.log('Realtime: Disconnected from Supabase');
-        setConnectionStatus('disconnected');
-        
-        // Try to reconnect immediately
-        scheduleReconnect(1000); // Faster initial reconnect
-        
-        // Start polling as fallback
-        startPolling();
-      })
-      .on('system', { event: 'connected' }, () => {
-        console.log('Realtime: Connected to Supabase');
-        setConnectionStatus('connected');
-        
-        // Cancel reconnect attempts
-        if (reconnectTimerRef.current) {
-          clearTimeout(reconnectTimerRef.current);
-          reconnectTimerRef.current = null;
-        }
-        
-        // Show toast only if previously disconnected
-        if (visibilityChangeRef.current) {
-          toast({
-            title: "Conexão Restaurada",
-            description: "Sistema de notificações reconectado com sucesso.",
-          });
-          visibilityChangeRef.current = false;
-        }
-      })
-      .on('system', { event: 'error' }, (err) => {
-        console.error('Realtime system error:', err);
-        setConnectionStatus('disconnected');
-        scheduleReconnect(2000);
-      })
       .subscribe((status) => {
         console.log('Subscription status:', status);
         
-        // Update connection status based on subscription status
+        // Start polling as fallback
         if (status === 'SUBSCRIBED') {
-          setConnectionStatus('connected');
           console.log('Successfully subscribed to real-time updates');
-        } else if (status === 'TIMED_OUT' || status === 'CLOSED' || status === 'CHANNEL_ERROR') {
-          console.error('Subscription failed with status:', status);
-          setConnectionStatus('disconnected');
-          
-          // Schedule reconnect
-          scheduleReconnect(3000);
-          
-          // Start polling as fallback
+        } else {
+          console.log('Fallback to polling as subscription status is:', status);
           startPolling();
-        } else if (status === 'SUBSCRIBING') {
-          setConnectionStatus('connecting');
-          console.log('Attempting to subscribe to real-time updates');
         }
       });
     
     // Store channel reference
     channelRef.current = channel;
     
-    // Add visibility change event listener for better connection management
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        console.log('Tab became visible, checking connection');
-        visibilityChangeRef.current = true;
-        
-        // Force reconnect when tab becomes visible again
-        if (connectionStatus !== 'connected') {
-          console.log('Tab visible but disconnected, forcing reconnect');
-          setupNotificationSystem();
-          fetchPedidosData(); // Refresh data when tab becomes visible
-        }
-      }
-    };
-    
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    // Start polling as a backup
+    startPolling();
     
     // Return cleanup function
     return () => {
@@ -249,31 +183,12 @@ export const usePedidosManager = () => {
         channelRef.current = null;
       }
       
-      if (reconnectTimerRef.current) {
-        clearTimeout(reconnectTimerRef.current);
-        reconnectTimerRef.current = null;
-      }
-      
       if (pollIntervalRef.current) {
         clearInterval(pollIntervalRef.current);
         pollIntervalRef.current = null;
       }
-      
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [connectionStatus, toast, startPolling]);
-
-  // Improved reconnect logic with exponential backoff
-  const scheduleReconnect = useCallback((initialDelay = 5000) => {
-    if (reconnectTimerRef.current) {
-      clearTimeout(reconnectTimerRef.current);
-    }
-    
-    reconnectTimerRef.current = setTimeout(() => {
-      console.log('Attempting to reconnect to Supabase...');
-      setupNotificationSystem();
-    }, initialDelay);
-  }, [setupNotificationSystem]);
+  }, [toast, startPolling]);
 
   // Setup notification system when component mounts
   useEffect(() => {
@@ -288,33 +203,13 @@ export const usePedidosManager = () => {
     // Start production timer
     startProductionTimer();
     
-    // Actively check connection status every minute as a safeguard
-    const connectionCheckInterval = setInterval(() => {
-      if (connectionStatus !== 'connected' && document.visibilityState === 'visible') {
-        console.log('Connection check: Not connected but tab visible, reconnecting');
-        setupNotificationSystem();
-      }
-    }, 60000);
-    
     // Cleanup function
     return () => {
       cleanup();
       stopRingingAlert();
       stopProductionTimer();
-      
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
-        pollIntervalRef.current = null;
-      }
-      
-      if (reconnectTimerRef.current) {
-        clearTimeout(reconnectTimerRef.current);
-        reconnectTimerRef.current = null;
-      }
-      
-      clearInterval(connectionCheckInterval);
     };
-  }, [setupNotificationSystem, connectionStatus]);
+  }, [setupNotificationSystem]);
 
   // Function to start the production timer
   const startProductionTimer = () => {
@@ -423,11 +318,13 @@ export const usePedidosManager = () => {
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    // Force reconnect on manual refresh
-    if (connectionStatus !== 'connected') {
-      setupNotificationSystem();
-    }
+    
+    // Force refresh data
     await fetchPedidosData();
+    
+    // Reset notification system to ensure connection
+    setupNotificationSystem();
+    
     setTimeout(() => setRefreshing(false), 1000);
   };
 
@@ -569,7 +466,6 @@ export const usePedidosManager = () => {
     isDeleting,
     selectedPedido,
     showDetalhe,
-    connectionStatus,
     handleRefresh,
     handleAcknowledge,
     handleVisualizarPedido,
