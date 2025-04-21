@@ -13,6 +13,7 @@ import OrderSummary from './cart/OrderSummary';
 import CartSummary from './CartSummary';
 import { Button } from './ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface CartPreviewModalProps {
   isOpen: boolean;
@@ -61,7 +62,7 @@ const CartPreviewModal: React.FC<CartPreviewModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] flex flex-col max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-white">
             <ShoppingCart className="h-5 w-5" />
@@ -75,33 +76,37 @@ const CartPreviewModal: React.FC<CartPreviewModalProps> = ({
           <span className="sr-only">Fechar</span>
         </DialogClose>
 
-        <div className="mt-4">
-          <OrderSummary cart={cart} />
-          <CartSummary 
-            subtotal={cartTotal} 
-            deliveryFee={0}
-            total={cartTotal}
-          />
+        <div className="flex-1 overflow-hidden">
+          <ScrollArea className="h-full max-h-[60vh]">
+            <div className="mt-4 pr-4">
+              <OrderSummary cart={cart} />
+              <CartSummary 
+                subtotal={cartTotal} 
+                deliveryFee={0}
+                total={cartTotal}
+              />
+            </div>
+          </ScrollArea>
+        </div>
 
-          <div className="flex gap-3 mt-6">
-            <Button
-              variant="destructive"
-              className="w-full"
-              onClick={handleClearCart}
-              disabled={cart.length === 0}
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Limpar
-            </Button>
-            <Button
-              className="w-full bg-purple-dark hover:bg-purple-600"
-              onClick={handleProceed}
-              disabled={cart.length === 0}
-            >
-              <ArrowRight className="h-4 w-4 mr-2" />
-              Avançar
-            </Button>
-          </div>
+        <div className="flex gap-3 mt-6 pt-4 border-t border-gray-700">
+          <Button
+            variant="destructive"
+            className="w-full"
+            onClick={handleClearCart}
+            disabled={cart.length === 0}
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Limpar
+          </Button>
+          <Button
+            className="w-full bg-purple-dark hover:bg-purple-600"
+            onClick={handleProceed}
+            disabled={cart.length === 0}
+          >
+            <ArrowRight className="h-4 w-4 mr-2" />
+            Avançar
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
