@@ -76,8 +76,9 @@ const CartPreviewModal: React.FC<CartPreviewModalProps> = ({
           <span className="sr-only">Fechar</span>
         </DialogClose>
 
-        <div className="flex-1 overflow-hidden">
-          <ScrollArea className="h-full max-h-[60vh]">
+        {/* Add an explicit height to ScrollArea container */}
+        <div className="flex-1 overflow-hidden" style={{ minHeight: '200px' }}>
+          <ScrollArea className="h-full pr-0" style={{ maxHeight: 'calc(70vh - 180px)' }}>
             <div className="mt-4 pr-4">
               <OrderSummary cart={cart} />
               <CartSummary 
