@@ -36,6 +36,7 @@ export const usePedidosManager = () => {
   const reconnectTimerRef = useRef<NodeJS.Timeout | null>(null);
   const channelRef = useRef<any>(null);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const visibilityChangeRef = useRef<boolean>(false);
   
   const { toast } = useToast();
 
@@ -46,7 +47,7 @@ export const usePedidosManager = () => {
     return date.toISOString();
   };
 
-  // Polling function as a fallback to check for new orders
+  // Enhanced polling function that runs more frequently
   const startPolling = useCallback(() => {
     // Clear any existing polling
     if (pollIntervalRef.current) {
@@ -59,7 +60,7 @@ export const usePedidosManager = () => {
       setLastCheckedTimestamp(getTimestampFrom5MinutesAgo());
     }
 
-    // Start polling every 30 seconds
+    // Start polling every 15 seconds (reduced from 30)
     pollIntervalRef.current = setInterval(async () => {
       try {
         const timestamp = lastCheckedTimestamp || getTimestampFrom5MinutesAgo();
@@ -103,7 +104,7 @@ export const usePedidosManager = () => {
       } catch (e) {
         console.error('Error in polling mechanism:', e);
       }
-    }, 30000); // Poll every 30 seconds
+    }, 15000); // Poll every 15 seconds (reduced from 30)
     
     return () => {
       if (pollIntervalRef.current) {
@@ -113,22 +114,27 @@ export const usePedidosManager = () => {
     };
   }, [lastCheckedTimestamp, hasNewPedido, toast]);
 
-  // Setup realtime subscriptions and fallbacks
+  // Improved setup for realtime subscriptions with auto-reconnect and visibility handling
   const setupNotificationSystem = useCallback(() => {
+    console.log('Setting up notification system - new implementation');
+    
     // Create audio element if it doesn't exist
     if (!audioRef.current) {
       audioRef.current = new Audio('https://adegavm.shop/ring.mp3');
+      // Preload the audio
+      audioRef.current.load();
     }
     
     // Clean up any existing channel
     if (channelRef.current) {
+      console.log('Removing existing channel');
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
     }
     
-    // Initialize supabase realtime channel
+    // Initialize supabase realtime channel with improved error handling
     const channel = supabase
-      .channel('pedidos-changes-improved')
+      .channel('pedidos-changes-robust')
       .on('postgres_changes', 
         { 
           event: 'INSERT', 
@@ -137,6 +143,7 @@ export const usePedidosManager = () => {
         }, 
         (payload) => {
           console.log('Realtime: Novo pedido recebido:', payload);
+          
           // Set connection status to connected since we're receiving events
           setConnectionStatus('connected');
           
@@ -164,7 +171,7 @@ export const usePedidosManager = () => {
         setConnectionStatus('disconnected');
         
         // Try to reconnect immediately
-        scheduleReconnect();
+        scheduleReconnect(1000); // Faster initial reconnect
         
         // Start polling as fallback
         startPolling();
@@ -178,6 +185,20 @@ export const usePedidosManager = () => {
           clearTimeout(reconnectTimerRef.current);
           reconnectTimerRef.current = null;
         }
+        
+        // Show toast only if previously disconnected
+        if (visibilityChangeRef.current) {
+          toast({
+            title: "Conexão Restaurada",
+            description: "Sistema de notificações reconectado com sucesso.",
+          });
+          visibilityChangeRef.current = false;
+        }
+      })
+      .on('system', { event: 'error' }, (err) => {
+        console.error('Realtime system error:', err);
+        setConnectionStatus('disconnected');
+        scheduleReconnect(2000);
       })
       .subscribe((status) => {
         console.log('Subscription status:', status);
@@ -185,21 +206,41 @@ export const usePedidosManager = () => {
         // Update connection status based on subscription status
         if (status === 'SUBSCRIBED') {
           setConnectionStatus('connected');
+          console.log('Successfully subscribed to real-time updates');
         } else if (status === 'TIMED_OUT' || status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+          console.error('Subscription failed with status:', status);
           setConnectionStatus('disconnected');
           
           // Schedule reconnect
-          scheduleReconnect();
+          scheduleReconnect(3000);
           
           // Start polling as fallback
           startPolling();
         } else if (status === 'SUBSCRIBING') {
           setConnectionStatus('connecting');
+          console.log('Attempting to subscribe to real-time updates');
         }
       });
     
     // Store channel reference
     channelRef.current = channel;
+    
+    // Add visibility change event listener for better connection management
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log('Tab became visible, checking connection');
+        visibilityChangeRef.current = true;
+        
+        // Force reconnect when tab becomes visible again
+        if (connectionStatus !== 'connected') {
+          console.log('Tab visible but disconnected, forcing reconnect');
+          setupNotificationSystem();
+          fetchPedidosData(); // Refresh data when tab becomes visible
+        }
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     
     // Return cleanup function
     return () => {
@@ -217,11 +258,13 @@ export const usePedidosManager = () => {
         clearInterval(pollIntervalRef.current);
         pollIntervalRef.current = null;
       }
+      
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [toast, startPolling]);
+  }, [connectionStatus, toast, startPolling]);
 
-  // Reconnect logic
-  const scheduleReconnect = useCallback(() => {
+  // Improved reconnect logic with exponential backoff
+  const scheduleReconnect = useCallback((initialDelay = 5000) => {
     if (reconnectTimerRef.current) {
       clearTimeout(reconnectTimerRef.current);
     }
@@ -229,10 +272,13 @@ export const usePedidosManager = () => {
     reconnectTimerRef.current = setTimeout(() => {
       console.log('Attempting to reconnect to Supabase...');
       setupNotificationSystem();
-    }, 5000); // Try to reconnect every 5 seconds
+    }, initialDelay);
   }, [setupNotificationSystem]);
 
+  // Setup notification system when component mounts
   useEffect(() => {
+    console.log('Setting up notification system and initial data fetch');
+    
     // Initialize notification system
     const cleanup = setupNotificationSystem();
     
@@ -241,6 +287,14 @@ export const usePedidosManager = () => {
     
     // Start production timer
     startProductionTimer();
+    
+    // Actively check connection status every minute as a safeguard
+    const connectionCheckInterval = setInterval(() => {
+      if (connectionStatus !== 'connected' && document.visibilityState === 'visible') {
+        console.log('Connection check: Not connected but tab visible, reconnecting');
+        setupNotificationSystem();
+      }
+    }, 60000);
     
     // Cleanup function
     return () => {
@@ -257,8 +311,10 @@ export const usePedidosManager = () => {
         clearTimeout(reconnectTimerRef.current);
         reconnectTimerRef.current = null;
       }
+      
+      clearInterval(connectionCheckInterval);
     };
-  }, [setupNotificationSystem]);
+  }, [setupNotificationSystem, connectionStatus]);
 
   // Function to start the production timer
   const startProductionTimer = () => {
@@ -301,12 +357,12 @@ export const usePedidosManager = () => {
     }
   };
 
-  // Function to start continuous ringing
+  // Improved audio alert system
   const startRingingAlert = () => {
     // Clear any existing interval first
     stopRingingAlert();
     
-    // Play immediately
+    // Play immediately with better error handling
     playAlertSound();
     
     // Set up interval to play every 3 seconds
@@ -351,7 +407,7 @@ export const usePedidosManager = () => {
       const pendingOrders = processedPedidos.filter(p => p.status === 'pendente');
       if (pendingOrders.length > 0 && !hasNewPedido) {
         setHasNewPedido(true);
-        // Don't start ringing again if already acknowledged
+        startRingingAlert(); // Start ringing if there are pending orders and not already acknowledged
       }
     } catch (error) {
       console.error('Erro ao buscar pedidos:', error);
@@ -367,27 +423,53 @@ export const usePedidosManager = () => {
 
   const handleRefresh = async () => {
     setRefreshing(true);
+    // Force reconnect on manual refresh
+    if (connectionStatus !== 'connected') {
+      setupNotificationSystem();
+    }
     await fetchPedidosData();
     setTimeout(() => setRefreshing(false), 1000);
   };
 
+  // Improved audio playback with multiple fallbacks
   const playAlertSound = () => {
     if (audioRef.current) {
+      // Reset audio to beginning
       audioRef.current.currentTime = 0;
-      audioRef.current.play().catch(e => {
-        console.error("Erro ao tocar som:", e);
-        
-        // Try recreating the audio element if there's an error
-        audioRef.current = new Audio('https://adegavm.shop/ring.mp3');
-        audioRef.current.play().catch(e2 => {
-          console.error("Erro ao tocar som após recriação:", e2);
+      
+      // Play with fallback
+      const playPromise = audioRef.current.play();
+      
+      if (playPromise !== undefined) {
+        playPromise.catch(e => {
+          console.error("Erro ao tocar som:", e);
+          
+          // Try recreating the audio element if there's an error
+          audioRef.current = new Audio('https://adegavm.shop/ring.mp3');
+          audioRef.current.play().catch(e2 => {
+            console.error("Erro ao tocar som após recriação:", e2);
+            
+            // Try alternative approach without new Audio object
+            const tempAudio = document.createElement('audio');
+            tempAudio.src = 'https://adegavm.shop/ring.mp3';
+            tempAudio.play().catch(e3 => {
+              console.error("Todas as tentativas de tocar som falharam:", e3);
+            });
+          });
         });
-      });
+      }
     } else {
       // Recreate if missing
       audioRef.current = new Audio('https://adegavm.shop/ring.mp3');
       audioRef.current.play().catch(e => {
         console.error("Erro ao tocar som após recriação:", e);
+        
+        // Fallback to alternative method
+        const tempAudio = document.createElement('audio');
+        tempAudio.src = 'https://adegavm.shop/ring.mp3';
+        tempAudio.play().catch(e2 => {
+          console.error("Todas as tentativas de tocar som falharam:", e2);
+        });
       });
     }
   };

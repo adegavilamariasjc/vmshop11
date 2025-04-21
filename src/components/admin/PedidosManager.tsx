@@ -29,9 +29,12 @@ const PedidosManager = () => {
 
   const { toast } = useToast();
 
-  // Setup notification system on component mount
+  // Setup notification system on component mount and force reconnect
   useEffect(() => {
-    setupNotificationSystem();
+    // Force a reconnection when component mounts to ensure we have a fresh connection
+    const cleanup = setupNotificationSystem();
+    
+    console.log("PedidosManager mounted, initializing notification system");
     
     // Check connection on load
     if (connectionStatus === 'disconnected') {
@@ -41,6 +44,11 @@ const PedidosManager = () => {
         variant: "destructive",
       });
     }
+    
+    return () => {
+      cleanup(); // Ensure proper cleanup when component unmounts
+      console.log("PedidosManager unmounted, cleaning up notification system");
+    };
   }, [setupNotificationSystem]);
 
   // Monitor connection status changes
@@ -58,6 +66,22 @@ const PedidosManager = () => {
       });
     }
   }, [connectionStatus, toast]);
+
+  // Force refresh when tab becomes visible to ensure we have latest data
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log('Orders tab became visible, refreshing data');
+        handleRefresh();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [handleRefresh]);
 
   return (
     <div>
@@ -86,8 +110,16 @@ const PedidosManager = () => {
       
       {connectionStatus === 'disconnected' && (
         <div className="bg-red-600/20 border border-red-600 rounded-md p-3 mb-4">
-          <p className="text-red-500 font-medium">
+          <p className="text-red-500 font-medium flex items-center">
+            <Bell className="mr-2 h-4 w-4 text-red-500" />
             Sistema de notificações desconectado. Tentando reconectar automaticamente...
+            <Button
+              variant="link"
+              className="ml-2 text-red-400 hover:text-red-300 p-0 h-auto"
+              onClick={() => setupNotificationSystem()}
+            >
+              Reconectar manualmente
+            </Button>
           </p>
         </div>
       )}
