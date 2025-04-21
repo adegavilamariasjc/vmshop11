@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -97,6 +98,16 @@ const PedidoDetalhe: React.FC<PedidoDetalheProps> = ({
       return texto;
     }).join('\n\n');
     
+    // Calculate change amount if payment is in cash
+    let trocoInfo = '';
+    if (pedido.forma_pagamento === 'Dinheiro' && pedido.troco) {
+      const trocoValue = Number(pedido.troco);
+      const changeAmount = trocoValue - pedido.total;
+      if (changeAmount > 0) {
+        trocoInfo = `\nLEVAR TROCO: R$ ${changeAmount.toFixed(2)}`;
+      }
+    }
+    
     const conteudoImpressao = `
 ${deliverer}
 
@@ -121,6 +132,7 @@ TOTAL: R$ ${pedido.total.toFixed(2)}
 
 FORMA DE PAGAMENTO: ${pedido.forma_pagamento}
 ${pedido.forma_pagamento === 'Dinheiro' && pedido.troco ? `TROCO PARA: R$ ${pedido.troco}` : ''}
+${trocoInfo}
 
 Obrigado pela preferência!
 ADEGA VM
@@ -152,11 +164,19 @@ ADEGA VM
                 text-align: center;
                 margin-bottom: 10mm;
               }
+              .change-amount {
+                font-weight: bold;
+                font-size: 14pt;
+                margin-top: 5mm;
+              }
             </style>
           </head>
           <body>
 <div class="deliverer">${deliverer}</div>
-${conteudoImpressao}
+${conteudoImpressao.replace(
+  trocoInfo,
+  trocoInfo ? `\n<div class="change-amount">${trocoInfo}</div>` : ''
+)}
             <script>
               window.onload = function() {
                 window.print();

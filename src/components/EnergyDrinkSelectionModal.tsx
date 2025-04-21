@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -146,6 +147,19 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
           variant: "destructive",
         });
         return;
+      }
+      
+      // Check if total cans would exceed 5
+      if (!isLargeDrink) {
+        const totalCans = getTotalCanCount();
+        if (totalCans >= 5) {
+          toast({
+            title: "Limite atingido",
+            description: "Você pode selecionar no máximo 5 latas de energético no total.",
+            variant: "destructive",
+          });
+          return;
+        }
       }
     }
 
