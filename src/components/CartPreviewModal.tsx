@@ -62,8 +62,8 @@ const CartPreviewModal: React.FC<CartPreviewModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] flex flex-col max-h-[90vh]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[500px] flex flex-col max-h-[90vh] overflow-hidden">
+        <DialogHeader className="shrink-0">
           <DialogTitle className="flex items-center gap-2 text-white">
             <ShoppingCart className="h-5 w-5" />
             Carrinho
@@ -76,21 +76,19 @@ const CartPreviewModal: React.FC<CartPreviewModalProps> = ({
           <span className="sr-only">Fechar</span>
         </DialogClose>
 
-        {/* Add an explicit height to ScrollArea container */}
-        <div className="flex-1 overflow-hidden" style={{ minHeight: '200px' }}>
-          <ScrollArea className="h-full pr-0" style={{ maxHeight: 'calc(70vh - 180px)' }}>
-            <div className="mt-4 pr-4">
-              <OrderSummary cart={cart} />
-              <CartSummary 
-                subtotal={cartTotal} 
-                deliveryFee={0}
-                total={cartTotal}
-              />
-            </div>
-          </ScrollArea>
+        {/* Content area with scrolling */}
+        <div className="flex-1 overflow-y-auto py-2" style={{ maxHeight: 'calc(70vh - 140px)' }}>
+          <div className="pr-2">
+            <OrderSummary cart={cart} />
+            <CartSummary 
+              subtotal={cartTotal} 
+              deliveryFee={0}
+              total={cartTotal}
+            />
+          </div>
         </div>
 
-        <div className="flex gap-3 mt-6 pt-4 border-t border-gray-700">
+        <div className="flex gap-3 mt-4 pt-4 border-t border-gray-700 shrink-0">
           <Button
             variant="destructive"
             className="w-full"
