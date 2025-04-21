@@ -1,11 +1,12 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { RefreshCw, Bell, BellOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PedidosTable from './PedidosTable';
 import PedidoDetalhe from './PedidoDetalhe';
 import NewOrderAlert from './NewOrderAlert';
 import { usePedidosManager } from '@/hooks/usePedidosManager';
+import { useToast } from '@/hooks/use-toast';
 
 const PedidosManager = () => {
   const {
@@ -21,8 +22,42 @@ const PedidosManager = () => {
     handleExcluirPedido,
     handleAtualizarStatus,
     setShowDetalhe,
-    formatDateTime
+    formatDateTime,
+    setupNotificationSystem,
+    connectionStatus
   } = usePedidosManager();
+
+  const { toast } = useToast();
+
+  // Setup notification system on component mount
+  useEffect(() => {
+    setupNotificationSystem();
+    
+    // Check connection on load
+    if (connectionStatus === 'disconnected') {
+      toast({
+        title: "Alerta de Conexão",
+        description: "Sistema de notificações desconectado. Tentando reconectar...",
+        variant: "destructive",
+      });
+    }
+  }, [setupNotificationSystem]);
+
+  // Monitor connection status changes
+  useEffect(() => {
+    if (connectionStatus === 'disconnected') {
+      toast({
+        title: "Alerta de Conexão",
+        description: "Conexão perdida com o sistema de notificações. Tentando reconectar...",
+        variant: "destructive",
+      });
+    } else if (connectionStatus === 'connected') {
+      toast({
+        title: "Conexão Restaurada",
+        description: "Sistema de notificações reconectado com sucesso.",
+      });
+    }
+  }, [connectionStatus, toast]);
 
   return (
     <div>
@@ -48,6 +83,14 @@ const PedidosManager = () => {
           </Button>
         </div>
       </div>
+      
+      {connectionStatus === 'disconnected' && (
+        <div className="bg-red-600/20 border border-red-600 rounded-md p-3 mb-4">
+          <p className="text-red-500 font-medium">
+            Sistema de notificações desconectado. Tentando reconectar automaticamente...
+          </p>
+        </div>
+      )}
       
       {hasNewPedido && (
         <NewOrderAlert 

@@ -1,7 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase/client';
 import { fetchPedidos, updatePedidoStatus, deletePedido } from '@/lib/supabase';
+import { fetchPedidoById } from '@/lib/supabase/pedidos';
 
 export interface Pedido {
   id: string;
@@ -15,6 +17,8 @@ export interface Pedido {
   timeInProduction?: number; // Time in minutes the order has been in production
 }
 
+type ConnectionStatus = 'connected' | 'connecting' | 'disconnected';
+
 export const usePedidosManager = () => {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -23,21 +27,108 @@ export const usePedidosManager = () => {
   const [hasNewPedido, setHasNewPedido] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('connecting');
+  const [lastCheckedTimestamp, setLastCheckedTimestamp] = useState<string | null>(null);
+  
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const productionTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const channelRef = useRef<any>(null);
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  
   const { toast } = useToast();
 
-  useEffect(() => {
-    // Criar elemento de áudio para notificação com som de telefone antigo
-    audioRef.current = new Audio('https://adegavm.shop/ring.mp3');
+  // Helper to get ISO timestamp from 5 minutes ago
+  const getTimestampFrom5MinutesAgo = () => {
+    const date = new Date();
+    date.setMinutes(date.getMinutes() - 5);
+    return date.toISOString();
+  };
+
+  // Polling function as a fallback to check for new orders
+  const startPolling = useCallback(() => {
+    // Clear any existing polling
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = null;
+    }
+
+    // Set initial checkpoint time if not set
+    if (!lastCheckedTimestamp) {
+      setLastCheckedTimestamp(getTimestampFrom5MinutesAgo());
+    }
+
+    // Start polling every 30 seconds
+    pollIntervalRef.current = setInterval(async () => {
+      try {
+        const timestamp = lastCheckedTimestamp || getTimestampFrom5MinutesAgo();
+        
+        console.log('Polling for new orders since:', timestamp);
+        
+        const { data, error } = await supabase
+          .from('pedidos')
+          .select('*')
+          .gt('data_criacao', timestamp)
+          .order('data_criacao', { ascending: false });
+        
+        if (error) {
+          console.error('Polling error:', error);
+          return;
+        }
+        
+        // If we found new orders, trigger notification
+        if (data && data.length > 0) {
+          console.log('Polling found new orders:', data.length);
+          // Update the last checked timestamp to the most recent order
+          const newestOrder = data.reduce((newest, order) => {
+            return new Date(order.data_criacao) > new Date(newest.data_criacao) ? order : newest;
+          }, data[0]);
+          
+          setLastCheckedTimestamp(newestOrder.data_criacao);
+          
+          // Only notify if not already notified
+          if (!hasNewPedido) {
+            console.log('Triggering notification from polling');
+            startRingingAlert();
+            setHasNewPedido(true);
+            fetchPedidosData();
+            
+            toast({
+              title: "Novo Pedido Recebido! (via polling)",
+              description: "Um cliente finalizou um pedido no sistema.",
+            });
+          }
+        }
+      } catch (e) {
+        console.error('Error in polling mechanism:', e);
+      }
+    }, 30000); // Poll every 30 seconds
     
-    // Buscar pedidos iniciais
-    fetchPedidosData();
+    return () => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
+    };
+  }, [lastCheckedTimestamp, hasNewPedido, toast]);
+
+  // Setup realtime subscriptions and fallbacks
+  const setupNotificationSystem = useCallback(() => {
+    // Create audio element if it doesn't exist
+    if (!audioRef.current) {
+      audioRef.current = new Audio('https://adegavm.shop/ring.mp3');
+    }
     
-    // Configurar listener para novos pedidos
+    // Clean up any existing channel
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
+    
+    // Initialize supabase realtime channel
     const channel = supabase
-      .channel('pedidos-changes')
+      .channel('pedidos-changes-improved')
       .on('postgres_changes', 
         { 
           event: 'INSERT', 
@@ -45,31 +136,129 @@ export const usePedidosManager = () => {
           table: 'pedidos' 
         }, 
         (payload) => {
-          console.log('Novo pedido recebido:', payload);
-          // Iniciar alerta sonoro contínuo
+          console.log('Realtime: Novo pedido recebido:', payload);
+          // Set connection status to connected since we're receiving events
+          setConnectionStatus('connected');
+          
+          // Trigger notification
           startRingingAlert();
-          // Atualizar lista de pedidos
+          
+          // Update order list
           fetchPedidosData();
-          // Mostrar notificação
+          
+          // Show notification banner
           setHasNewPedido(true);
+          
+          // Show toast
           toast({
             title: "Novo Pedido Recebido!",
             description: "Um cliente finalizou um pedido no sistema.",
           });
+          
+          // Update timestamp for polling
+          setLastCheckedTimestamp(new Date().toISOString());
         }
       )
-      .subscribe();
+      .on('system', { event: 'disconnected' }, () => {
+        console.log('Realtime: Disconnected from Supabase');
+        setConnectionStatus('disconnected');
+        
+        // Try to reconnect immediately
+        scheduleReconnect();
+        
+        // Start polling as fallback
+        startPolling();
+      })
+      .on('system', { event: 'connected' }, () => {
+        console.log('Realtime: Connected to Supabase');
+        setConnectionStatus('connected');
+        
+        // Cancel reconnect attempts
+        if (reconnectTimerRef.current) {
+          clearTimeout(reconnectTimerRef.current);
+          reconnectTimerRef.current = null;
+        }
+      })
+      .subscribe((status) => {
+        console.log('Subscription status:', status);
+        
+        // Update connection status based on subscription status
+        if (status === 'SUBSCRIBED') {
+          setConnectionStatus('connected');
+        } else if (status === 'TIMED_OUT' || status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+          setConnectionStatus('disconnected');
+          
+          // Schedule reconnect
+          scheduleReconnect();
+          
+          // Start polling as fallback
+          startPolling();
+        } else if (status === 'SUBSCRIBING') {
+          setConnectionStatus('connecting');
+        }
+      });
     
-    // Start the production timer to check order status
+    // Store channel reference
+    channelRef.current = channel;
+    
+    // Return cleanup function
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+      
+      if (reconnectTimerRef.current) {
+        clearTimeout(reconnectTimerRef.current);
+        reconnectTimerRef.current = null;
+      }
+      
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
+    };
+  }, [toast, startPolling]);
+
+  // Reconnect logic
+  const scheduleReconnect = useCallback(() => {
+    if (reconnectTimerRef.current) {
+      clearTimeout(reconnectTimerRef.current);
+    }
+    
+    reconnectTimerRef.current = setTimeout(() => {
+      console.log('Attempting to reconnect to Supabase...');
+      setupNotificationSystem();
+    }, 5000); // Try to reconnect every 5 seconds
+  }, [setupNotificationSystem]);
+
+  useEffect(() => {
+    // Initialize notification system
+    const cleanup = setupNotificationSystem();
+    
+    // Fetch initial orders
+    fetchPedidosData();
+    
+    // Start production timer
     startProductionTimer();
     
+    // Cleanup function
     return () => {
-      supabase.removeChannel(channel);
-      // Certifique-se de limpar o intervalo ao desmontar o componente
+      cleanup();
       stopRingingAlert();
       stopProductionTimer();
+      
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
+      
+      if (reconnectTimerRef.current) {
+        clearTimeout(reconnectTimerRef.current);
+        reconnectTimerRef.current = null;
+      }
     };
-  }, []);
+  }, [setupNotificationSystem]);
 
   // Function to start the production timer
   const startProductionTimer = () => {
@@ -112,27 +301,27 @@ export const usePedidosManager = () => {
     }
   };
 
-  // Função para iniciar o toque contínuo
+  // Function to start continuous ringing
   const startRingingAlert = () => {
-    // Limpar qualquer intervalo existente primeiro
+    // Clear any existing interval first
     stopRingingAlert();
     
-    // Tocar imediatamente
+    // Play immediately
     playAlertSound();
     
-    // Configurar intervalo para tocar a cada 3 segundos
+    // Set up interval to play every 3 seconds
     audioIntervalRef.current = setInterval(() => {
       playAlertSound();
-    }, 3000); // Intervalo entre toques
+    }, 3000); // Interval between rings
   };
 
-  // Função para parar o toque contínuo
+  // Function to stop continuous ringing
   const stopRingingAlert = () => {
     if (audioIntervalRef.current) {
       clearInterval(audioIntervalRef.current);
       audioIntervalRef.current = null;
       
-      // Parar o áudio se estiver tocando
+      // Stop audio if playing
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
@@ -157,6 +346,13 @@ export const usePedidosManager = () => {
       });
       
       setPedidos(processedPedidos);
+      
+      // Check for new unacknowledged orders
+      const pendingOrders = processedPedidos.filter(p => p.status === 'pendente');
+      if (pendingOrders.length > 0 && !hasNewPedido) {
+        setHasNewPedido(true);
+        // Don't start ringing again if already acknowledged
+      }
     } catch (error) {
       console.error('Erro ao buscar pedidos:', error);
       toast({
@@ -178,7 +374,21 @@ export const usePedidosManager = () => {
   const playAlertSound = () => {
     if (audioRef.current) {
       audioRef.current.currentTime = 0;
-      audioRef.current.play().catch(e => console.error("Erro ao tocar som:", e));
+      audioRef.current.play().catch(e => {
+        console.error("Erro ao tocar som:", e);
+        
+        // Try recreating the audio element if there's an error
+        audioRef.current = new Audio('https://adegavm.shop/ring.mp3');
+        audioRef.current.play().catch(e2 => {
+          console.error("Erro ao tocar som após recriação:", e2);
+        });
+      });
+    } else {
+      // Recreate if missing
+      audioRef.current = new Audio('https://adegavm.shop/ring.mp3');
+      audioRef.current.play().catch(e => {
+        console.error("Erro ao tocar som após recriação:", e);
+      });
     }
   };
 
@@ -206,7 +416,7 @@ export const usePedidosManager = () => {
         throw new Error('Falha ao excluir pedido');
       }
       
-      // Atualizar a lista de pedidos após exclusão
+      // Update pedidos list after deletion
       setPedidos(pedidos.filter(p => p.id !== id));
       
       toast({
@@ -233,7 +443,7 @@ export const usePedidosManager = () => {
         throw new Error('Falha ao atualizar status');
       }
       
-      // Se está aceitando um pedido e há notificação sonora, parar o som
+      // If accepting an order and there's a sound notification, stop the sound
       if (novoStatus === 'preparando' && hasNewPedido) {
         stopRingingAlert();
         setHasNewPedido(false);
@@ -277,12 +487,14 @@ export const usePedidosManager = () => {
     isDeleting,
     selectedPedido,
     showDetalhe,
+    connectionStatus,
     handleRefresh,
     handleAcknowledge,
     handleVisualizarPedido,
     handleExcluirPedido,
     handleAtualizarStatus,
     setShowDetalhe,
-    formatDateTime
+    formatDateTime,
+    setupNotificationSystem
   };
 };
