@@ -25,99 +25,21 @@ export const usePedidosManager = () => {
   const [hasNewPedido, setHasNewPedido] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [lastCheckedTimestamp, setLastCheckedTimestamp] = useState<string | null>(null);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const audioIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const productionTimerRef = useRef<NodeJS.Timeout | null>(null);
   const channelRef = useRef<any>(null);
-  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const productionTimerRef = useRef<NodeJS.Timeout | null>(null);
   
   const { toast } = useToast();
 
-  // Helper to get ISO timestamp from 5 minutes ago
-  const getTimestampFrom5MinutesAgo = () => {
-    const date = new Date();
-    date.setMinutes(date.getMinutes() - 5);
-    return date.toISOString();
-  };
-
-  // Enhanced polling function that runs more frequently
-  const startPolling = useCallback(() => {
-    // Clear any existing polling
-    if (pollIntervalRef.current) {
-      clearInterval(pollIntervalRef.current);
-      pollIntervalRef.current = null;
-    }
-
-    // Set initial checkpoint time if not set
-    if (!lastCheckedTimestamp) {
-      setLastCheckedTimestamp(getTimestampFrom5MinutesAgo());
-    }
-
-    // Start polling every 15 seconds
-    pollIntervalRef.current = setInterval(async () => {
-      try {
-        const timestamp = lastCheckedTimestamp || getTimestampFrom5MinutesAgo();
-        
-        console.log('Polling for new orders since:', timestamp);
-        
-        const { data, error } = await supabase
-          .from('pedidos')
-          .select('*')
-          .gt('data_criacao', timestamp)
-          .order('data_criacao', { ascending: false });
-        
-        if (error) {
-          console.error('Polling error:', error);
-          return;
-        }
-        
-        // If we found new orders, trigger notification
-        if (data && data.length > 0) {
-          console.log('Polling found new orders:', data.length);
-          // Update the last checked timestamp to the most recent order
-          const newestOrder = data.reduce((newest, order) => {
-            return new Date(order.data_criacao) > new Date(newest.data_criacao) ? order : newest;
-          }, data[0]);
-          
-          setLastCheckedTimestamp(newestOrder.data_criacao);
-          
-          // Only notify if not already notified
-          if (!hasNewPedido) {
-            console.log('Triggering notification from polling');
-            startRingingAlert();
-            setHasNewPedido(true);
-            fetchPedidosData();
-            
-            toast({
-              title: "Novo Pedido Recebido!",
-              description: "Um cliente finalizou um pedido no sistema.",
-            });
-          }
-        }
-      } catch (e) {
-        console.error('Error in polling mechanism:', e);
-      }
-    }, 15000); // Poll every 15 seconds
-    
-    return () => {
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
-        pollIntervalRef.current = null;
-      }
-    };
-  }, [lastCheckedTimestamp, hasNewPedido, toast]);
-
-  // Simplified setup for realtime subscriptions - no connection status handling
+  // Setup notification system on component mount and force reconnect
   const setupNotificationSystem = useCallback(() => {
-    console.log('Setting up notification system - simplified implementation');
+    console.log('Setting up notification system');
     
     // Create audio element if it doesn't exist
     if (!audioRef.current) {
       audioRef.current = new Audio('https://adegavm.shop/ring.mp3');
-      // Preload the audio
-      audioRef.current.load();
+      audioRef.current.load(); // Preload the audio
     }
     
     // Clean up any existing channel
@@ -127,9 +49,9 @@ export const usePedidosManager = () => {
       channelRef.current = null;
     }
     
-    // Initialize supabase realtime channel with simplified logic
+    // Initialize supabase realtime channel
     const channel = supabase
-      .channel('pedidos-changes-robust')
+      .channel('pedidos-changes')
       .on('postgres_changes', 
         { 
           event: 'INSERT', 
@@ -137,10 +59,10 @@ export const usePedidosManager = () => {
           table: 'pedidos' 
         }, 
         (payload) => {
-          console.log('Realtime: Novo pedido recebido:', payload);
+          console.log('Novo pedido recebido:', payload);
           
-          // Trigger notification
-          startRingingAlert();
+          // Start playing alert sound
+          playAlertSound();
           
           // Update order list
           fetchPedidosData();
@@ -153,28 +75,14 @@ export const usePedidosManager = () => {
             title: "Novo Pedido Recebido!",
             description: "Um cliente finalizou um pedido no sistema.",
           });
-          
-          // Update timestamp for polling
-          setLastCheckedTimestamp(new Date().toISOString());
         }
       )
       .subscribe((status) => {
         console.log('Subscription status:', status);
-        
-        // Start polling as fallback
-        if (status === 'SUBSCRIBED') {
-          console.log('Successfully subscribed to real-time updates');
-        } else {
-          console.log('Fallback to polling as subscription status is:', status);
-          startPolling();
-        }
       });
     
     // Store channel reference
     channelRef.current = channel;
-    
-    // Start polling as a backup
-    startPolling();
     
     // Return cleanup function
     return () => {
@@ -183,16 +91,13 @@ export const usePedidosManager = () => {
         channelRef.current = null;
       }
       
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
-        pollIntervalRef.current = null;
-      }
+      stopAlertSound();
     };
-  }, [toast, startPolling]);
+  }, [toast]);
 
   // Setup notification system when component mounts
   useEffect(() => {
-    console.log('Setting up notification system and initial data fetch');
+    console.log("PedidosManager mounted, initializing notification system");
     
     // Initialize notification system
     const cleanup = setupNotificationSystem();
@@ -206,8 +111,9 @@ export const usePedidosManager = () => {
     // Cleanup function
     return () => {
       cleanup();
-      stopRingingAlert();
+      stopAlertSound();
       stopProductionTimer();
+      console.log("PedidosManager unmounted, cleaning up notification system");
     };
   }, [setupNotificationSystem]);
 
@@ -252,31 +158,27 @@ export const usePedidosManager = () => {
     }
   };
 
-  // Improved audio alert system
-  const startRingingAlert = () => {
-    // Clear any existing interval first
-    stopRingingAlert();
+  // Simple audio alert function
+  const playAlertSound = () => {
+    if (!audioRef.current) {
+      audioRef.current = new Audio('https://adegavm.shop/ring.mp3');
+    }
     
-    // Play immediately with better error handling
-    playAlertSound();
+    // Loop the audio
+    audioRef.current.loop = true;
     
-    // Set up interval to play every 3 seconds
-    audioIntervalRef.current = setInterval(() => {
-      playAlertSound();
-    }, 3000); // Interval between rings
+    // Play the audio
+    audioRef.current.play().catch(e => {
+      console.error("Erro ao tocar som:", e);
+    });
   };
 
-  // Function to stop continuous ringing
-  const stopRingingAlert = () => {
-    if (audioIntervalRef.current) {
-      clearInterval(audioIntervalRef.current);
-      audioIntervalRef.current = null;
-      
-      // Stop audio if playing
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-      }
+  // Function to stop alert sound
+  const stopAlertSound = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current.loop = false;
     }
   };
 
@@ -302,7 +204,7 @@ export const usePedidosManager = () => {
       const pendingOrders = processedPedidos.filter(p => p.status === 'pendente');
       if (pendingOrders.length > 0 && !hasNewPedido) {
         setHasNewPedido(true);
-        startRingingAlert(); // Start ringing if there are pending orders and not already acknowledged
+        playAlertSound(); // Start alert if there are pending orders
       }
     } catch (error) {
       console.error('Erro ao buscar pedidos:', error);
@@ -322,58 +224,12 @@ export const usePedidosManager = () => {
     // Force refresh data
     await fetchPedidosData();
     
-    // Reset notification system to ensure connection
-    setupNotificationSystem();
-    
     setTimeout(() => setRefreshing(false), 1000);
-  };
-
-  // Improved audio playback with multiple fallbacks
-  const playAlertSound = () => {
-    if (audioRef.current) {
-      // Reset audio to beginning
-      audioRef.current.currentTime = 0;
-      
-      // Play with fallback
-      const playPromise = audioRef.current.play();
-      
-      if (playPromise !== undefined) {
-        playPromise.catch(e => {
-          console.error("Erro ao tocar som:", e);
-          
-          // Try recreating the audio element if there's an error
-          audioRef.current = new Audio('https://adegavm.shop/ring.mp3');
-          audioRef.current.play().catch(e2 => {
-            console.error("Erro ao tocar som após recriação:", e2);
-            
-            // Try alternative approach without new Audio object
-            const tempAudio = document.createElement('audio');
-            tempAudio.src = 'https://adegavm.shop/ring.mp3';
-            tempAudio.play().catch(e3 => {
-              console.error("Todas as tentativas de tocar som falharam:", e3);
-            });
-          });
-        });
-      }
-    } else {
-      // Recreate if missing
-      audioRef.current = new Audio('https://adegavm.shop/ring.mp3');
-      audioRef.current.play().catch(e => {
-        console.error("Erro ao tocar som após recriação:", e);
-        
-        // Fallback to alternative method
-        const tempAudio = document.createElement('audio');
-        tempAudio.src = 'https://adegavm.shop/ring.mp3';
-        tempAudio.play().catch(e2 => {
-          console.error("Todas as tentativas de tocar som falharam:", e2);
-        });
-      });
-    }
   };
 
   const handleAcknowledge = () => {
     // Always stop the alert sound when acknowledging
-    stopRingingAlert();
+    stopAlertSound();
     setHasNewPedido(false);
   };
 

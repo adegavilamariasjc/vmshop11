@@ -28,9 +28,9 @@ const PedidosManager = () => {
 
   const { toast } = useToast();
 
-  // Setup notification system on component mount and force reconnect
+  // Setup notification system on component mount
   useEffect(() => {
-    // Force a reconnection when component mounts to ensure we have a fresh connection
+    // Initialize notification system when component mounts
     const cleanup = setupNotificationSystem();
     
     console.log("PedidosManager mounted, initializing notification system");
