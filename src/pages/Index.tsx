@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../hooks/useCart';
 import { AnimatePresence } from 'framer-motion';
@@ -117,10 +118,22 @@ const Index = () => {
     fetchBairros();
   }, []);
 
+  // Force reset the originSurveyCompleted flag for testing purposes
   useEffect(() => {
+    // Uncomment the line below if you need to reset the survey for testing
+    // localStorage.removeItem('originSurveyCompleted');
+    
     const hasResponded = localStorage.getItem('originSurveyCompleted') === 'true';
+    console.log("Origin survey status:", hasResponded ? "already completed" : "not completed yet");
+    
     if (!hasResponded) {
-      setShowOriginSurvey(true);
+      console.log("Setting survey to show");
+      // Small delay to ensure the app is fully loaded before showing the modal
+      const timer = setTimeout(() => {
+        setShowOriginSurvey(true);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
     }
   }, []);
 

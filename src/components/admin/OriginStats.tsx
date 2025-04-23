@@ -5,28 +5,43 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 const OriginStats = () => {
-  const { data: stats = {}, isLoading } = useQuery({
+  const { data: stats = {}, isLoading, error } = useQuery({
     queryKey: ['origin-stats'],
     queryFn: async () => {
+      console.log('Fetching origin stats...');
       const { data, error } = await supabase
         .from('client_origins')
         .select('origin');
       
       if (error) {
         console.error('Error fetching origin stats:', error);
-        return {};
+        throw error;
       }
+      
+      console.log('Origin data received:', data);
       
       // Count occurrences of each origin
       const counts: Record<string, number> = {};
       data?.forEach(row => {
-        counts[row.origin] = (counts[row.origin] || 0) + 1;
+        const originValue = row.origin;
+        if (originValue) {
+          counts[originValue] = (counts[originValue] || 0) + 1;
+        }
       });
       
+      console.log('Processed origin counts:', counts);
       return counts;
     },
-    refetchInterval: 30000 // Refresh every 30 seconds
+    refetchInterval: 30000, // Refresh every 30 seconds
+    retry: 3,
   });
+
+  if (error) {
+    console.error('Error in origin stats query:', error);
+  }
+
+  const hasData = stats && Object.keys(stats).length > 0;
+  console.log('Rendering origin stats with data:', hasData ? 'yes' : 'no', stats);
 
   return (
     <Card className="bg-black/50">
@@ -35,7 +50,7 @@ const OriginStats = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {isLoading ? (
             <div className="col-span-4 text-center py-2">Carregando dados...</div>
-          ) : Object.keys(stats).length > 0 ? (
+          ) : hasData ? (
             Object.entries(stats).map(([origin, count]) => (
               <div key={origin} className="bg-black/30 p-3 rounded-lg text-center">
                 <div className="text-xl font-bold">{count}</div>
