@@ -22,6 +22,7 @@ import OriginSurveyModal from '../components/OriginSurveyModal';
 
 const Index = () => {
   const { isOpen } = useStoreStatus();
+  const { toast } = useToast();
   const {
     cart,
     activeCategory,
