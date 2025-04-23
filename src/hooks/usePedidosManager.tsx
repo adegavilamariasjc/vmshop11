@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase/client';
@@ -25,29 +24,20 @@ export const usePedidosManager = () => {
   const [hasNewPedido, setHasNewPedido] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [alertSoundSilenced, setAlertSoundSilenced] = useState(false);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const channelRef = useRef<any>(null);
   const productionTimerRef = useRef<NodeJS.Timeout | null>(null);
   
   const { toast } = useToast();
 
-  // Setup notification system on component mount and force reconnect
+  // Simple function to setup the audio alert and Supabase channel
   const setupNotificationSystem = useCallback(() => {
     console.log('Setting up notification system');
     
     // Create audio element if it doesn't exist
     if (!audioRef.current) {
       audioRef.current = new Audio('https://adegavm.shop/ring.mp3');
-      audioRef.current.load(); // Preload the audio
-    }
-    
-    // Clean up any existing channel
-    if (channelRef.current) {
-      console.log('Removing existing channel');
-      supabase.removeChannel(channelRef.current);
-      channelRef.current = null;
+      audioRef.current.loop = true;
     }
     
     // Initialize supabase realtime channel
@@ -62,8 +52,8 @@ export const usePedidosManager = () => {
         (payload) => {
           console.log('Novo pedido recebido:', payload);
           
-          // Only play alert sound if it hasn't been explicitly silenced
-          if (!alertSoundSilenced) {
+          // Play alert sound if there's a new order
+          if (!hasNewPedido) {
             playAlertSound();
           }
           
@@ -84,19 +74,12 @@ export const usePedidosManager = () => {
         console.log('Subscription status:', status);
       });
     
-    // Store channel reference
-    channelRef.current = channel;
-    
     // Return cleanup function
     return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-      }
-      
+      supabase.removeChannel(channel);
       stopAlertSound();
     };
-  }, [toast, alertSoundSilenced]);
+  }, [toast, hasNewPedido]);
 
   // Setup notification system when component mounts
   useEffect(() => {
@@ -114,8 +97,8 @@ export const usePedidosManager = () => {
     // Cleanup function
     return () => {
       cleanup();
-      stopAlertSound();
       stopProductionTimer();
+      stopAlertSound();
       console.log("PedidosManager unmounted, cleaning up notification system");
     };
   }, [setupNotificationSystem]);
@@ -165,15 +148,8 @@ export const usePedidosManager = () => {
   const playAlertSound = () => {
     if (!audioRef.current) {
       audioRef.current = new Audio('https://adegavm.shop/ring.mp3');
+      audioRef.current.loop = true;
     }
-    
-    // Don't play if already silenced
-    if (alertSoundSilenced) {
-      return;
-    }
-    
-    // Loop the audio
-    audioRef.current.loop = true;
     
     // Play the audio
     audioRef.current.play().catch(e => {
@@ -186,7 +162,6 @@ export const usePedidosManager = () => {
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
-      audioRef.current.loop = false;
     }
   };
 
@@ -208,9 +183,9 @@ export const usePedidosManager = () => {
       
       setPedidos(processedPedidos);
       
-      // Check for new unacknowledged orders
+      // Check if there are any pending orders and we haven't shown the alert yet
       const pendingOrders = processedPedidos.filter(p => p.status === 'pendente');
-      if (pendingOrders.length > 0 && !hasNewPedido && !alertSoundSilenced) {
+      if (pendingOrders.length > 0 && !hasNewPedido) {
         setHasNewPedido(true);
         playAlertSound(); // Start alert if there are pending orders
       }
@@ -236,10 +211,9 @@ export const usePedidosManager = () => {
   };
 
   const handleAcknowledge = () => {
-    // Always stop the alert sound when acknowledging
+    // Stop the alert sound when acknowledging
     stopAlertSound();
     setHasNewPedido(false);
-    setAlertSoundSilenced(true);
     
     console.log("Alert acknowledged and silenced");
   };

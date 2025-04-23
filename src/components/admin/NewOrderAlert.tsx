@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { BellRing } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -12,13 +12,6 @@ const NewOrderAlert: React.FC<NewOrderAlertProps> = ({
   hasNewPedido, 
   onAcknowledge 
 }) => {
-  // When hasNewPedido changes to true, make sure the alert is visible
-  useEffect(() => {
-    if (hasNewPedido) {
-      console.log('New order alert shown');
-    }
-  }, [hasNewPedido]);
-  
   if (!hasNewPedido) return null;
   
   return (
