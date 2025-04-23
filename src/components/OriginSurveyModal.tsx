@@ -3,8 +3,9 @@ import React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
-const ORIGIN_OPTIONS = ['Facebook', 'Instagram', 'Google', 'Loja física'] as const;
+const ORIGIN_OPTIONS = ['Facebook', 'Instagram', 'Google', 'Loja física', 'Ja respondi'] as const;
 
 interface OriginSurveyModalProps {
   isOpen: boolean;
@@ -12,15 +13,31 @@ interface OriginSurveyModalProps {
 }
 
 const OriginSurveyModal: React.FC<OriginSurveyModalProps> = ({ isOpen, onClose }) => {
+  const { toast } = useToast();
+
   const handleOriginSelect = async (origin: string) => {
     try {
+      // Save to database
       await supabase
         .from('client_origins')
         .insert([{ origin }]);
       
+      // Set in local storage to remember the user has responded
+      localStorage.setItem('originSurveyCompleted', 'true');
+      
+      toast({
+        title: 'Obrigado!',
+        description: 'Sua resposta foi registrada com sucesso.',
+      });
+      
       onClose();
     } catch (error) {
       console.error('Error saving origin:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível salvar sua resposta. Tente novamente.',
+        variant: 'destructive',
+      });
     }
   };
 

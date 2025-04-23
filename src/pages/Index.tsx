@@ -76,8 +76,7 @@ const Index = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isDuplicateOrder, setIsDuplicateOrder] = useState(false);
   const [whatsAppUrl, setWhatsAppUrl] = useState("");
-  const [showOriginSurvey, setShowOriginSurvey] = useState(true);
-  const { toast } = useToast();
+  const [showOriginSurvey, setShowOriginSurvey] = useState(false);
 
   const getFullProductName = (name: string, category?: string): string => {
     if (category?.toLowerCase() === 'batidas' && !name.toLowerCase().includes('batida de')) {
@@ -115,6 +114,13 @@ const Index = () => {
     };
 
     fetchBairros();
+  }, []);
+
+  useEffect(() => {
+    const hasResponded = localStorage.getItem('originSurveyCompleted') === 'true';
+    if (!hasResponded) {
+      setShowOriginSurvey(true);
+    }
   }, []);
 
   useEffect(() => {
