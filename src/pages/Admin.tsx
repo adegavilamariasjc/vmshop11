@@ -12,6 +12,7 @@ import TrafficIndicator from '../components/admin/TrafficIndicator';
 import Logo from '../components/Logo';
 import BackgroundVideoPlayer from '../components/BackgroundVideoPlayer';
 import { getVideoUrls } from '@/utils/videoUrls';
+import OriginStats from '../components/admin/OriginStats';
 
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -73,8 +74,13 @@ const Admin = () => {
             <div className="mt-8">
               <h1 className="text-2xl font-bold text-white mb-6">Painel Administrativo</h1>
               
-              <div className="mb-8">
-                <TrafficIndicator />
+              <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="w-full">
+                  <TrafficIndicator />
+                </div>
+                <div className="w-full">
+                  <OriginStats />
+                </div>
               </div>
               
               <Tabs defaultValue="pedidos" className="w-full">

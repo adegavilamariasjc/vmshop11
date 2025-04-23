@@ -18,6 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import AdminLink from '../components/AdminLink';
 import { savePedido, fetchPedidos } from '@/lib/supabase';
 import { useStoreStatus } from '@/hooks/useStoreStatus';
+import OriginSurveyModal from '../components/OriginSurveyModal';
 
 const Index = () => {
   const { isOpen } = useStoreStatus();
@@ -75,6 +76,7 @@ const Index = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isDuplicateOrder, setIsDuplicateOrder] = useState(false);
   const [whatsAppUrl, setWhatsAppUrl] = useState("");
+  const [showOriginSurvey, setShowOriginSurvey] = useState(true);
   const { toast } = useToast();
 
   const getFullProductName = (name: string, category?: string): string => {
@@ -309,6 +311,10 @@ const Index = () => {
 
   return (
     <PageLayout>
+      <OriginSurveyModal 
+        isOpen={showOriginSurvey} 
+        onClose={() => setShowOriginSurvey(false)} 
+      />
       <AnimatePresence mode="wait">
         {!showSummary ? (
           <ProductSelectionView
