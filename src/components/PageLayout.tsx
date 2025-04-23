@@ -1,3 +1,4 @@
+
 import React, { ReactNode } from 'react';
 import Logo from './Logo';
 import VideoBackground from './VideoBackground';
@@ -29,17 +30,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
             <StoreStatus />
           </div>
           <AdminLink />
-          {!isOpen ? (
-            <div className="text-center p-6 bg-black/40 rounded-lg">
-              <h2 className="text-xl text-white mb-2">Loja Fechada</h2>
-              <p className="text-gray-300">
-                Nosso horário de funcionamento é das 18h às 5h. 
-                Aguardamos você mais tarde!
-              </p>
-            </div>
-          ) : (
-            children
-          )}
+          {children}
         </div>
       </div>
     </div>

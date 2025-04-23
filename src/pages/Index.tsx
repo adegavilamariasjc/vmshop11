@@ -17,8 +17,10 @@ import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import AdminLink from '../components/AdminLink';
 import { savePedido, fetchPedidos } from '@/lib/supabase';
+import { useStoreStatus } from '@/hooks/useStoreStatus';
 
 const Index = () => {
+  const { isOpen } = useStoreStatus();
   const {
     cart,
     activeCategory,
@@ -154,7 +156,7 @@ const Index = () => {
   };
 
   const preparePedido = async () => {
-    if (cart.length === 0) return false;
+    if (cart.length === 0 || !isOpen) return false;
     
     const total = cart.reduce((sum, p) => sum + (p.price || 0) * (p.qty || 1), 0) + form.bairro.taxa;
     
@@ -247,7 +249,7 @@ const Index = () => {
   };
 
   const processOrder = async () => {
-    if (cart.length === 0) {
+    if (cart.length === 0 || !isOpen) {
       return;
     }
     
@@ -316,6 +318,7 @@ const Index = () => {
             onAddProduct={handleAddProduct}
             onUpdateQuantity={handleUpdateQuantity}
             onProceedToCheckout={checkMissingFlavorsAndProceed}
+            isStoreOpen={isOpen}
           />
         ) : (
           <CheckoutView
@@ -326,6 +329,7 @@ const Index = () => {
             onBackToProducts={() => setShowSummary(false)}
             onSubmit={processOrder}
             isSending={isSendingOrder}
+            isStoreOpen={isOpen}
           />
         )}
       </AnimatePresence>

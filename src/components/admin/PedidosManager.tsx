@@ -101,7 +101,7 @@ const PedidosManager = () => {
         <PedidoDetalhe 
           pedidoId={selectedPedido}
           onClose={() => setShowDetalhe(false)}
-          onDelete={() => handleRefresh()}
+          onDelete={handleRefresh}
           onStatusChange={handleAtualizarStatus}
         />
       )}

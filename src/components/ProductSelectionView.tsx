@@ -1,12 +1,13 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ShoppingBag } from 'lucide-react';
+import { ShoppingBag, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import CategorySelector from './CategorySelector';
 import ProductList from './ProductList';
 import CartPreviewModal from './CartPreviewModal';
 import { Product } from '../types';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface ProductSelectionViewProps {
   activeCategory: string | null;
@@ -15,6 +16,7 @@ interface ProductSelectionViewProps {
   onAddProduct: (item: Product) => void;
   onUpdateQuantity: (item: Product, delta: number) => void;
   onProceedToCheckout: () => void;
+  isStoreOpen: boolean;
 }
 
 const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
@@ -23,7 +25,8 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
   onSelectCategory,
   onAddProduct,
   onUpdateQuantity,
-  onProceedToCheckout
+  onProceedToCheckout,
+  isStoreOpen
 }) => {
   const [isCartModalOpen, setIsCartModalOpen] = useState(false);
   const { toast } = useToast();
@@ -41,6 +44,30 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
     });
   };
 
+  const handleCartClick = () => {
+    if (!isStoreOpen && cart.length > 0) {
+      toast({
+        title: "Loja Fechada",
+        description: "A loja está fechada no momento. Você pode navegar pelo cardápio, mas não é possível finalizar pedidos.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setIsCartModalOpen(true);
+  };
+
+  const handleAddToCart = (item: Product) => {
+    if (!isStoreOpen) {
+      toast({
+        title: "Loja Fechada",
+        description: "A loja está fechada no momento. Você pode navegar pelo cardápio, mas não é possível adicionar itens ao carrinho.",
+        variant: "destructive",
+      });
+      return;
+    }
+    onAddProduct(item);
+  };
+
   return (
     <motion.div
       key="product-selection"
@@ -49,6 +76,16 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
       exit={{ opacity: 0 }}
       className="w-full"
     >
+      {!isStoreOpen && (
+        <Alert className="bg-red-900/30 border-red-700 mb-4">
+          <AlertCircle className="h-5 w-5 text-red-400" />
+          <AlertTitle className="text-red-400">Loja Fechada</AlertTitle>
+          <AlertDescription className="text-red-300">
+            Você pode navegar pelo cardápio, mas não é possível realizar pedidos no momento. Retorne entre 18h e 5h.
+          </AlertDescription>
+        </Alert>
+      )}
+      
       <CategorySelector 
         activeCategory={activeCategory} 
         onSelectCategory={onSelectCategory} 
@@ -58,21 +95,22 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
         <ProductList
           category={activeCategory}
           cart={cart}
-          onAddProduct={onAddProduct}
+          onAddProduct={handleAddToCart}
           onUpdateQuantity={onUpdateQuantity}
+          isStoreOpen={isStoreOpen}
         />
       )}
       
       <motion.button
-        onClick={() => setIsCartModalOpen(true)}
-        className="fixed bottom-6 right-6 bg-purple-dark text-white px-4 py-3 rounded-full shadow-lg flex items-center gap-2"
+        onClick={handleCartClick}
+        className={`fixed bottom-6 right-6 ${isStoreOpen ? 'bg-purple-dark hover:bg-purple-600' : 'bg-gray-600 hover:bg-gray-700'} text-white px-4 py-3 rounded-full shadow-lg flex items-center gap-2`}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        animate={cart.length > 0 ? { y: [0, -5, 0], transition: { repeat: 2, duration: 0.6 } } : {}}
+        animate={cart.length > 0 && isStoreOpen ? { y: [0, -5, 0], transition: { repeat: 2, duration: 0.6 } } : {}}
       >
         <ShoppingBag size={20} />
         <span className="font-semibold">
-          {cart.length > 0 ? `${cart.reduce((sum, p) => sum + (p.qty || 1), 0)} itens - R$ ${cartTotal.toFixed(2)}` : "Carrinho"}
+          {cart.length > 0 ? `${cart.reduce((sum, p) => sum + (p.qty || 1), 0)} itens - R$ ${cartTotal.toFixed(2)}` : "Cardápio"}
         </span>
       </motion.button>
 
@@ -82,6 +120,7 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
         cart={cart}
         onClearCart={handleClearCart}
         onProceedToCheckout={onProceedToCheckout}
+        isStoreOpen={isStoreOpen}
       />
     </motion.div>
   );

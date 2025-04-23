@@ -372,8 +372,9 @@ export const usePedidosManager = () => {
   };
 
   const handleAcknowledge = () => {
-    setHasNewPedido(false);
+    // Always stop the alert sound when acknowledging
     stopRingingAlert();
+    setHasNewPedido(false);
   };
 
   const handleVisualizarPedido = (id: string) => {
@@ -420,12 +421,6 @@ export const usePedidosManager = () => {
       
       if (!success) {
         throw new Error('Falha ao atualizar status');
-      }
-      
-      // If accepting an order and there's a sound notification, stop the sound
-      if (novoStatus === 'preparando' && hasNewPedido) {
-        stopRingingAlert();
-        setHasNewPedido(false);
       }
       
       // Reset timeInProduction when status changes
