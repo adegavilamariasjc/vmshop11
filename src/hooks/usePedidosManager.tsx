@@ -25,6 +25,7 @@ export const usePedidosManager = () => {
   const [hasNewPedido, setHasNewPedido] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [alertSoundSilenced, setAlertSoundSilenced] = useState(false);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const channelRef = useRef<any>(null);
@@ -61,8 +62,10 @@ export const usePedidosManager = () => {
         (payload) => {
           console.log('Novo pedido recebido:', payload);
           
-          // Start playing alert sound
-          playAlertSound();
+          // Only play alert sound if it hasn't been explicitly silenced
+          if (!alertSoundSilenced) {
+            playAlertSound();
+          }
           
           // Update order list
           fetchPedidosData();
@@ -93,7 +96,7 @@ export const usePedidosManager = () => {
       
       stopAlertSound();
     };
-  }, [toast]);
+  }, [toast, alertSoundSilenced]);
 
   // Setup notification system when component mounts
   useEffect(() => {
@@ -164,6 +167,11 @@ export const usePedidosManager = () => {
       audioRef.current = new Audio('https://adegavm.shop/ring.mp3');
     }
     
+    // Don't play if already silenced
+    if (alertSoundSilenced) {
+      return;
+    }
+    
     // Loop the audio
     audioRef.current.loop = true;
     
@@ -202,7 +210,7 @@ export const usePedidosManager = () => {
       
       // Check for new unacknowledged orders
       const pendingOrders = processedPedidos.filter(p => p.status === 'pendente');
-      if (pendingOrders.length > 0 && !hasNewPedido) {
+      if (pendingOrders.length > 0 && !hasNewPedido && !alertSoundSilenced) {
         setHasNewPedido(true);
         playAlertSound(); // Start alert if there are pending orders
       }
@@ -231,6 +239,9 @@ export const usePedidosManager = () => {
     // Always stop the alert sound when acknowledging
     stopAlertSound();
     setHasNewPedido(false);
+    setAlertSoundSilenced(true);
+    
+    console.log("Alert acknowledged and silenced");
   };
 
   const handleVisualizarPedido = (id: string) => {
