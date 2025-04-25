@@ -98,33 +98,20 @@ export const useCart = () => {
       );
       
       if (existingItem) {
-        const newQty = Math.max(0, (existingItem.qty || 1) + delta);
-        
-        if (newQty === 0) {
-          return prevCart.filter(p => 
-            !(p.name === item.name &&
+        return prevCart
+          .map(p =>
+            p.name === item.name &&
             p.category === item.category &&
             ((p.ice && item.ice && JSON.stringify(p.ice) === JSON.stringify(item.ice)) ||
-            (!p.ice && !item.ice)) &&
+             (!p.ice && !item.ice)) &&
             p.alcohol === item.alcohol &&
             p.balyFlavor === item.balyFlavor &&
             p.energyDrink === item.energyDrink &&
-            p.energyDrinkFlavor === item.energyDrinkFlavor)
-          );
-        }
-        
-        return prevCart.map(p =>
-          p.name === item.name &&
-          p.category === item.category &&
-          ((p.ice && item.ice && JSON.stringify(p.ice) === JSON.stringify(item.ice)) ||
-          (!p.ice && !item.ice)) &&
-          p.alcohol === item.alcohol &&
-          p.balyFlavor === item.balyFlavor &&
-          p.energyDrink === item.energyDrink &&
-          p.energyDrinkFlavor === item.energyDrinkFlavor
-            ? { ...p, qty: newQty }
-            : p
-        );
+            p.energyDrinkFlavor === item.energyDrinkFlavor
+              ? { ...p, qty: Math.max(0, (p.qty || 1) + delta) }
+              : p
+          )
+          .filter(p => (p.qty || 1) > 0);
       }
       
       return delta > 0 ? [...prevCart, { ...item, qty: 1 }] : prevCart;
