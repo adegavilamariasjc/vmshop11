@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../hooks/useCart';
 import { AnimatePresence } from 'framer-motion';
@@ -79,6 +78,7 @@ const Index = () => {
   const [isDuplicateOrder, setIsDuplicateOrder] = useState(false);
   const [whatsAppUrl, setWhatsAppUrl] = useState("");
   const [showOriginSurvey, setShowOriginSurvey] = useState(false);
+  const [surveySetting, setSurveySetting] = useState<{checked: boolean, time: number}>({checked: false, time: 0});
 
   const getFullProductName = (name: string, category?: string): string => {
     if (category?.toLowerCase() === 'batidas' && !name.toLowerCase().includes('batida de')) {
@@ -118,24 +118,24 @@ const Index = () => {
     fetchBairros();
   }, []);
 
-  // Force reset the originSurveyCompleted flag for testing purposes
   useEffect(() => {
-    // Uncomment the line below if you need to reset the survey for testing
+    // For testing only: uncomment the line below
     // localStorage.removeItem('originSurveyCompleted');
     
     const hasResponded = localStorage.getItem('originSurveyCompleted') === 'true';
     console.log("Origin survey status:", hasResponded ? "already completed" : "not completed yet");
     
-    if (!hasResponded) {
-      console.log("Setting survey to show");
+    if (!hasResponded && !surveySetting.checked) {
+      console.log("Setting survey to show with delay");
       // Small delay to ensure the app is fully loaded before showing the modal
       const timer = setTimeout(() => {
         setShowOriginSurvey(true);
-      }, 1000);
+        setSurveySetting({checked: true, time: Date.now()});
+      }, 2000);
       
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [surveySetting]);
 
   useEffect(() => {
     console.log("Index component, isEnergyDrinkModalOpen:", isEnergyDrinkModalOpen, "productType:", currentProductType);
@@ -232,7 +232,7 @@ const Index = () => {
               .map(([flavor, qty]) => `${flavor} x${qty}`)
               .join(", ")
           : "";
-        const alcoholText = p.alcohol ? ` (Álcool: ${p.alcohol})` : "";
+        const alcoholText = p.alcohol ? ` (��lcool: ${p.alcohol})` : "";
         const balyText = p.balyFlavor ? ` (Baly: ${p.balyFlavor})` : "";
         const energyDrinkText = p.energyDrink 
           ? ` (Energético: ${p.energyDrink}${p.energyDrinkFlavor !== 'Tradicional' ? ' - ' + p.energyDrinkFlavor : ''})`
