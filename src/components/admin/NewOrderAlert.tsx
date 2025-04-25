@@ -220,8 +220,10 @@ const NewOrderAlert: React.FC<NewOrderAlertProps> = ({
             audioRef.current.play().catch(err => console.log('Still cannot play on click:', err));
           } else {
             // Try with the fallback element
-            document.getElementById("alertAudio")?.setAttribute("autoplay", "true");
-            document.getElementById("alertAudio")?.play().catch(console.error);
+            const audioElement = document.getElementById("alertAudio") as HTMLAudioElement;
+            if (audioElement) {
+              audioElement.play().catch(console.error);
+            }
           }
         }}
       >

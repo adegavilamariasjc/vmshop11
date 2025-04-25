@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -180,7 +181,6 @@ export const usePedidosManager = () => {
                   const notification = new Notification('Novo Pedido!', {
                     body: 'Há um novo pedido que precisa de atenção!',
                     icon: '/favicon.ico',
-                    vibrate: [200, 100, 200],
                     requireInteraction: true
                   });
                   
@@ -395,7 +395,6 @@ export const usePedidosManager = () => {
             
             // Method 2: Show toast notification
             toast({
-              id: notificationId,
               title: "Novo Pedido Recebido!",
               description: "Um novo pedido acaba de chegar.",
               variant: "default",
@@ -408,7 +407,6 @@ export const usePedidosManager = () => {
                 const notification = new Notification('Novo Pedido!', {
                   body: 'Clique aqui para ver os detalhes do novo pedido',
                   icon: '/favicon.ico',
-                  vibrate: [200, 100, 200],
                   requireInteraction: true
                 });
                 
