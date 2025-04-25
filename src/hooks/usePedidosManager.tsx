@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -6,11 +5,32 @@ import { useToast } from '@/hooks/use-toast';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
+export interface Pedido {
+  id: string;
+  codigo_pedido: string;
+  cliente_nome: string;
+  cliente_endereco: string;
+  cliente_numero?: string;
+  cliente_complemento?: string;
+  cliente_referencia?: string;
+  cliente_bairro: string;
+  taxa_entrega: number;
+  cliente_whatsapp: string;
+  forma_pagamento: string;
+  troco?: string;
+  itens: any;
+  total: number;
+  status: string;
+  data_criacao: string;
+  observacao?: string;
+  timeInProduction?: number;
+}
+
 export const usePedidosManager = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  const [pedidos, setPedidos] = useState<any[]>([]);
+  const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasNewPedido, setHasNewPedido] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
