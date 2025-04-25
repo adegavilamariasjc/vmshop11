@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -47,14 +48,14 @@ export const usePedidosManager = () => {
   const initializeAudio = useCallback(() => {
     try {
       if (!audioRef.current) {
-        audioRef.current = new Audio('/alert.mp3');
+        audioRef.current = new Audio('https://adegavm.shop/ring.mp3');
         audioRef.current.volume = 0.5;
         audioRef.current.loop = true;
         
         // Preload the audio to ensure it's ready to play
         audioRef.current.load();
         
-        console.log('Alert sound initialized successfully');
+        console.log('Alert sound initialized successfully with URL:', audioRef.current.src);
         
         // Test if audio can be played
         const playPromise = audioRef.current.play();
@@ -98,7 +99,7 @@ export const usePedidosManager = () => {
       // Fallback initialization without testing playback
       if (!audioRef.current) {
         try {
-          audioRef.current = new Audio('/alert.mp3');
+          audioRef.current = new Audio('https://adegavm.shop/ring.mp3');
           audioRef.current.volume = 0.5;
           audioRef.current.loop = true;
           audioRef.current.load();
@@ -120,6 +121,11 @@ export const usePedidosManager = () => {
     
     if (audioRef.current) {
       try {
+        // Force reload the audio to ensure it's fresh
+        audioRef.current.src = 'https://adegavm.shop/ring.mp3';
+        audioRef.current.load();
+        
+        console.log('Attempting to play alert sound from URL:', audioRef.current.src);
         audioRef.current.currentTime = 0;
         const playPromise = audioRef.current.play();
         
@@ -137,6 +143,10 @@ export const usePedidosManager = () => {
                 
                 const playOnInteraction = () => {
                   if (audioRef.current) {
+                    // Try again with the updated URL
+                    audioRef.current.src = 'https://adegavm.shop/ring.mp3';
+                    audioRef.current.load();
+                    
                     const newPlayPromise = audioRef.current.play();
                     if (newPlayPromise !== undefined) {
                       newPlayPromise
@@ -152,6 +162,10 @@ export const usePedidosManager = () => {
                 
                 document.addEventListener('click', playOnInteraction, { once: true });
                 document.addEventListener('touchstart', playOnInteraction, { once: true });
+                
+                // Also attach to the document body for broader coverage
+                document.body.addEventListener('click', playOnInteraction, { once: true });
+                document.body.addEventListener('touchstart', playOnInteraction, { once: true });
               }
             });
         }
@@ -184,6 +198,17 @@ export const usePedidosManager = () => {
     // Initialize audio immediately
     initializeAudio();
     
+    // Setup a one-time user interaction handler to ensure audio works
+    const handleInitialUserInteraction = () => {
+      console.log('User interaction detected, initializing audio');
+      initializeAudio();
+      document.removeEventListener('click', handleInitialUserInteraction);
+      document.removeEventListener('touchstart', handleInitialUserInteraction);
+    };
+    
+    document.addEventListener('click', handleInitialUserInteraction, { once: true });
+    document.addEventListener('touchstart', handleInitialUserInteraction, { once: true });
+    
     return () => {
       // Cleanup on component unmount
       if (audioRef.current) {
@@ -193,6 +218,8 @@ export const usePedidosManager = () => {
       if (alertTimeoutRef.current) {
         clearTimeout(alertTimeoutRef.current);
       }
+      document.removeEventListener('click', handleInitialUserInteraction);
+      document.removeEventListener('touchstart', handleInitialUserInteraction);
     };
   }, [initializeAudio, stopAlertSound]);
 
@@ -217,7 +244,7 @@ export const usePedidosManager = () => {
         throw err;
       }
     },
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: 15000, // Refetch every 15 seconds (reduced from 30s)
   });
   
   // Status update mutation
@@ -311,11 +338,21 @@ export const usePedidosManager = () => {
               lastOrderTimeRef.current = newOrderData.data_criacao;
             }
             
-            // Refresh pedidos list
+            // Immediately refresh pedidos list to show the new order
             refetch();
           }
         )
-        .subscribe();
+        .subscribe((status) => {
+          console.log('Supabase channel status:', status);
+          
+          // If subscription fails, try to reconnect
+          if (status === 'CHANNEL_ERROR') {
+            console.log('Channel error, attempting to reconnect in 5 seconds');
+            setTimeout(() => {
+              setupNotificationSystem();
+            }, 5000);
+          }
+        });
       
       return () => {
         console.log('Cleaning up notification system');

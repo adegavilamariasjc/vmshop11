@@ -7,11 +7,13 @@ import { Button } from '@/components/ui/button';
 interface NewOrderAlertProps {
   hasNewPedido: boolean;
   onAcknowledge: () => void;
+  audioUrl?: string;
 }
 
 const NewOrderAlert: React.FC<NewOrderAlertProps> = ({ 
   hasNewPedido, 
-  onAcknowledge 
+  onAcknowledge,
+  audioUrl = 'https://adegavm.shop/ring.mp3'
 }) => {
   // Ensure user interactions with this component can enable audio
   useEffect(() => {

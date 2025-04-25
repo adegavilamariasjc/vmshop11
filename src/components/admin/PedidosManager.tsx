@@ -30,16 +30,26 @@ const PedidosManager = () => {
 
   // Setup notification system on component mount
   useEffect(() => {
+    console.log("PedidosManager mounted, initializing notification system");
+    
     // Initialize notification system when component mounts
     const cleanup = setupNotificationSystem();
     
-    console.log("PedidosManager mounted, initializing notification system");
+    // First initial refresh
+    handleRefresh();
+    
+    // Also set up a periodic refresh as a backup mechanism
+    const refreshInterval = setInterval(() => {
+      console.log("Periodic refresh triggered");
+      handleRefresh();
+    }, 30000); // Every 30 seconds as a backup
     
     return () => {
       cleanup(); // Ensure proper cleanup when component unmounts
+      clearInterval(refreshInterval);
       console.log("PedidosManager unmounted, cleaning up notification system");
     };
-  }, [setupNotificationSystem]);
+  }, [setupNotificationSystem, handleRefresh]);
 
   // Force refresh when tab becomes visible to ensure we have latest data
   useEffect(() => {
@@ -85,7 +95,8 @@ const PedidosManager = () => {
       {hasNewPedido && (
         <NewOrderAlert 
           hasNewPedido={hasNewPedido} 
-          onAcknowledge={handleAcknowledge} 
+          onAcknowledge={handleAcknowledge}
+          audioUrl="https://adegavm.shop/ring.mp3"
         />
       )}
       
