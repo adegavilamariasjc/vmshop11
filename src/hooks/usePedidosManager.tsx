@@ -178,7 +178,7 @@ export const usePedidosManager = () => {
               // Method 4: System notification with sound
               if (notificationPermissionGrantedRef.current) {
                 try {
-                  const notification = new Notification('Novo Pedido!', {
+                  new Notification('Novo Pedido!', {
                     body: 'Há um novo pedido que precisa de atenção!',
                     icon: '/favicon.ico',
                     requireInteraction: true
@@ -269,6 +269,8 @@ export const usePedidosManager = () => {
       unlockAudioFunctions.forEach(event => {
         document.removeEventListener(event, handleUserInteraction);
       });
+      
+      console.log("PedidosManager unmounted, cleaning up notification system");
     };
   }, [initializeAudio, stopAlertSound]);
 
@@ -352,8 +354,7 @@ export const usePedidosManager = () => {
           // Show toast notification
           toast({
             title: "Novo Pedido!",
-            description: "Um novo pedido foi recebido.",
-            variant: "default",
+            description: "Um novo pedido foi recebido."
           });
           
           // Update last order references
@@ -397,23 +398,17 @@ export const usePedidosManager = () => {
             toast({
               title: "Novo Pedido Recebido!",
               description: "Um novo pedido acaba de chegar.",
-              variant: "default",
-              duration: 10000, // Keep it visible longer
+              duration: 10000 // Keep it visible longer
             });
             
             // Method 3: Native browser notification
             if (window.Notification && Notification.permission === "granted") {
               try {
-                const notification = new Notification('Novo Pedido!', {
+                new Notification('Novo Pedido!', {
                   body: 'Clique aqui para ver os detalhes do novo pedido',
                   icon: '/favicon.ico',
                   requireInteraction: true
                 });
-                
-                notification.onclick = () => {
-                  window.focus();
-                  notification.close();
-                };
               } catch (notifyErr) {
                 console.error('Error sending browser notification:', notifyErr);
               }
@@ -495,6 +490,9 @@ export const usePedidosManager = () => {
   }, [refetch, toast, playAlertSound, stopAlertSound]);
   
   const handleRefresh = async () => {
+    if (refreshing) return; // Prevent multiple simultaneous refreshes
+    
+    console.log('Refreshing orders data');
     setRefreshing(true);
     await refetch();
   };
@@ -523,7 +521,7 @@ export const usePedidosManager = () => {
       
       toast({
         title: "Pedido excluído",
-        description: "O pedido foi excluído com sucesso",
+        description: "O pedido foi excluído com sucesso"
       });
       
       handleRefresh();
@@ -532,7 +530,7 @@ export const usePedidosManager = () => {
       toast({
         title: "Erro ao excluir",
         description: "Ocorreu um erro ao excluir o pedido",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
@@ -543,7 +541,7 @@ export const usePedidosManager = () => {
       
       toast({
         title: "Status atualizado",
-        description: `O pedido foi marcado como ${status}`,
+        description: `O pedido foi marcado como ${status}`
       });
       
       handleRefresh();
@@ -552,7 +550,7 @@ export const usePedidosManager = () => {
       toast({
         title: "Erro ao atualizar",
         description: "Ocorreu um erro ao atualizar o status",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
