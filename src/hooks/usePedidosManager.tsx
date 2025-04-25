@@ -41,28 +41,160 @@ export const usePedidosManager = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const alertTimeoutRef = useRef<number | null>(null);
   const lastOrderTimeRef = useRef<string | null>(null);
+  const initializedRef = useRef<boolean>(false);
   
-  // Create audio element for notifications
-  useEffect(() => {
-    // Check if audio already exists to avoid memory leaks
-    if (!audioRef.current) {
-      audioRef.current = new Audio('/alert.mp3');
-      audioRef.current.volume = 0.5;
-      audioRef.current.loop = true;
-      console.log('Alert sound initialized');
+  // Create audio element for notifications - moved to its own function for better error handling
+  const initializeAudio = useCallback(() => {
+    try {
+      if (!audioRef.current) {
+        audioRef.current = new Audio('/alert.mp3');
+        audioRef.current.volume = 0.5;
+        audioRef.current.loop = true;
+        
+        // Preload the audio to ensure it's ready to play
+        audioRef.current.load();
+        
+        console.log('Alert sound initialized successfully');
+        
+        // Test if audio can be played
+        const playPromise = audioRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              console.log('Audio playback test successful');
+              // Stop test playback immediately
+              audioRef.current?.pause();
+              audioRef.current!.currentTime = 0;
+            })
+            .catch(error => {
+              console.error('Audio playback test failed:', error);
+              // Try to reinitialize audio on user interaction
+              const handleUserInteraction = () => {
+                if (audioRef.current) {
+                  const newPlayPromise = audioRef.current.play();
+                  if (newPlayPromise !== undefined) {
+                    newPlayPromise
+                      .then(() => {
+                        console.log('Audio initialized after user interaction');
+                        audioRef.current?.pause();
+                        audioRef.current!.currentTime = 0;
+                        // Remove event listeners once successful
+                        document.removeEventListener('click', handleUserInteraction);
+                        document.removeEventListener('touchstart', handleUserInteraction);
+                      })
+                      .catch(err => console.error('Still could not play audio:', err));
+                  }
+                }
+              };
+              // Add event listeners to initialize audio after user interaction
+              document.addEventListener('click', handleUserInteraction, { once: true });
+              document.addEventListener('touchstart', handleUserInteraction, { once: true });
+            });
+        }
+      }
+    } catch (err) {
+      console.error('Error initializing alert sound:', err);
+      
+      // Fallback initialization without testing playback
+      if (!audioRef.current) {
+        try {
+          audioRef.current = new Audio('/alert.mp3');
+          audioRef.current.volume = 0.5;
+          audioRef.current.loop = true;
+          audioRef.current.load();
+          console.log('Alert sound initialized with fallback');
+        } catch (fallbackErr) {
+          console.error('Complete failure initializing audio:', fallbackErr);
+        }
+      }
     }
+    
+    initializedRef.current = true;
+  }, []);
+  
+  // Safe function to play the alert sound
+  const playAlertSound = useCallback(() => {
+    if (!audioRef.current && !initializedRef.current) {
+      initializeAudio();
+    }
+    
+    if (audioRef.current) {
+      try {
+        audioRef.current.currentTime = 0;
+        const playPromise = audioRef.current.play();
+        
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              console.log('Alert sound playing successfully');
+            })
+            .catch(error => {
+              console.error('Error playing alert sound:', error);
+              
+              // If autoplay was prevented, attach one-time click event to play
+              if (error.name === 'NotAllowedError') {
+                console.log('Autoplay prevented. Will try to play on next user interaction.');
+                
+                const playOnInteraction = () => {
+                  if (audioRef.current) {
+                    const newPlayPromise = audioRef.current.play();
+                    if (newPlayPromise !== undefined) {
+                      newPlayPromise
+                        .then(() => console.log('Alert sound playing after user interaction'))
+                        .catch(err => console.error('Still could not play sound after interaction:', err));
+                    }
+                  }
+                  
+                  // Clean up event listeners
+                  document.removeEventListener('click', playOnInteraction);
+                  document.removeEventListener('touchstart', playOnInteraction);
+                };
+                
+                document.addEventListener('click', playOnInteraction, { once: true });
+                document.addEventListener('touchstart', playOnInteraction, { once: true });
+              }
+            });
+        }
+      } catch (err) {
+        console.error('Unexpected error playing alert sound:', err);
+      }
+    } else {
+      console.error('Cannot play alert: Audio element not initialized');
+      
+      // Try to initialize again
+      initializeAudio();
+    }
+  }, [initializeAudio]);
+  
+  // Safe function to stop the alert sound
+  const stopAlertSound = useCallback(() => {
+    if (audioRef.current) {
+      try {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        console.log('Alert sound stopped');
+      } catch (err) {
+        console.error('Error stopping alert sound:', err);
+      }
+    }
+  }, []);
+
+  // Initialize audio on component mount
+  useEffect(() => {
+    // Initialize audio immediately
+    initializeAudio();
     
     return () => {
       // Cleanup on component unmount
       if (audioRef.current) {
-        audioRef.current.pause();
+        stopAlertSound();
         audioRef.current = null;
       }
       if (alertTimeoutRef.current) {
         clearTimeout(alertTimeoutRef.current);
       }
     };
-  }, []);
+  }, [initializeAudio, stopAlertSound]);
 
   // Pedidos fetch query
   const { data: fetchedPedidos, refetch } = useQuery({
@@ -114,37 +246,34 @@ export const usePedidosManager = () => {
       setRefreshing(false);
       
       // Check for new pedidos
-      const lastOrderTime = fetchedPedidos[0]?.data_criacao;
-      const newPending = fetchedPedidos.some(p => p.status === 'pendente');
+      const pendingPedidos = fetchedPedidos.filter(p => p.status === 'pendente');
+      const hasPendingOrders = pendingPedidos.length > 0;
       
-      // Check if there's a new order since last check
-      if (lastOrderTime && lastOrderTimeRef.current !== lastOrderTime && newPending) {
-        console.log('New order detected:', lastOrderTime);
-        setHasNewPedido(true);
+      if (hasPendingOrders) {
+        // Sort to get the newest order
+        const sortedPedidos = [...pendingPedidos].sort((a, b) => 
+          new Date(b.data_criacao).getTime() - new Date(a.data_criacao).getTime()
+        );
         
-        // Play alert sound
-        if (audioRef.current) {
-          try {
-            audioRef.current.currentTime = 0;
-            const playPromise = audioRef.current.play();
-            if (playPromise !== undefined) {
-              playPromise.catch(error => {
-                console.error('Error playing sound:', error);
-              });
-            }
-            console.log('Alert sound playing');
-          } catch (err) {
-            console.error('Failed to play alert sound:', err);
-          }
+        const newestOrder = sortedPedidos[0];
+        const newestOrderTime = newestOrder.data_criacao;
+        
+        // If this is the first time loading or we have a new order
+        if (!lastOrderTimeRef.current || lastOrderTimeRef.current !== newestOrderTime) {
+          console.log('New pending order detected:', newestOrderTime);
+          
+          // Set the flag to show notification UI
+          setHasNewPedido(true);
+          
+          // Play alert sound
+          playAlertSound();
+          
+          // Update last order time reference
+          lastOrderTimeRef.current = newestOrderTime;
         }
       }
-      
-      // Update last order time reference
-      if (lastOrderTime) {
-        lastOrderTimeRef.current = lastOrderTime;
-      }
     }
-  }, [fetchedPedidos]);
+  }, [fetchedPedidos, playAlertSound]);
   
   // Setup realtime notification system
   const setupNotificationSystem = useCallback(() => {
@@ -167,20 +296,7 @@ export const usePedidosManager = () => {
             setHasNewPedido(true);
             
             // Play alert sound
-            if (audioRef.current) {
-              try {
-                audioRef.current.currentTime = 0;
-                const playPromise = audioRef.current.play();
-                if (playPromise !== undefined) {
-                  playPromise.catch(error => {
-                    console.error('Error playing sound:', error);
-                  });
-                }
-                console.log('Alert sound playing for new order');
-              } catch (err) {
-                console.error('Failed to play alert sound:', err);
-              }
-            }
+            playAlertSound();
             
             // Show toast notification
             toast({
@@ -188,6 +304,12 @@ export const usePedidosManager = () => {
               description: "Um novo pedido foi recebido.",
               variant: "default",
             });
+            
+            // Update last order reference
+            const newOrderData = payload.new as Pedido;
+            if (newOrderData && newOrderData.data_criacao) {
+              lastOrderTimeRef.current = newOrderData.data_criacao;
+            }
             
             // Refresh pedidos list
             refetch();
@@ -197,16 +319,17 @@ export const usePedidosManager = () => {
       
       return () => {
         console.log('Cleaning up notification system');
-        if (audioRef.current) {
-          audioRef.current.pause();
-        }
+        stopAlertSound();
         supabase.removeChannel(channel);
       };
     } catch (err) {
       console.error('Error setting up realtime notifications:', err);
-      return () => {};
+      return () => {
+        // Empty cleanup function in case of error
+        stopAlertSound();
+      };
     }
-  }, [refetch, toast]);
+  }, [refetch, toast, playAlertSound, stopAlertSound]);
   
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -218,10 +341,7 @@ export const usePedidosManager = () => {
     setHasNewPedido(false);
     
     // Stop alert sound
-    if (audioRef.current) {
-      audioRef.current.pause();
-      console.log('Alert sound stopped');
-    }
+    stopAlertSound();
   };
   
   const handleVisualizarPedido = (id: string) => {
