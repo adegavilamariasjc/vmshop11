@@ -16,15 +16,29 @@ export const PedidoImprimir = ({
     if (!pedido) return;
     setIsPrinting(true);
 
+    // Function to get the full product name considering the category
+    const getFullProductName = (item: any) => {
+      if (item.category?.toLowerCase() === 'batidas' && !item.name.toLowerCase().includes('batida de')) {
+        return `Batida de ${item.name}`;
+      }
+      return item.name;
+    };
+
     const itensFormatados = pedido.itens.map((item: any) => {
-      let texto = `${item.qty}x ${item.name}`;
+      // Start with the base product name and quantity
+      let texto = `${item.qty}x ${getFullProductName(item)}`;
+      
+      // Add alcohol type if present
       if (item.alcohol) {
         texto += ` (${item.alcohol})`;
       }
+      
+      // Add Baly flavor if present
       if (item.balyFlavor) {
         texto += ` (Baly: ${item.balyFlavor})`;
       }
 
+      // Add ice information if present
       if (item.ice && Object.entries(item.ice).some(([_, qty]: [string, any]) => qty > 0)) {
         const geloInfo = Object.entries(item.ice)
           .filter(([_, qty]: [string, any]) => qty > 0)
@@ -33,11 +47,22 @@ export const PedidoImprimir = ({
 
         texto += `\n   Gelo: ${geloInfo}`;
       }
+      
+      // Add energy drink information if present
+      if (item.energyDrinks && item.energyDrinks.length > 0) {
+        const energeticosInfo = item.energyDrinks.map((ed: any) => 
+          `${ed.type}${ed.flavor !== 'Tradicional' ? ` - ${ed.flavor}` : ''}`
+        ).join(", ");
+        
+        texto += `\n   Energéticos: ${energeticosInfo}`;
+      }
 
+      // Add price information
       texto += `\n   R$ ${(item.price * item.qty).toFixed(2)}`;
       return texto;
     }).join('\n\n');
 
+    // Calculate change amount information
     let trocoInfo = '';
     if (pedido.forma_pagamento === 'Dinheiro' && pedido.troco) {
       const trocoValue = Number(pedido.troco);
@@ -46,6 +71,9 @@ export const PedidoImprimir = ({
         trocoInfo = `\nLEVAR TROCO: R$ ${changeAmount.toFixed(2)}`;
       }
     }
+
+    // Calculate subtotal (total - delivery fee)
+    const subtotal = pedido.total - pedido.taxa_entrega;
 
     const conteudoImpressao = `
 ${deliverer}
@@ -65,7 +93,7 @@ ${pedido.observacao ? `OBSERVAÇÃO: ${pedido.observacao}` : ''}
 ITENS DO PEDIDO:
 ${itensFormatados}
 
-SUBTOTAL: R$ ${(pedido.total - pedido.taxa_entrega).toFixed(2)}
+SUBTOTAL: R$ ${subtotal.toFixed(2)}
 TAXA DE ENTREGA: R$ ${pedido.taxa_entrega.toFixed(2)}
 TOTAL: R$ ${pedido.total.toFixed(2)}
 

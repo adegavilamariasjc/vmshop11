@@ -16,6 +16,13 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
   paymentMethod, 
   change 
 }) => {
+  // Calculate change amount if payment is cash
+  let changeAmount = 0;
+  if (paymentMethod === 'Dinheiro' && change) {
+    const changeValue = Number(change);
+    changeAmount = changeValue - total;
+  }
+
   return (
     <div style={{ marginTop: '10px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -36,9 +43,16 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
       <div>
         <strong>Forma de pagamento:</strong> {paymentMethod}
         {paymentMethod === 'Dinheiro' && change && (
-          <div>
-            <strong>Troco para:</strong> R$ {change}
-          </div>
+          <>
+            <div>
+              <strong>Troco para:</strong> R$ {change}
+            </div>
+            {changeAmount > 0 && (
+              <div>
+                <strong>Levar troco:</strong> R$ {changeAmount.toFixed(2)}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { getAudioAlert } from '@/utils/audioAlert';
 
 export interface Pedido {
   id: string;
@@ -38,242 +39,21 @@ export const usePedidosManager = () => {
   const [selectedPedido, setSelectedPedido] = useState<string | null>(null);
   const [showDetalhe, setShowDetalhe] = useState(false);
   
-  // Sound related refs
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const lastOrderTimeRef = useRef<string | null>(null);
+  // Tracking refs for new pedidos
   const lastOrderIdRef = useRef<string | null>(null);
-  const initializedRef = useRef<boolean>(false);
   const notificationPermissionGrantedRef = useRef<boolean>(false);
   
-  // Function to play audio with multiple fallback mechanisms
-  const initializeAudio = useCallback(() => {
-    try {
-      if (!audioRef.current) {
-        const audio = new Audio('https://adegavm.shop/ring.mp3');
-        audioRef.current = audio;
-        audio.volume = 0.7;
-        audio.loop = true;
-        
-        // Force preload
-        audio.preload = "auto";
-        audio.load();
-        
-        console.log('Alert sound initialized with URL:', audio.src);
-        
-        // Try to play and immediately pause to check if audio is working
-        // and to prepare the browser for future playback
-        audio.muted = true; // Temporarily mute
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              console.log('Audio initialization test successful');
-              // Stop test immediately
-              audio.pause();
-              audio.currentTime = 0;
-              audio.muted = false; // Restore volume
-            })
-            .catch(error => {
-              console.info('Audio initialization test failed - this is normal in many browsers:', error);
-              audio.muted = false; // Restore volume for future attempts
-              
-              // We'll now rely on user interaction to enable audio
-            });
-        }
-      }
-    } catch (err) {
-      console.error('Error initializing alert sound:', err);
-    }
-    
-    initializedRef.current = true;
-    
-    // Try to request notification permission as a parallel approach
-    try {
-      if (window.Notification && Notification.permission !== "granted" && Notification.permission !== "denied") {
-        Notification.requestPermission().then(permission => {
-          notificationPermissionGrantedRef.current = permission === "granted";
-        });
-      } else if (window.Notification && Notification.permission === "granted") {
-        notificationPermissionGrantedRef.current = true;
-      }
-    } catch (e) {
-      console.log('Notification API not supported or error:', e);
-    }
-  }, []);
-  
-  // Safe function to play the alert sound
-  const playAlertSound = useCallback(() => {
-    if (!audioRef.current && !initializedRef.current) {
-      initializeAudio();
-    }
-    
-    // Try multiple playback methods for maximum compatibility
-    
-    // Method 1: Use the main audio element
-    if (audioRef.current) {
-      try {
-        console.log('Attempting to play alert sound using primary audio element');
-        audioRef.current.currentTime = 0;
-        
-        // Ensure the correct source
-        if (audioRef.current.src !== 'https://adegavm.shop/ring.mp3') {
-          audioRef.current.src = 'https://adegavm.shop/ring.mp3';
-          audioRef.current.load();
-        }
-        
-        const playPromise = audioRef.current.play();
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              console.log('Alert sound playing successfully');
-            })
-            .catch(error => {
-              console.warn('Error playing alert sound with primary method:', error);
-              
-              // Fall back to method 2: Create a fresh audio element
-              try {
-                console.log('Trying fallback audio method');
-                const fallbackAudio = new Audio('https://adegavm.shop/ring.mp3');
-                fallbackAudio.volume = 0.7;
-                fallbackAudio.loop = true;
-                fallbackAudio.play()
-                  .then(() => console.log('Fallback audio playing successfully'))
-                  .catch(err => {
-                    console.warn('Fallback audio also failed:', err);
-                    
-                    // Method 3: Try using AudioContext API
-                    try {
-                      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-                      if (AudioContextClass) {
-                        const audioContext = new AudioContextClass();
-                        
-                        // Create an oscillator for a simple beep sound
-                        const oscillator = audioContext.createOscillator();
-                        const gainNode = audioContext.createGain();
-                        
-                        oscillator.type = 'sine';
-                        oscillator.frequency.value = 440; // A4 note
-                        gainNode.gain.value = 0.5;
-                        
-                        oscillator.connect(gainNode);
-                        gainNode.connect(audioContext.destination);
-                        
-                        // Play a beep sound
-                        oscillator.start();
-                        setTimeout(() => {
-                          oscillator.stop();
-                          audioContext.close();
-                        }, 500);
-                        
-                        console.log('Using oscillator beep as final fallback');
-                      }
-                    } catch (audioContextErr) {
-                      console.error('All audio methods failed:', audioContextErr);
-                    }
-                  });
-              } catch (fallbackErr) {
-                console.error('Error with fallback audio:', fallbackErr);
-              }
-              
-              // Method 4: System notification with sound
-              if (notificationPermissionGrantedRef.current) {
-                try {
-                  new Notification('Novo Pedido!', {
-                    body: 'Há um novo pedido que precisa de atenção!',
-                    icon: '/favicon.ico',
-                    requireInteraction: true
-                  });
-                  
-                  console.log('Browser notification sent as audio fallback');
-                } catch (notifyErr) {
-                  console.error('Error sending notification:', notifyErr);
-                }
-              }
-            });
-        }
-      } catch (err) {
-        console.error('Unexpected error playing alert sound:', err);
-      }
-    } else {
-      console.error('Cannot play alert: Audio element not initialized');
-      
-      // Try to initialize again
-      initializeAudio();
-    }
-  }, [initializeAudio]);
-  
-  // Safe function to stop the alert sound
-  const stopAlertSound = useCallback(() => {
-    if (audioRef.current) {
-      try {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-        console.log('Alert sound stopped');
-      } catch (err) {
-        console.error('Error stopping alert sound:', err);
-      }
-    }
-  }, []);
-
-  // Initialize audio on component mount
+  // Initialize notification permission check
   useEffect(() => {
-    // Initialize audio immediately
-    initializeAudio();
-    
-    // Setup user interaction handlers to enable audio
-    const unlockAudioFunctions = ['click', 'touchstart', 'keydown', 'scroll', 'mousemove'];
-    
-    const handleUserInteraction = () => {
-      // Try to play a silent sound to unlock audio
-      if (audioRef.current) {
-        const originalVolume = audioRef.current.volume;
-        audioRef.current.volume = 0.01;
-        
-        const unlockPromise = audioRef.current.play();
-        if (unlockPromise !== undefined) {
-          unlockPromise
-            .then(() => {
-              console.log('Audio unlocked by user interaction');
-              audioRef.current?.pause();
-              if (audioRef.current) {
-                audioRef.current.currentTime = 0;
-                audioRef.current.volume = originalVolume;
-              }
-              
-              // Remove all event listeners after successful unlock
-              unlockAudioFunctions.forEach(event => {
-                document.removeEventListener(event, handleUserInteraction);
-              });
-            })
-            .catch(() => {
-              // Restore volume even on failure
-              if (audioRef.current) audioRef.current.volume = originalVolume;
-            });
-        }
-      }
-    };
-    
-    // Add multiple event listeners to catch any user interaction
-    unlockAudioFunctions.forEach(event => {
-      document.addEventListener(event, handleUserInteraction, { once: true });
-    });
-    
-    return () => {
-      // Cleanup on component unmount
-      if (audioRef.current) {
-        stopAlertSound();
-        audioRef.current = null;
-      }
-      
-      // Remove all event listeners
-      unlockAudioFunctions.forEach(event => {
-        document.removeEventListener(event, handleUserInteraction);
+    if (window.Notification && Notification.permission === "granted") {
+      notificationPermissionGrantedRef.current = true;
+    } else if (window.Notification && Notification.permission !== "denied") {
+      Notification.requestPermission().then(permission => {
+        notificationPermissionGrantedRef.current = permission === "granted";
       });
-      
-      console.log("PedidosManager unmounted, cleaning up notification system");
-    };
-  }, [initializeAudio, stopAlertSound]);
-
+    }
+  }, []);
+  
   // Pedidos fetch query
   const { data: fetchedPedidos, refetch } = useQuery({
     queryKey: ['pedidos'],
@@ -323,7 +103,7 @@ export const usePedidosManager = () => {
       setIsLoading(false);
       setRefreshing(false);
       
-      // Check for new pedidos - more robust detection logic
+      // Check for new pedidos
       const pendingPedidos = fetchedPedidos.filter(p => p.status === 'pendente');
       const hasPendingOrders = pendingPedidos.length > 0;
       
@@ -334,7 +114,6 @@ export const usePedidosManager = () => {
         );
         
         const newestOrder = sortedPedidos[0];
-        const newestOrderTime = newestOrder.data_criacao;
         const newestOrderId = newestOrder.id;
         
         // Check if we've already seen this order
@@ -343,13 +122,10 @@ export const usePedidosManager = () => {
         
         // If this is the first time loading or we have a new order
         if (isNewOrder) {
-          console.log('New pending order detected:', newestOrderId, newestOrderTime);
+          console.log('New pending order detected:', newestOrderId);
           
           // Set the flag to show notification UI
           setHasNewPedido(true);
-          
-          // Play alert sound
-          playAlertSound();
           
           // Show toast notification
           toast({
@@ -357,13 +133,25 @@ export const usePedidosManager = () => {
             description: "Um novo pedido foi recebido."
           });
           
-          // Update last order references
-          lastOrderTimeRef.current = newestOrderTime;
+          // Update last order reference
           lastOrderIdRef.current = newestOrderId;
+          
+          // Show browser notification if permission granted
+          if (notificationPermissionGrantedRef.current) {
+            try {
+              new Notification('Novo Pedido!', {
+                body: 'Há um novo pedido que precisa de atenção!',
+                icon: '/favicon.ico',
+                requireInteraction: true
+              });
+            } catch (e) {
+              console.error('Error showing notification:', e);
+            }
+          }
         }
       }
     }
-  }, [fetchedPedidos, playAlertSound, toast]);
+  }, [fetchedPedidos, toast]);
   
   // Setup realtime notification system
   const setupNotificationSystem = useCallback(() => {
@@ -383,18 +171,10 @@ export const usePedidosManager = () => {
           async (payload) => {
             console.log('New order received via realtime:', payload);
             
-            // Generate a unique identifier for the notification
-            const notificationId = `order-${Date.now()}`;
-            
             // Trigger new order notification UI
             setHasNewPedido(true);
             
-            // Try multiple methods to notify the user
-            
-            // Method 1: Play alert sound
-            playAlertSound();
-            
-            // Method 2: Show toast notification
+            // Show toast notification
             toast({
               title: "Novo Pedido Recebido!",
               description: "Um novo pedido acaba de chegar.",
@@ -402,7 +182,7 @@ export const usePedidosManager = () => {
             });
             
             // Method 3: Native browser notification
-            if (window.Notification && Notification.permission === "granted") {
+            if (notificationPermissionGrantedRef.current) {
               try {
                 new Notification('Novo Pedido!', {
                   body: 'Clique aqui para ver os detalhes do novo pedido',
@@ -416,13 +196,8 @@ export const usePedidosManager = () => {
             
             // Update order tracking state
             const newOrderData = payload.new as Pedido;
-            if (newOrderData) {
-              if (newOrderData.data_criacao) {
-                lastOrderTimeRef.current = newOrderData.data_criacao;
-              }
-              if (newOrderData.id) {
-                lastOrderIdRef.current = newOrderData.id;
-              }
+            if (newOrderData && newOrderData.id) {
+              lastOrderIdRef.current = newOrderData.id;
             }
             
             // Immediately refresh pedidos list to show the new order
@@ -469,7 +244,6 @@ export const usePedidosManager = () => {
       
       return () => {
         console.log('Cleaning up notification system');
-        stopAlertSound();
         supabase.removeChannel(channel);
       };
     } catch (err) {
@@ -484,10 +258,9 @@ export const usePedidosManager = () => {
       
       return () => {
         clearInterval(fallbackInterval);
-        stopAlertSound();
       };
     }
-  }, [refetch, toast, playAlertSound, stopAlertSound]);
+  }, [refetch, toast]);
   
   const handleRefresh = async () => {
     if (refreshing) return; // Prevent multiple simultaneous refreshes
@@ -500,9 +273,6 @@ export const usePedidosManager = () => {
   const handleAcknowledge = () => {
     console.log('Acknowledging alert');
     setHasNewPedido(false);
-    
-    // Stop alert sound
-    stopAlertSound();
   };
   
   const handleVisualizarPedido = (id: string) => {
