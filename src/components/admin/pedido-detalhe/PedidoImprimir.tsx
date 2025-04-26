@@ -38,6 +38,21 @@ export const PedidoImprimir = ({
         texto += ` (Baly: ${item.balyFlavor})`;
       }
 
+      // Add energy drink information if present
+      if (item.energyDrinks && item.energyDrinks.length > 0) {
+        const energeticosInfo = item.energyDrinks.map((ed: any) => 
+          `${ed.type}${ed.flavor !== 'Tradicional' ? ` - ${ed.flavor}` : ''}`
+        ).join(", ");
+        
+        texto += `\n   Energéticos: ${energeticosInfo}`;
+      } else if (item.energyDrink) {
+        // Handle older format of energy drink info
+        const flavorInfo = item.energyDrinkFlavor && item.energyDrinkFlavor !== 'Tradicional' 
+          ? ` - ${item.energyDrinkFlavor}` 
+          : '';
+        texto += `\n   Energético: ${item.energyDrink}${flavorInfo}`;
+      }
+
       // Add ice information if present
       if (item.ice && Object.entries(item.ice).some(([_, qty]: [string, any]) => qty > 0)) {
         const geloInfo = Object.entries(item.ice)
@@ -47,18 +62,11 @@ export const PedidoImprimir = ({
 
         texto += `\n   Gelo: ${geloInfo}`;
       }
-      
-      // Add energy drink information if present
-      if (item.energyDrinks && item.energyDrinks.length > 0) {
-        const energeticosInfo = item.energyDrinks.map((ed: any) => 
-          `${ed.type}${ed.flavor !== 'Tradicional' ? ` - ${ed.flavor}` : ''}`
-        ).join(", ");
-        
-        texto += `\n   Energéticos: ${energeticosInfo}`;
-      }
 
-      // Add price information
-      texto += `\n   R$ ${(item.price * item.qty).toFixed(2)}`;
+      // Add price information for each item
+      texto += `\n   Unitário: R$ ${item.price.toFixed(2)}`;
+      texto += `\n   Total item: R$ ${(item.price * item.qty).toFixed(2)}`;
+      
       return texto;
     }).join('\n\n');
 
@@ -75,6 +83,16 @@ export const PedidoImprimir = ({
     // Calculate subtotal (total - delivery fee)
     const subtotal = pedido.total - pedido.taxa_entrega;
 
+    // Format complemento and referencia for display if they exist
+    const complementoFormatado = pedido.cliente_complemento ? 
+      `\nCOMPLEMENTO: ${pedido.cliente_complemento}` : '';
+    
+    const referenciaFormatada = pedido.cliente_referencia ? 
+      `\nREFERÊNCIA: ${pedido.cliente_referencia}` : '';
+
+    const observacaoFormatada = pedido.observacao ? 
+      `\nOBSERVAÇÃO: ${pedido.observacao}` : '';
+
     const conteudoImpressao = `
 ${deliverer}
 
@@ -83,12 +101,9 @@ PEDIDO #${pedido.codigo_pedido}
 ${new Date(pedido.data_criacao).toLocaleString('pt-BR')}
 
 CLIENTE: ${pedido.cliente_nome}
-ENDEREÇO: ${pedido.cliente_endereco}, ${pedido.cliente_numero || ''}
-${pedido.cliente_complemento ? `COMPLEMENTO: ${pedido.cliente_complemento}` : ''}
-${pedido.cliente_referencia ? `REFERÊNCIA: ${pedido.cliente_referencia}` : ''}
+ENDEREÇO: ${pedido.cliente_endereco}, ${pedido.cliente_numero || ''}${complementoFormatado}${referenciaFormatada}
 BAIRRO: ${pedido.cliente_bairro}
-WHATSAPP: ${pedido.cliente_whatsapp}
-${pedido.observacao ? `OBSERVAÇÃO: ${pedido.observacao}` : ''}
+WHATSAPP: ${pedido.cliente_whatsapp}${observacaoFormatada}
 
 ITENS DO PEDIDO:
 ${itensFormatados}

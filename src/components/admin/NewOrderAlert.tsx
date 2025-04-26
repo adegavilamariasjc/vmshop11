@@ -1,9 +1,8 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { BellRing, Volume2, VolumeX } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { getAudioAlert } from '@/utils/audioAlert';
 
 interface NewOrderAlertProps {
   hasNewPedido: boolean;
@@ -16,35 +15,81 @@ const NewOrderAlert: React.FC<NewOrderAlertProps> = ({
   onAcknowledge,
   audioUrl = 'https://adegavm.shop/ring.mp3'
 }) => {
-  // Initialize audio alert
+  // Create refs for the audio element and tracking play state
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const isPlaying = useRef<boolean>(false);
+  
+  // Initialize and play audio when new order arrives
   useEffect(() => {
-    if (hasNewPedido) {
-      console.log('New order alert - playing sound');
-      // Get audio alert instance and play
-      const audioAlert = getAudioAlert(audioUrl);
+    if (!hasNewPedido) return;
+    
+    console.log('New order alert - initializing sound');
+    
+    // Create audio element if it doesn't exist
+    if (!audioRef.current) {
+      audioRef.current = new Audio(audioUrl);
+      audioRef.current.loop = true;
+      audioRef.current.volume = 0.7;
       
-      // Try to unlock audio on component mount
-      audioAlert.unlockAudio();
-      
-      // Play the sound with a slight delay to ensure audio context is ready
-      setTimeout(() => {
-        audioAlert.play();
-      }, 100);
-      
-      return () => {
-        // Stop sound when component unmounts
-        audioAlert.stop();
-      };
+      // Preload the audio
+      audioRef.current.preload = 'auto';
     }
+    
+    // Function to play audio that can be called on user interaction
+    const playSound = () => {
+      if (!audioRef.current || isPlaying.current) return;
+      
+      try {
+        const playPromise = audioRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              isPlaying.current = true;
+              console.log('Alert sound playing successfully');
+            })
+            .catch(err => {
+              console.error('Error playing sound:', err);
+              // If autoplay is prevented, we'll rely on user interaction
+            });
+        }
+      } catch (err) {
+        console.error('Error playing audio:', err);
+      }
+    };
+    
+    // Try to play immediately (might be blocked by browsers)
+    playSound();
+    
+    // Add event listener to document for user interaction
+    const unlockAudio = () => {
+      playSound();
+      // Remove event listeners after first interaction
+      document.removeEventListener('click', unlockAudio);
+    };
+    
+    document.addEventListener('click', unlockAudio);
+    
+    // Cleanup function
+    return () => {
+      document.removeEventListener('click', unlockAudio);
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        isPlaying.current = false;
+      }
+    };
   }, [hasNewPedido, audioUrl]);
   
   // Handle acknowledge button click
   const handleAcknowledgeClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent event bubbling
     
-    // Stop the sound immediately
-    const audioAlert = getAudioAlert();
-    audioAlert.stop();
+    // Stop the audio
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      isPlaying.current = false;
+    }
     
     // Call the original acknowledge handler
     onAcknowledge();
@@ -56,9 +101,16 @@ const NewOrderAlert: React.FC<NewOrderAlertProps> = ({
     <Alert 
       className="bg-yellow-600/20 border-yellow-600 mb-4 animate-pulse cursor-pointer transition-all hover:bg-yellow-600/30"
       onClick={() => {
-        // Try to unlock audio on alert click as a fallback
-        const audioAlert = getAudioAlert();
-        audioAlert.unlockAudio();
+        // Try to play on alert click as a fallback
+        if (audioRef.current && !isPlaying.current) {
+          audioRef.current.play()
+            .then(() => {
+              isPlaying.current = true;
+            })
+            .catch(err => {
+              console.error('Failed to play on click:', err);
+            });
+        }
       }}
     >
       <div className="flex flex-col w-full">

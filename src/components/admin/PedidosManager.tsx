@@ -1,15 +1,16 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { RefreshCw, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PedidosTable from './PedidosTable';
 import PedidoDetalhe from './PedidoDetalhe';
 import NewOrderAlert from './NewOrderAlert';
 import { usePedidosManager } from '@/hooks/usePedidosManager';
-import { getAudioAlert } from '@/utils/audioAlert';
 
 const PedidosManager = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  
   const {
     pedidos,
     isLoading,
@@ -31,10 +32,6 @@ const PedidosManager = () => {
   useEffect(() => {
     console.log("PedidosManager mounted, initializing notification system");
     
-    // Initialize audio alert system
-    const audioAlert = getAudioAlert('https://adegavm.shop/ring.mp3');
-    audioAlert.unlockAudio();
-    
     // Initialize notification system when component mounts
     const cleanup = setupNotificationSystem();
     
@@ -42,16 +39,16 @@ const PedidosManager = () => {
     handleRefresh();
     
     // Set up a periodic refresh as a backup mechanism, but with safe interval
-    let lastRefreshTime = Date.now();
+    const lastRefreshTimeRef = { current: Date.now() };
     const refreshInterval = setInterval(() => {
       const currentTime = Date.now();
-      const timeSinceLastRefresh = currentTime - lastRefreshTime;
+      const timeSinceLastRefresh = currentTime - lastRefreshTimeRef.current;
       
       // Only refresh if it's been more than 15 seconds since last refresh
       if (!refreshing && timeSinceLastRefresh > 15000) {
         console.log("Periodic refresh triggered after", timeSinceLastRefresh, "ms");
         handleRefresh();
-        lastRefreshTime = currentTime;
+        lastRefreshTimeRef.current = currentTime;
       }
     }, 30000); // Check every 30 seconds
     
@@ -60,11 +57,14 @@ const PedidosManager = () => {
       clearInterval(refreshInterval);
       
       // Stop alert sound when component unmounts
-      audioAlert.stop();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
       
       console.log("PedidosManager unmounted, cleaning up notification system");
     };
-  }, [setupNotificationSystem]); // Remove handleRefresh from dependencies to prevent re-renders
+  }, []); // Empty dependency array to run only once
 
   // Safe refresh handler with debounce
   const safeRefresh = () => {
