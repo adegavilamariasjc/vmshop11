@@ -1,4 +1,3 @@
-
 /**
  * Simple audio alert utility that works reliably across browsers
  */
@@ -9,11 +8,15 @@ class AudioAlert {
   private audioSource: AudioBufferSourceNode | null = null;
   private audioBuffer: AudioBuffer | null = null;
   private isPlaying: boolean = false;
-  private audioUrl: string;
+  protected audioUrl: string;
   
   constructor(audioUrl: string = 'https://adegavm.shop/ring.mp3') {
     this.audioUrl = audioUrl;
     this.initialize();
+  }
+
+  public getAudioUrl(): string {
+    return this.audioUrl;
   }
 
   private initialize() {
@@ -198,8 +201,8 @@ export const getAudioAlert = (audioUrl?: string): AudioAlert => {
   if (!audioAlertInstance) {
     audioAlertInstance = new AudioAlert(audioUrl);
     audioAlertInstance.setupUnlockEvents();
-  } else if (audioUrl && audioUrl !== audioAlertInstance.audioUrl) {
-    // If URL changed, create new instance
+  } else if (audioUrl && audioUrl !== audioAlertInstance.getAudioUrl()) {
+    // If URL changed, create new instance - now using the getter method
     audioAlertInstance = new AudioAlert(audioUrl);
     audioAlertInstance.setupUnlockEvents();
   }
