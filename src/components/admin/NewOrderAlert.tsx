@@ -1,6 +1,6 @@
 
 import React, { useEffect } from 'react';
-import { BellRing } from 'lucide-react';
+import { BellRing, Volume2, VolumeX } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { getAudioAlert } from '@/utils/audioAlert';
@@ -19,9 +19,17 @@ const NewOrderAlert: React.FC<NewOrderAlertProps> = ({
   // Initialize audio alert
   useEffect(() => {
     if (hasNewPedido) {
+      console.log('New order alert - playing sound');
       // Get audio alert instance and play
       const audioAlert = getAudioAlert(audioUrl);
-      audioAlert.play();
+      
+      // Try to unlock audio on component mount
+      audioAlert.unlockAudio();
+      
+      // Play the sound with a slight delay to ensure audio context is ready
+      setTimeout(() => {
+        audioAlert.play();
+      }, 100);
       
       return () => {
         // Stop sound when component unmounts
@@ -31,8 +39,10 @@ const NewOrderAlert: React.FC<NewOrderAlertProps> = ({
   }, [hasNewPedido, audioUrl]);
   
   // Handle acknowledge button click
-  const handleAcknowledgeClick = () => {
-    // Stop the sound
+  const handleAcknowledgeClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event bubbling
+    
+    // Stop the sound immediately
     const audioAlert = getAudioAlert();
     audioAlert.stop();
     
@@ -66,8 +76,9 @@ const NewOrderAlert: React.FC<NewOrderAlertProps> = ({
         <div className="mt-4 flex justify-end">
           <Button 
             onClick={handleAcknowledgeClick}
-            className="bg-yellow-600 hover:bg-yellow-700 text-black font-medium"
+            className="bg-yellow-600 hover:bg-yellow-700 text-white font-medium"
           >
+            <VolumeX className="mr-2 h-4 w-4" />
             Silenciar Alerta
           </Button>
         </div>

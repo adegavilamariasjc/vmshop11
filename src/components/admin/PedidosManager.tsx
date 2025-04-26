@@ -1,6 +1,6 @@
 
-import React, { useEffect } from 'react';
-import { RefreshCw, BellOff } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { RefreshCw, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PedidosTable from './PedidosTable';
 import PedidoDetalhe from './PedidoDetalhe';
@@ -9,6 +9,7 @@ import { usePedidosManager } from '@/hooks/usePedidosManager';
 import { getAudioAlert } from '@/utils/audioAlert';
 
 const PedidosManager = () => {
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const {
     pedidos,
     isLoading,
@@ -32,6 +33,7 @@ const PedidosManager = () => {
     
     // Initialize audio alert system
     const audioAlert = getAudioAlert('https://adegavm.shop/ring.mp3');
+    audioAlert.unlockAudio();
     
     // Initialize notification system when component mounts
     const cleanup = setupNotificationSystem();
@@ -39,33 +41,52 @@ const PedidosManager = () => {
     // First initial refresh
     handleRefresh();
     
-    // Set up a periodic refresh as a backup mechanism
+    // Set up a periodic refresh as a backup mechanism, but with safe interval
+    let lastRefreshTime = Date.now();
     const refreshInterval = setInterval(() => {
-      console.log("Periodic refresh triggered");
-      if (!refreshing) {
+      const currentTime = Date.now();
+      const timeSinceLastRefresh = currentTime - lastRefreshTime;
+      
+      // Only refresh if it's been more than 15 seconds since last refresh
+      if (!refreshing && timeSinceLastRefresh > 15000) {
+        console.log("Periodic refresh triggered after", timeSinceLastRefresh, "ms");
         handleRefresh();
+        lastRefreshTime = currentTime;
       }
-    }, 30000); // Every 30 seconds
+    }, 30000); // Check every 30 seconds
     
     return () => {
       cleanup(); // Ensure proper cleanup when component unmounts
       clearInterval(refreshInterval);
+      
       // Stop alert sound when component unmounts
       audioAlert.stop();
       
       console.log("PedidosManager unmounted, cleaning up notification system");
     };
-  }, [setupNotificationSystem, handleRefresh, refreshing]); 
+  }, [setupNotificationSystem]); // Remove handleRefresh from dependencies to prevent re-renders
+
+  // Safe refresh handler with debounce
+  const safeRefresh = () => {
+    if (isRefreshing || refreshing) return;
+    
+    setIsRefreshing(true);
+    console.log('Manual refresh triggered');
+    
+    handleRefresh();
+    
+    // Reset the refresh state after a delay
+    setTimeout(() => {
+      setIsRefreshing(false);
+    }, 2000);
+  };
 
   // Force refresh when tab becomes visible to ensure we have latest data
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         console.log('Orders tab became visible, refreshing data');
-        // Only refresh if we're not already refreshing
-        if (!refreshing) {
-          handleRefresh();
-        }
+        safeRefresh();
       }
     };
     
@@ -74,7 +95,7 @@ const PedidosManager = () => {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [handleRefresh, refreshing]);
+  }, []);
 
   return (
     <div>
@@ -84,22 +105,18 @@ const PedidosManager = () => {
           {hasNewPedido && (
             <Button 
               onClick={handleAcknowledge}
-              className="bg-yellow-600 hover:bg-yellow-700 text-black font-medium"
+              className="bg-yellow-600 hover:bg-yellow-700 text-white font-medium"
             >
-              <BellOff className="mr-2 h-4 w-4" />
+              <VolumeX className="mr-2 h-4 w-4" />
               Silenciar Alerta
             </Button>
           )}
           <Button 
-            onClick={() => {
-              if (!refreshing) {
-                handleRefresh();
-              }
-            }} 
-            disabled={refreshing}
-            className="bg-purple-dark hover:bg-purple-600 text-black font-medium"
+            onClick={safeRefresh} 
+            disabled={isRefreshing || refreshing}
+            className="bg-purple-dark hover:bg-purple-600 text-white font-medium"
           >
-            <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`mr-2 h-4 w-4 ${(isRefreshing || refreshing) ? 'animate-spin' : ''}`} />
             Atualizar
           </Button>
         </div>

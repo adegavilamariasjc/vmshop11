@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2 } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 
 interface OriginSurveyModalProps {
   isOpen: boolean;
@@ -25,7 +25,7 @@ const OriginSurveyModal: React.FC<OriginSurveyModalProps> = ({ isOpen, onClose }
     'Facebook',
     'WhatsApp',
     'TikTok',
-    'Ja respondi'
+    'Já respondi'
   ];
 
   const handleSubmit = async () => {
@@ -38,7 +38,7 @@ const OriginSurveyModal: React.FC<OriginSurveyModalProps> = ({ isOpen, onClose }
       return;
     }
 
-    if (selectedOrigin === "Ja respondi") {
+    if (selectedOrigin === "Já respondi") {
       localStorage.setItem('originSurveyCompleted', 'true');
       onClose();
       return;
@@ -79,11 +79,20 @@ const OriginSurveyModal: React.FC<OriginSurveyModalProps> = ({ isOpen, onClose }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={() => {}}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-xl">Como você nos encontrou?</DialogTitle>
-          <DialogDescription className="text-sm text-gray-300">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-md bg-gray-900 border-gray-800">
+        <DialogHeader className="relative">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-2 top-2 text-white hover:bg-gray-800"
+            onClick={onClose}
+          >
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </Button>
+          <DialogTitle className="text-xl text-white">Como você nos encontrou?</DialogTitle>
+          <DialogDescription className="text-sm text-gray-400">
             Sua resposta nos ajuda a melhorar nossos serviços.
           </DialogDescription>
         </DialogHeader>
@@ -91,9 +100,9 @@ const OriginSurveyModal: React.FC<OriginSurveyModalProps> = ({ isOpen, onClose }
         <div className="py-4">
           <RadioGroup value={selectedOrigin} onValueChange={setSelectedOrigin}>
             {originOptions.map(origin => (
-              <div key={origin} className="flex items-center space-x-2 mb-2">
+              <div key={origin} className="flex items-center space-x-2 mb-3 p-2 rounded hover:bg-gray-800/50 transition-colors">
                 <RadioGroupItem value={origin} id={origin} />
-                <Label htmlFor={origin} className="cursor-pointer">{origin}</Label>
+                <Label htmlFor={origin} className="cursor-pointer text-white">{origin}</Label>
               </div>
             ))}
           </RadioGroup>
@@ -101,9 +110,16 @@ const OriginSurveyModal: React.FC<OriginSurveyModalProps> = ({ isOpen, onClose }
 
         <div className="flex justify-end gap-2">
           <Button
+            variant="outline"
+            onClick={onClose}
+            className="border-gray-600 text-white hover:bg-gray-800 hover:text-white"
+          >
+            Cancelar
+          </Button>
+          <Button
             onClick={handleSubmit}
             disabled={isSubmitting || !selectedOrigin}
-            className="bg-purple-dark hover:bg-purple-600"
+            className="bg-purple-600 hover:bg-purple-700 text-white font-medium"
           >
             {isSubmitting ? (
               <>

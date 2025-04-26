@@ -1,3 +1,4 @@
+
 /**
  * Simple audio alert utility that works reliably across browsers
  */
@@ -8,22 +9,23 @@ class AudioAlert {
   private audioSource: AudioBufferSourceNode | null = null;
   private audioBuffer: AudioBuffer | null = null;
   private isPlaying: boolean = false;
-  protected audioUrl: string;
+  private _audioUrl: string;
   
   constructor(audioUrl: string = 'https://adegavm.shop/ring.mp3') {
-    this.audioUrl = audioUrl;
+    this._audioUrl = audioUrl;
     this.initialize();
   }
 
-  public getAudioUrl(): string {
-    return this.audioUrl;
+  public get audioUrl(): string {
+    return this._audioUrl;
   }
 
   private initialize() {
     // Create an audio element as one method
     this.audio = new Audio();
-    this.audio.src = this.audioUrl;
+    this.audio.src = this._audioUrl;
     this.audio.loop = true;
+    this.audio.preload = 'auto';
     
     // Try to also initialize AudioContext as a fallback method
     try {
@@ -41,7 +43,7 @@ class AudioAlert {
 
   private async preloadAudioFile() {
     try {
-      const response = await fetch(this.audioUrl);
+      const response = await fetch(this._audioUrl);
       const arrayBuffer = await response.arrayBuffer();
       
       if (this.audioContext) {
@@ -201,8 +203,8 @@ export const getAudioAlert = (audioUrl?: string): AudioAlert => {
   if (!audioAlertInstance) {
     audioAlertInstance = new AudioAlert(audioUrl);
     audioAlertInstance.setupUnlockEvents();
-  } else if (audioUrl && audioUrl !== audioAlertInstance.getAudioUrl()) {
-    // If URL changed, create new instance - now using the getter method
+  } else if (audioUrl && audioUrl !== audioAlertInstance.audioUrl) {
+    // If URL changed, create new instance
     audioAlertInstance = new AudioAlert(audioUrl);
     audioAlertInstance.setupUnlockEvents();
   }

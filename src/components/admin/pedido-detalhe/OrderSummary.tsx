@@ -34,14 +34,14 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
         <div>R$ {deliveryFee.toFixed(2)}</div>
       </div>
       <div className="total">
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
           <div>TOTAL:</div>
           <div>R$ {total.toFixed(2)}</div>
         </div>
       </div>
       
-      <div>
-        <strong>Forma de pagamento:</strong> {paymentMethod}
+      <div style={{ marginTop: '10px' }}>
+        <div><strong>Forma de pagamento:</strong> {paymentMethod}</div>
         {paymentMethod === 'Dinheiro' && change && (
           <>
             <div>
