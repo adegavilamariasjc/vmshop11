@@ -10,10 +10,9 @@ interface ProductListProps {
   cart: Product[];
   onAddProduct: (item: Product) => void;
   onUpdateQuantity: (item: Product, delta: number) => void;
-  isStoreOpen: boolean;
 }
 
-const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct, onUpdateQuantity, isStoreOpen }) => {
+const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct, onUpdateQuantity }) => {
   const [products, setProducts] = useState<{name: string; price: number; is_paused?: boolean; order_index?: number}[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -140,8 +139,7 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
               
               <button
                 onClick={() => onAddProduct({ ...item, category })}
-                className={`w-8 h-8 flex items-center justify-center ${isStoreOpen ? 'bg-purple-dark text-white' : 'bg-gray-500 text-gray-300'} rounded-full`}
-                disabled={!isStoreOpen}
+                className="w-8 h-8 flex items-center justify-center bg-purple-dark text-white rounded-full"
               >
                 <Plus size={16} />
               </button>

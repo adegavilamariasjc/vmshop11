@@ -18,11 +18,9 @@ import { useToast } from '@/hooks/use-toast';
 import AdminLink from '../components/AdminLink';
 import { savePedido, fetchPedidos } from '@/lib/supabase';
 import { useStoreStatus } from '@/hooks/useStoreStatus';
-import OriginSurveyModal from '../components/OriginSurveyModal';
 
 const Index = () => {
   const { isOpen } = useStoreStatus();
-  const { toast } = useToast();
   const {
     cart,
     activeCategory,
@@ -77,8 +75,7 @@ const Index = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isDuplicateOrder, setIsDuplicateOrder] = useState(false);
   const [whatsAppUrl, setWhatsAppUrl] = useState("");
-  const [showOriginSurvey, setShowOriginSurvey] = useState(false);
-  const [surveySetting, setSurveySetting] = useState<{checked: boolean, time: number}>({checked: false, time: 0});
+  const { toast } = useToast();
 
   const getFullProductName = (name: string, category?: string): string => {
     if (category?.toLowerCase() === 'batidas' && !name.toLowerCase().includes('batida de')) {
@@ -117,25 +114,6 @@ const Index = () => {
 
     fetchBairros();
   }, []);
-
-  useEffect(() => {
-    // For testing only: uncomment the line below
-    // localStorage.removeItem('originSurveyCompleted');
-    
-    const hasResponded = localStorage.getItem('originSurveyCompleted') === 'true';
-    console.log("Origin survey status:", hasResponded ? "already completed" : "not completed yet");
-    
-    if (!hasResponded && !surveySetting.checked) {
-      console.log("Setting survey to show with delay");
-      // Small delay to ensure the app is fully loaded before showing the modal
-      const timer = setTimeout(() => {
-        setShowOriginSurvey(true);
-        setSurveySetting({checked: true, time: Date.now()});
-      }, 2000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [surveySetting]);
 
   useEffect(() => {
     console.log("Index component, isEnergyDrinkModalOpen:", isEnergyDrinkModalOpen, "productType:", currentProductType);
@@ -232,7 +210,7 @@ const Index = () => {
               .map(([flavor, qty]) => `${flavor} x${qty}`)
               .join(", ")
           : "";
-        const alcoholText = p.alcohol ? ` (��lcool: ${p.alcohol})` : "";
+        const alcoholText = p.alcohol ? ` (Álcool: ${p.alcohol})` : "";
         const balyText = p.balyFlavor ? ` (Baly: ${p.balyFlavor})` : "";
         const energyDrinkText = p.energyDrink 
           ? ` (Energético: ${p.energyDrink}${p.energyDrinkFlavor !== 'Tradicional' ? ' - ' + p.energyDrinkFlavor : ''})`
@@ -331,10 +309,6 @@ const Index = () => {
 
   return (
     <PageLayout>
-      <OriginSurveyModal 
-        isOpen={showOriginSurvey} 
-        onClose={() => setShowOriginSurvey(false)} 
-      />
       <AnimatePresence mode="wait">
         {!showSummary ? (
           <ProductSelectionView

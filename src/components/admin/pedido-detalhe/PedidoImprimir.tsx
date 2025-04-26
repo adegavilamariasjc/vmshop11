@@ -16,44 +16,15 @@ export const PedidoImprimir = ({
     if (!pedido) return;
     setIsPrinting(true);
 
-    // Function to get the full product name considering the category
-    const getFullProductName = (item: any) => {
-      if (item.category?.toLowerCase() === 'batidas' && !item.name.toLowerCase().includes('batida de')) {
-        return `Batida de ${item.name}`;
-      }
-      return item.name;
-    };
-
     const itensFormatados = pedido.itens.map((item: any) => {
-      // Start with the base product name and quantity
-      let texto = `${item.qty}x ${getFullProductName(item)}`;
-      
-      // Add alcohol type if present
+      let texto = `${item.qty}x ${item.name}`;
       if (item.alcohol) {
         texto += ` (${item.alcohol})`;
       }
-      
-      // Add Baly flavor if present
       if (item.balyFlavor) {
         texto += ` (Baly: ${item.balyFlavor})`;
       }
 
-      // Add energy drink information if present
-      if (item.energyDrinks && item.energyDrinks.length > 0) {
-        const energeticosInfo = item.energyDrinks.map((ed: any) => 
-          `${ed.type}${ed.flavor !== 'Tradicional' ? ` - ${ed.flavor}` : ''}`
-        ).join(", ");
-        
-        texto += `\n   Energéticos: ${energeticosInfo}`;
-      } else if (item.energyDrink) {
-        // Handle older format of energy drink info
-        const flavorInfo = item.energyDrinkFlavor && item.energyDrinkFlavor !== 'Tradicional' 
-          ? ` - ${item.energyDrinkFlavor}` 
-          : '';
-        texto += `\n   Energético: ${item.energyDrink}${flavorInfo}`;
-      }
-
-      // Add ice information if present
       if (item.ice && Object.entries(item.ice).some(([_, qty]: [string, any]) => qty > 0)) {
         const geloInfo = Object.entries(item.ice)
           .filter(([_, qty]: [string, any]) => qty > 0)
@@ -63,14 +34,10 @@ export const PedidoImprimir = ({
         texto += `\n   Gelo: ${geloInfo}`;
       }
 
-      // Add price information for each item
-      texto += `\n   Unitário: R$ ${item.price.toFixed(2)}`;
-      texto += `\n   Total item: R$ ${(item.price * item.qty).toFixed(2)}`;
-      
+      texto += `\n   R$ ${(item.price * item.qty).toFixed(2)}`;
       return texto;
     }).join('\n\n');
 
-    // Calculate change amount information
     let trocoInfo = '';
     if (pedido.forma_pagamento === 'Dinheiro' && pedido.troco) {
       const trocoValue = Number(pedido.troco);
@@ -80,19 +47,6 @@ export const PedidoImprimir = ({
       }
     }
 
-    // Calculate subtotal (total - delivery fee)
-    const subtotal = pedido.total - pedido.taxa_entrega;
-
-    // Format complemento and referencia for display if they exist
-    const complementoFormatado = pedido.cliente_complemento ? 
-      `\nCOMPLEMENTO: ${pedido.cliente_complemento}` : '';
-    
-    const referenciaFormatada = pedido.cliente_referencia ? 
-      `\nREFERÊNCIA: ${pedido.cliente_referencia}` : '';
-
-    const observacaoFormatada = pedido.observacao ? 
-      `\nOBSERVAÇÃO: ${pedido.observacao}` : '';
-
     const conteudoImpressao = `
 ${deliverer}
 
@@ -101,14 +55,17 @@ PEDIDO #${pedido.codigo_pedido}
 ${new Date(pedido.data_criacao).toLocaleString('pt-BR')}
 
 CLIENTE: ${pedido.cliente_nome}
-ENDEREÇO: ${pedido.cliente_endereco}, ${pedido.cliente_numero || ''}${complementoFormatado}${referenciaFormatada}
+ENDEREÇO: ${pedido.cliente_endereco}, ${pedido.cliente_numero || ''}
+${pedido.cliente_complemento ? `COMPLEMENTO: ${pedido.cliente_complemento}` : ''}
+${pedido.cliente_referencia ? `REFERÊNCIA: ${pedido.cliente_referencia}` : ''}
 BAIRRO: ${pedido.cliente_bairro}
-WHATSAPP: ${pedido.cliente_whatsapp}${observacaoFormatada}
+WHATSAPP: ${pedido.cliente_whatsapp}
+${pedido.observacao ? `OBSERVAÇÃO: ${pedido.observacao}` : ''}
 
 ITENS DO PEDIDO:
 ${itensFormatados}
 
-SUBTOTAL: R$ ${subtotal.toFixed(2)}
+SUBTOTAL: R$ ${(pedido.total - pedido.taxa_entrega).toFixed(2)}
 TAXA DE ENTREGA: R$ ${pedido.taxa_entrega.toFixed(2)}
 TOTAL: R$ ${pedido.total.toFixed(2)}
 

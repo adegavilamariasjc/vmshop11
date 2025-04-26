@@ -66,24 +66,6 @@ export type Database = {
         }
         Relationships: []
       }
-      client_origins: {
-        Row: {
-          created_at: string | null
-          id: string
-          origin: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          origin: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          origin?: string
-        }
-        Relationships: []
-      }
       ice_flavors: {
         Row: {
           id: number
