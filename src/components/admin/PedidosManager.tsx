@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { RefreshCw, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PedidosTable from './PedidosTable';
@@ -8,8 +8,7 @@ import NewOrderAlert from './NewOrderAlert';
 import { usePedidosManager } from '@/hooks/usePedidosManager';
 
 const PedidosManager = () => {
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [manualRefreshActive, setManualRefreshActive] = useState(false);
   
   const {
     pedidos,
@@ -55,29 +54,22 @@ const PedidosManager = () => {
     return () => {
       cleanup(); // Ensure proper cleanup when component unmounts
       clearInterval(refreshInterval);
-      
-      // Stop alert sound when component unmounts
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-      }
-      
       console.log("PedidosManager unmounted, cleaning up notification system");
     };
   }, []); // Empty dependency array to run only once
 
   // Safe refresh handler with debounce
   const safeRefresh = () => {
-    if (isRefreshing || refreshing) return;
+    if (manualRefreshActive || refreshing) return;
     
-    setIsRefreshing(true);
+    setManualRefreshActive(true);
     console.log('Manual refresh triggered');
     
     handleRefresh();
     
     // Reset the refresh state after a delay
     setTimeout(() => {
-      setIsRefreshing(false);
+      setManualRefreshActive(false);
     }, 2000);
   };
 
@@ -108,15 +100,15 @@ const PedidosManager = () => {
               className="bg-yellow-600 hover:bg-yellow-700 text-white font-medium"
             >
               <VolumeX className="mr-2 h-4 w-4" />
-              Silenciar Alerta
+              Parar Alerta
             </Button>
           )}
           <Button 
             onClick={safeRefresh} 
-            disabled={isRefreshing || refreshing}
+            disabled={manualRefreshActive || refreshing}
             className="bg-purple-dark hover:bg-purple-600 text-white font-medium"
           >
-            <RefreshCw className={`mr-2 h-4 w-4 ${(isRefreshing || refreshing) ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`mr-2 h-4 w-4 ${(manualRefreshActive || refreshing) ? 'animate-spin' : ''}`} />
             Atualizar
           </Button>
         </div>
