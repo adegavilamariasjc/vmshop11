@@ -1,7 +1,8 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { fetchPedidoById, updatePedidoStatus, deletePedido, SupabasePedido } from '@/lib/supabase';
+import { fetchPedidoById, updatePedidoStatus, deletePedido } from '@/lib/supabase';
+import { SupabasePedido } from '@/lib/supabase/types';
 
 export const usePedidoDetalhe = (pedidoId: string, onClose: () => void, onDelete?: () => void, onStatusChange?: (id: string, status: string) => void) => {
   const [pedido, setPedido] = useState<SupabasePedido | null>(null);
@@ -22,6 +23,13 @@ export const usePedidoDetalhe = (pedidoId: string, onClose: () => void, onDelete
     try {
       const pedidoData = await fetchPedidoById(pedidoId);
       if (pedidoData) {
+        // Make sure items array exists and has valid qty values
+        if (pedidoData.itens && Array.isArray(pedidoData.itens)) {
+          pedidoData.itens = pedidoData.itens.filter(item => item && item.qty > 0);
+        } else {
+          pedidoData.itens = [];
+        }
+        
         setPedido(pedidoData);
       } else {
         throw new Error('Pedido não encontrado');
@@ -129,8 +137,17 @@ export const usePedidoDetalhe = (pedidoId: string, onClose: () => void, onDelete
   }, []);
 
   const calcularSubtotal = () => {
-    if (!pedido) return 0;
-    return pedido.total - pedido.taxa_entrega;
+    if (!pedido || !pedido.itens || !Array.isArray(pedido.itens)) return 0;
+    
+    // Calculate by summing individual items with appropriate quantities
+    return pedido.itens.reduce((soma, item) => {
+      // Ensure item and qty are valid
+      if (!item || typeof item.qty !== 'number' || item.qty <= 0) {
+        return soma;
+      }
+      const itemPrice = typeof item.price === 'number' ? item.price : 0;
+      return soma + (itemPrice * item.qty);
+    }, 0);
   };
 
   return {
