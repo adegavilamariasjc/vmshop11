@@ -10,9 +10,10 @@ interface ProductListProps {
   cart: Product[];
   onAddProduct: (item: Product) => void;
   onUpdateQuantity: (item: Product, delta: number) => void;
+  isStoreOpen: boolean; // Added this prop to match what's being passed in ProductSelectionView
 }
 
-const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct, onUpdateQuantity }) => {
+const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct, onUpdateQuantity, isStoreOpen }) => {
   const [products, setProducts] = useState<{name: string; price: number; is_paused?: boolean; order_index?: number}[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -140,6 +141,7 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
               <button
                 onClick={() => onAddProduct({ ...item, category })}
                 className="w-8 h-8 flex items-center justify-center bg-purple-dark text-white rounded-full"
+                disabled={!isStoreOpen} // Use the isStoreOpen prop to disable the button when store is closed
               >
                 <Plus size={16} />
               </button>
