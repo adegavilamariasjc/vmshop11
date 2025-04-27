@@ -57,6 +57,19 @@ const PedidosManager = () => {
     };
   }, [handleRefresh]);
 
+  // Handle acknowledge button click with confirmation
+  const handleSilenceAlert = () => {
+    // Ensure the alert is properly silenced
+    console.log("Silencing alert sound...");
+    handleAcknowledge();
+    
+    toast({
+      title: "Alerta silenciado",
+      description: "O alerta sonoro foi interrompido com sucesso.",
+      duration: 3000,
+    });
+  };
+
   return (
     <div>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
@@ -64,7 +77,7 @@ const PedidosManager = () => {
         <div className="flex items-center gap-3">
           {hasNewPedido && (
             <Button 
-              onClick={handleAcknowledge}
+              onClick={handleSilenceAlert}
               className="bg-yellow-600 hover:bg-yellow-700 text-black font-medium"
             >
               <BellOff className="mr-2 h-4 w-4" />
@@ -85,7 +98,7 @@ const PedidosManager = () => {
       {hasNewPedido && (
         <NewOrderAlert 
           hasNewPedido={hasNewPedido} 
-          onAcknowledge={handleAcknowledge} 
+          onAcknowledge={handleSilenceAlert} 
         />
       )}
       
