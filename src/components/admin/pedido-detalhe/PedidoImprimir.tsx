@@ -18,13 +18,18 @@ export const PedidoImprimir = ({
 
     const itensFormatados = pedido.itens.map((item: any) => {
       let texto = `${item.qty}x ${item.name}`;
+      
+      // Adicionar detalhes do álcool se presente
       if (item.alcohol) {
         texto += ` (${item.alcohol})`;
       }
+      
+      // Adicionar detalhes do sabor Baly se presente
       if (item.balyFlavor) {
         texto += ` (Baly: ${item.balyFlavor})`;
       }
 
+      // Adicionar detalhes do gelo se presente
       if (item.ice && Object.entries(item.ice).some(([_, qty]: [string, any]) => qty > 0)) {
         const geloInfo = Object.entries(item.ice)
           .filter(([_, qty]: [string, any]) => qty > 0)
@@ -34,18 +39,24 @@ export const PedidoImprimir = ({
         texto += `\n   Gelo: ${geloInfo}`;
       }
 
+      // Adicionar detalhes dos energéticos se presente
+      if (item.energyDrinks && item.energyDrinks.length > 0) {
+        const energeticosInfo = item.energyDrinks
+          .map((ed: any) => 
+            `${ed.type}${ed.flavor !== 'Tradicional' ? ` - ${ed.flavor}` : ''}`
+          )
+          .join(", ");
+        
+        texto += `\n   Energéticos: ${energeticosInfo}`;
+      }
+
       texto += `\n   R$ ${(item.price * item.qty).toFixed(2)}`;
       return texto;
     }).join('\n\n');
 
-    let trocoInfo = '';
-    if (pedido.forma_pagamento === 'Dinheiro' && pedido.troco) {
-      const trocoValue = Number(pedido.troco);
-      const changeAmount = trocoValue - pedido.total;
-      if (changeAmount > 0) {
-        trocoInfo = `\nLEVAR TROCO: R$ ${changeAmount.toFixed(2)}`;
-      }
-    }
+    const trocoInfo = pedido.forma_pagamento === 'Dinheiro' && pedido.troco 
+      ? `\nTROCO PARA: R$ ${pedido.troco}` 
+      : '';
 
     const conteudoImpressao = `
 ${deliverer}
@@ -70,7 +81,6 @@ TAXA DE ENTREGA: R$ ${pedido.taxa_entrega.toFixed(2)}
 TOTAL: R$ ${pedido.total.toFixed(2)}
 
 FORMA DE PAGAMENTO: ${pedido.forma_pagamento}
-${pedido.forma_pagamento === 'Dinheiro' && pedido.troco ? `TROCO PARA: R$ ${pedido.troco}` : ''}
 ${trocoInfo}
 
 Obrigado pela preferência!
@@ -144,10 +154,7 @@ ADEGA VM
           <body>
             <div class="scroll-container">
               <div class="deliverer">${deliverer}</div>
-              ${conteudoImpressao.replace(
-                trocoInfo,
-                trocoInfo ? `\n<div class="change-amount">${trocoInfo}</div>` : ''
-              )}
+              ${conteudoImpressao}
             </div>
             <script>
               window.onload = function() {
@@ -170,3 +177,4 @@ ADEGA VM
 
   return null;
 };
+
