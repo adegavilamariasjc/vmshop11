@@ -28,33 +28,33 @@ export function useTrafficData() {
         
         // Usar o SQL timestamp para filtrar no lado do servidor 
         // em vez de filtrar todos os dados no cliente
-        const { data: liveData, error: liveError } = await supabase
+        const { count: liveCount, error: liveError } = await supabase
           .from('page_visits')
-          .select('count', { count: 'exact' })
+          .select('*', { count: 'exact', head: true })
           .eq('acao', 'pageload')
           .gt('data_hora', liveTime.toISOString());
           
-        const { data: data10m, error: error10m } = await supabase
+        const { count: count10m, error: error10m } = await supabase
           .from('page_visits')
-          .select('count', { count: 'exact' })
+          .select('*', { count: 'exact', head: true })
           .eq('acao', 'pageload')
           .gt('data_hora', time10m.toISOString());
           
-        const { data: data30m, error: error30m } = await supabase
+        const { count: count30m, error: error30m } = await supabase
           .from('page_visits')
-          .select('count', { count: 'exact' })
+          .select('*', { count: 'exact', head: true })
           .eq('acao', 'pageload')
           .gt('data_hora', time30m.toISOString());
           
-        const { data: data60m, error: error60m } = await supabase
+        const { count: count60m, error: error60m } = await supabase
           .from('page_visits')
-          .select('count', { count: 'exact' })
+          .select('*', { count: 'exact', head: true })
           .eq('acao', 'pageload')
           .gt('data_hora', time60m.toISOString());
           
-        const { data: data12h, error: error12h } = await supabase
+        const { count: count12h, error: error12h } = await supabase
           .from('page_visits')
-          .select('count', { count: 'exact' })
+          .select('*', { count: 'exact', head: true })
           .eq('acao', 'pageload')
           .gt('data_hora', time12h.toISOString());
           
@@ -63,19 +63,19 @@ export function useTrafficData() {
         }
 
         console.log('Traffic data fetched:', {
-          live: liveData?.count || 0,
-          m10: data10m?.count || 0,
-          m30: data30m?.count || 0,
-          m60: data60m?.count || 0,
-          h12: data12h?.count || 0
+          live: liveCount || 0,
+          m10: count10m || 0,
+          m30: count30m || 0,
+          m60: count60m || 0,
+          h12: count12h || 0
         });
 
         setMetrics({
-          liveCount: liveData?.count || 0,
-          last10m: data10m?.count || 0,
-          last30m: data30m?.count || 0,
-          last60m: data60m?.count || 0,
-          last12h: data12h?.count || 0
+          liveCount: liveCount || 0,
+          last10m: count10m || 0,
+          last30m: count30m || 0,
+          last60m: count60m || 0,
+          last12h: count12h || 0
         });
         
       } catch (err) {
