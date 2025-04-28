@@ -18,45 +18,66 @@ export function useTrafficData() {
       try {
         setIsLoading(true);
         const now = new Date();
-        const intervals = {
-          live: new Date(now.getTime() - 30000), // Live = last 30 seconds
-          m10: new Date(now.getTime() - 10 * 60000),
-          m30: new Date(now.getTime() - 30 * 60000),
-          m60: new Date(now.getTime() - 60 * 60000),
-          h12: new Date(now.getTime() - 720 * 60000),
-        };
-
-        // Optimize by using a single query with different time filters
-        const { data, error } = await supabase
+        
+        // Definir os intervalos de tempo para cada métrica
+        const liveTime = new Date(now.getTime() - 30000); // Últimos 30 segundos
+        const time10m = new Date(now.getTime() - 10 * 60000); // Últimos 10 minutos
+        const time30m = new Date(now.getTime() - 30 * 60000); // Últimos 30 minutos
+        const time60m = new Date(now.getTime() - 60 * 60000); // Últimos 60 minutos
+        const time12h = new Date(now.getTime() - 12 * 60 * 60000); // Últimas 12 horas
+        
+        // Usar o SQL timestamp para filtrar no lado do servidor 
+        // em vez de filtrar todos os dados no cliente
+        const { data: liveData, error: liveError } = await supabase
           .from('page_visits')
-          .select('data_hora')
-          .eq('acao', 'pageload');
-
-        if (error) throw error;
-
-        if (data) {
-          // Calculate counts for each time interval
-          const counts = {
-            liveCount: 0,
-            last10m: 0,
-            last30m: 0,
-            last60m: 0,
-            last12h: 0,
-          };
-
-          // Process data for each time interval
-          data.forEach(visit => {
-            const visitDate = new Date(visit.data_hora || '');
-            
-            if (visitDate >= intervals.live) counts.liveCount++;
-            if (visitDate >= intervals.m10) counts.last10m++;
-            if (visitDate >= intervals.m30) counts.last30m++;
-            if (visitDate >= intervals.m60) counts.last60m++;
-            if (visitDate >= intervals.h12) counts.last12h++;
-          });
-
-          setMetrics(counts);
+          .select('count', { count: 'exact' })
+          .eq('acao', 'pageload')
+          .gt('data_hora', liveTime.toISOString());
+          
+        const { data: data10m, error: error10m } = await supabase
+          .from('page_visits')
+          .select('count', { count: 'exact' })
+          .eq('acao', 'pageload')
+          .gt('data_hora', time10m.toISOString());
+          
+        const { data: data30m, error: error30m } = await supabase
+          .from('page_visits')
+          .select('count', { count: 'exact' })
+          .eq('acao', 'pageload')
+          .gt('data_hora', time30m.toISOString());
+          
+        const { data: data60m, error: error60m } = await supabase
+          .from('page_visits')
+          .select('count', { count: 'exact' })
+          .eq('acao', 'pageload')
+          .gt('data_hora', time60m.toISOString());
+          
+        const { data: data12h, error: error12h } = await supabase
+          .from('page_visits')
+          .select('count', { count: 'exact' })
+          .eq('acao', 'pageload')
+          .gt('data_hora', time12h.toISOString());
+          
+        if (liveError || error10m || error30m || error60m || error12h) {
+          throw new Error('Erro ao buscar dados de visitantes');
         }
+
+        console.log('Traffic data fetched:', {
+          live: liveData?.count || 0,
+          m10: data10m?.count || 0,
+          m30: data30m?.count || 0,
+          m60: data60m?.count || 0,
+          h12: data12h?.count || 0
+        });
+
+        setMetrics({
+          liveCount: liveData?.count || 0,
+          last10m: data10m?.count || 0,
+          last30m: data30m?.count || 0,
+          last60m: data60m?.count || 0,
+          last12h: data12h?.count || 0
+        });
+        
       } catch (err) {
         console.error('Error fetching visitor metrics:', err);
         setError(err as Error);
@@ -65,10 +86,10 @@ export function useTrafficData() {
       }
     };
 
-    // Initial fetch
+    // Buscar dados iniciais
     fetchVisitorMetrics();
 
-    // Real-time updates subscription
+    // Configurar inscrição para atualizações em tempo real
     const channel = supabase
       .channel('visitors_channel')
       .on(
@@ -79,13 +100,16 @@ export function useTrafficData() {
           table: 'page_visits',
           filter: 'acao=eq.pageload'
         },
-        () => {
+        (payload) => {
+          console.log('Real-time visitor update received:', payload);
           fetchVisitorMetrics();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Visitor channel subscription status:', status);
+      });
 
-    // Refresh metrics every 30 seconds for live count
+    // Atualizar métricas a cada 30 segundos para contagem ao vivo
     const intervalId = setInterval(fetchVisitorMetrics, 30000);
 
     return () => {

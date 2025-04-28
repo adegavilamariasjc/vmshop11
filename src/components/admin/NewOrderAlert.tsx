@@ -39,7 +39,7 @@ const NewOrderAlert: React.FC<NewOrderAlertProps> = ({
       <AlertTitle className="text-yellow-600 text-lg font-bold">NOVO PEDIDO!</AlertTitle>
       <AlertDescription className="text-yellow-600/90">
         <p className="font-medium">Há um novo pedido que precisa de atenção!</p>
-        <p>Clique no botão "Silenciar Alerta" para parar o alerta sonoro.</p>
+        <p>Clique aqui ou no botão "Silenciar Alerta" para parar o alerta sonoro.</p>
       </AlertDescription>
     </Alert>
   );

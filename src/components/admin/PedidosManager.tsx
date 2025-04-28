@@ -60,7 +60,7 @@ const PedidosManager = () => {
   // Handle acknowledge button click with confirmation
   const handleSilenceAlert = () => {
     // Ensure the alert is properly silenced
-    console.log("Silencing alert sound...");
+    console.log("Silencing alert sound via button click...");
     handleAcknowledge();
     
     toast({
