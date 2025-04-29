@@ -6,18 +6,27 @@ import { searchAddressByCep } from '../../utils/addressLookup';
 import FormField from './FormField';
 
 interface AddressLookupFieldProps {
+  value?: string;
+  onChange?: (value: string) => void;
   onAddressFound: (address: { street: string, neighborhood: string }) => void;
 }
 
-const AddressLookupField: React.FC<AddressLookupFieldProps> = ({ onAddressFound }) => {
+const AddressLookupField: React.FC<AddressLookupFieldProps> = ({ 
+  value = '', 
+  onChange, 
+  onAddressFound 
+}) => {
   const { toast } = useToast();
-  const [cep, setCep] = useState('');
+  const [cep, setCep] = useState(value);
   const [isSearching, setIsSearching] = useState(false);
 
   const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, '');
     if (value.length <= 8) {
       setCep(value);
+      if (onChange) {
+        onChange(value);
+      }
     }
   };
 
