@@ -29,7 +29,7 @@ const LocationAndPaymentFields: React.FC<LocationAndPaymentFieldsProps> = ({
           name="bairro"
           value={bairro}
           onChange={onChange}
-          className="w-full bg-gray-800 text-white border border-gray-700 rounded-md p-2 text-sm"
+          className="w-full bg-gray-800 text-gray-200 border border-gray-700 rounded-md p-2 text-sm"
           required
         >
           {bairros.map((b) => (
@@ -49,7 +49,7 @@ const LocationAndPaymentFields: React.FC<LocationAndPaymentFieldsProps> = ({
           name="pagamento"
           value={pagamento}
           onChange={onChange}
-          className="w-full bg-gray-800 text-white border border-gray-700 rounded-md p-2 text-sm"
+          className="w-full bg-gray-800 text-gray-200 border border-gray-700 rounded-md p-2 text-sm"
           required
         >
           <option value="">Selecione...</option>
@@ -72,7 +72,7 @@ const LocationAndPaymentFields: React.FC<LocationAndPaymentFieldsProps> = ({
             value={troco}
             onChange={onChange}
             placeholder="Exemplo: R$ 50,00"
-            className="w-full bg-gray-800 text-white border border-gray-700 rounded-md p-2 text-sm"
+            className="w-full bg-gray-800 text-gray-200 border border-gray-700 rounded-md p-2 text-sm"
           />
         </div>
       )}
@@ -88,7 +88,7 @@ const LocationAndPaymentFields: React.FC<LocationAndPaymentFieldsProps> = ({
           onChange={onChange}
           rows={3}
           placeholder="Instruções para entrega, preferências, etc."
-          className="w-full bg-gray-800 text-white border border-gray-700 rounded-md p-2 text-sm"
+          className="w-full bg-gray-800 text-gray-200 border border-gray-700 rounded-md p-2 text-sm"
         />
       </div>
     </div>

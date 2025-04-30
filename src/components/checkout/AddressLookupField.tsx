@@ -70,7 +70,7 @@ const AddressLookupField: React.FC<AddressLookupFieldProps> = ({
           type="text"
           value={cep}
           onChange={handleCepChange}
-          className="flex-1 p-3 bg-gray-900 border border-gray-600 rounded-l-md text-white"
+          className="flex-1 p-3 bg-gray-900 border border-gray-600 rounded-l-md text-gray-200"
           placeholder="Apenas números"
           maxLength={8}
         />
