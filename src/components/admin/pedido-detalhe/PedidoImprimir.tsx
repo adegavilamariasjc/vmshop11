@@ -59,8 +59,6 @@ export const PedidoImprimir = ({
       : '';
 
     const conteudoImpressao = `
-${deliverer}
-
 ADEGA VM
 PEDIDO #${pedido.codigo_pedido}
 ${new Date(pedido.data_criacao).toLocaleString('pt-BR')}
@@ -140,7 +138,7 @@ ADEGA VM
               }
               .deliverer {
                 font-weight: bold;
-                font-size: 16pt;
+                font-size: 20pt;
                 text-align: center;
                 margin-bottom: 10mm;
               }
@@ -177,4 +175,3 @@ ADEGA VM
 
   return null;
 };
-
