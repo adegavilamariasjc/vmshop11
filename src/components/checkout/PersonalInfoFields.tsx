@@ -52,7 +52,7 @@ const PersonalInfoFields: React.FC<PersonalInfoFieldsProps> = ({
             className="w-full bg-gray-800 text-gray-200 text-shadow-dark border border-gray-700 rounded-md p-2 text-sm placeholder:text-gray-400"
             placeholder="Seu nome completo"
             required
-            style={{color: '#e2e2e2'}} // Enforce light text color
+            style={{color: '#D6BCFA'}} // Light purple text color
           />
         </FormField>
       </div>
@@ -69,7 +69,7 @@ const PersonalInfoFields: React.FC<PersonalInfoFieldsProps> = ({
             placeholder="Ex: 12 999999999"
             required
             maxLength={13} // 2 digits + space + 9 digits = 12 chars
-            style={{color: '#e2e2e2'}} // Enforce light text color
+            style={{color: '#D6BCFA'}} // Light purple text color
           />
         </FormField>
       </div>

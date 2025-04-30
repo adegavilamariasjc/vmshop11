@@ -31,10 +31,10 @@ const LocationAndPaymentFields: React.FC<LocationAndPaymentFieldsProps> = ({
           onChange={onChange}
           className="w-full bg-gray-800 text-gray-200 border border-gray-700 rounded-md p-2 text-sm"
           required
-          style={{color: '#e2e2e2'}} // Enforce light text color
+          style={{color: '#D6BCFA'}} // Light purple text color
         >
           {bairros.map((b) => (
-            <option key={b.nome} value={b.nome} style={{color: '#e2e2e2', backgroundColor: '#1f2937'}}>
+            <option key={b.nome} value={b.nome} style={{color: '#D6BCFA', backgroundColor: '#1f2937'}}>
               {b.nome} {b.taxa > 0 ? `(R$ ${b.taxa.toFixed(2)})` : ''}
             </option>
           ))}
@@ -52,13 +52,13 @@ const LocationAndPaymentFields: React.FC<LocationAndPaymentFieldsProps> = ({
           onChange={onChange}
           className="w-full bg-gray-800 text-gray-200 border border-gray-700 rounded-md p-2 text-sm"
           required
-          style={{color: '#e2e2e2'}} // Enforce light text color
+          style={{color: '#D6BCFA'}} // Light purple text color
         >
-          <option value="" style={{color: '#e2e2e2', backgroundColor: '#1f2937'}}>Selecione...</option>
-          <option value="Dinheiro" style={{color: '#e2e2e2', backgroundColor: '#1f2937'}}>Dinheiro</option>
-          <option value="Pix" style={{color: '#e2e2e2', backgroundColor: '#1f2937'}}>Pix</option>
-          <option value="Cartão de Crédito" style={{color: '#e2e2e2', backgroundColor: '#1f2937'}}>Cartão de Crédito</option>
-          <option value="Cartão de Débito" style={{color: '#e2e2e2', backgroundColor: '#1f2937'}}>Cartão de Débito</option>
+          <option value="" style={{color: '#D6BCFA', backgroundColor: '#1f2937'}}>Selecione...</option>
+          <option value="Dinheiro" style={{color: '#D6BCFA', backgroundColor: '#1f2937'}}>Dinheiro</option>
+          <option value="Pix" style={{color: '#D6BCFA', backgroundColor: '#1f2937'}}>Pix</option>
+          <option value="Cartão de Crédito" style={{color: '#D6BCFA', backgroundColor: '#1f2937'}}>Cartão de Crédito</option>
+          <option value="Cartão de Débito" style={{color: '#D6BCFA', backgroundColor: '#1f2937'}}>Cartão de Débito</option>
         </select>
       </div>
       
@@ -75,7 +75,7 @@ const LocationAndPaymentFields: React.FC<LocationAndPaymentFieldsProps> = ({
             onChange={onChange}
             placeholder="Exemplo: R$ 50,00"
             className="w-full bg-gray-800 text-gray-200 border border-gray-700 rounded-md p-2 text-sm placeholder:text-gray-400"
-            style={{color: '#e2e2e2'}} // Enforce light text color
+            style={{color: '#D6BCFA'}} // Light purple text color
           />
         </div>
       )}
@@ -92,7 +92,7 @@ const LocationAndPaymentFields: React.FC<LocationAndPaymentFieldsProps> = ({
           rows={3}
           placeholder="Instruções para entrega, preferências, etc."
           className="w-full bg-gray-800 text-gray-200 border border-gray-700 rounded-md p-2 text-sm placeholder:text-gray-400" 
-          style={{color: '#e2e2e2'}} // Enforce light text color
+          style={{color: '#D6BCFA'}} // Light purple text color
         />
       </div>
     </div>
