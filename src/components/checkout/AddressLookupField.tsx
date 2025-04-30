@@ -73,6 +73,7 @@ const AddressLookupField: React.FC<AddressLookupFieldProps> = ({
           className="flex-1 p-3 bg-gray-900 border border-gray-600 rounded-l-md text-gray-200"
           placeholder="Apenas números"
           maxLength={8}
+          style={{color: '#e2e2e2'}} // Enforce light text color
         />
         <button
           type="button"

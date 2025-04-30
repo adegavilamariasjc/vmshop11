@@ -31,9 +31,10 @@ const LocationAndPaymentFields: React.FC<LocationAndPaymentFieldsProps> = ({
           onChange={onChange}
           className="w-full bg-gray-800 text-gray-200 border border-gray-700 rounded-md p-2 text-sm"
           required
+          style={{color: '#e2e2e2'}} // Enforce light text color
         >
           {bairros.map((b) => (
-            <option key={b.nome} value={b.nome}>
+            <option key={b.nome} value={b.nome} style={{color: '#e2e2e2', backgroundColor: '#1f2937'}}>
               {b.nome} {b.taxa > 0 ? `(R$ ${b.taxa.toFixed(2)})` : ''}
             </option>
           ))}
@@ -51,12 +52,13 @@ const LocationAndPaymentFields: React.FC<LocationAndPaymentFieldsProps> = ({
           onChange={onChange}
           className="w-full bg-gray-800 text-gray-200 border border-gray-700 rounded-md p-2 text-sm"
           required
+          style={{color: '#e2e2e2'}} // Enforce light text color
         >
-          <option value="">Selecione...</option>
-          <option value="Dinheiro">Dinheiro</option>
-          <option value="Pix">Pix</option>
-          <option value="Cartão de Crédito">Cartão de Crédito</option>
-          <option value="Cartão de Débito">Cartão de Débito</option>
+          <option value="" style={{color: '#e2e2e2', backgroundColor: '#1f2937'}}>Selecione...</option>
+          <option value="Dinheiro" style={{color: '#e2e2e2', backgroundColor: '#1f2937'}}>Dinheiro</option>
+          <option value="Pix" style={{color: '#e2e2e2', backgroundColor: '#1f2937'}}>Pix</option>
+          <option value="Cartão de Crédito" style={{color: '#e2e2e2', backgroundColor: '#1f2937'}}>Cartão de Crédito</option>
+          <option value="Cartão de Débito" style={{color: '#e2e2e2', backgroundColor: '#1f2937'}}>Cartão de Débito</option>
         </select>
       </div>
       
@@ -72,7 +74,8 @@ const LocationAndPaymentFields: React.FC<LocationAndPaymentFieldsProps> = ({
             value={troco}
             onChange={onChange}
             placeholder="Exemplo: R$ 50,00"
-            className="w-full bg-gray-800 text-gray-200 border border-gray-700 rounded-md p-2 text-sm"
+            className="w-full bg-gray-800 text-gray-200 border border-gray-700 rounded-md p-2 text-sm placeholder:text-gray-400"
+            style={{color: '#e2e2e2'}} // Enforce light text color
           />
         </div>
       )}
@@ -88,7 +91,8 @@ const LocationAndPaymentFields: React.FC<LocationAndPaymentFieldsProps> = ({
           onChange={onChange}
           rows={3}
           placeholder="Instruções para entrega, preferências, etc."
-          className="w-full bg-gray-800 text-gray-200 border border-gray-700 rounded-md p-2 text-sm"
+          className="w-full bg-gray-800 text-gray-200 border border-gray-700 rounded-md p-2 text-sm placeholder:text-gray-400" 
+          style={{color: '#e2e2e2'}} // Enforce light text color
         />
       </div>
     </div>
