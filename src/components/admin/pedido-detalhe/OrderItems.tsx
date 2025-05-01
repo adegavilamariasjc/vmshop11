@@ -8,7 +8,7 @@ interface OrderItem {
   category?: string;
   alcohol?: string;
   balyFlavor?: string;
-  ice?: Record<string, any>;
+  ice?: Record<string, number>;
   energyDrinks?: Array<{ type: string; flavor: string }>;
 }
 
@@ -24,11 +24,31 @@ const OrderItems: React.FC<OrderItemsProps> = ({ items }) => {
     }
     return item.name;
   };
+  
+  // Create a separate display for each individual item rather than grouping them
+  const expandItemsIndividually = () => {
+    const expandedItems: OrderItem[] = [];
+    
+    items.forEach(item => {
+      // For items with quantity > 1, create individual items
+      for (let i = 0; i < item.qty; i++) {
+        expandedItems.push({
+          ...item,
+          qty: 1 // Each individual item has qty of 1
+        });
+      }
+    });
+    
+    return expandedItems;
+  };
+  
+  // Get the expanded list of individual items
+  const individualItems = expandItemsIndividually();
 
   return (
     <div className="items">
       <h3><strong>ITENS DO PEDIDO</strong></h3>
-      {items.map((item, index) => (
+      {individualItems.map((item, index) => (
         <div key={index} className="item">
           <div>
             {item.qty}x {getFullProductName(item)} 
@@ -54,7 +74,7 @@ const OrderItems: React.FC<OrderItemsProps> = ({ items }) => {
           )}
           
           <div style={{ textAlign: 'right' }}>
-            R$ {(item.price * item.qty).toFixed(2)}
+            R$ {(item.price).toFixed(2)}
           </div>
         </div>
       ))}

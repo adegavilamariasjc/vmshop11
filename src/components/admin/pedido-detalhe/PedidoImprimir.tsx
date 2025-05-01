@@ -16,7 +16,15 @@ export const PedidoImprimir = ({
     if (!pedido) return;
     setIsPrinting(true);
 
-    const itensFormatados = pedido.itens.map((item: any) => {
+    // Expand items to handle multiples individually
+    const expandedItems: any[] = [];
+    pedido.itens.forEach((item: any) => {
+      for (let i = 0; i < item.qty; i++) {
+        expandedItems.push({...item, qty: 1});
+      }
+    });
+
+    const itensFormatados = expandedItems.map((item: any) => {
       let texto = `${item.qty}x ${item.name}`;
       
       // Adicionar detalhes do álcool se presente
@@ -50,7 +58,7 @@ export const PedidoImprimir = ({
         texto += `\n   Energéticos: ${energeticosInfo}`;
       }
 
-      texto += `\n   R$ ${(item.price * item.qty).toFixed(2)}`;
+      texto += `\n   R$ ${(item.price).toFixed(2)}`;
       return texto;
     }).join('\n\n');
 
