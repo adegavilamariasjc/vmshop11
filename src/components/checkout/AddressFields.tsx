@@ -41,20 +41,25 @@ const AddressFields: React.FC<AddressFieldsProps> = ({
     <div className="space-y-3">
       <div>
         <FormField id="endereco" label="Endereço" required>
-          <AddressLookupField
+          <Input
+            id="endereco"
+            name="endereco"
+            type="text"
             value={endereco}
-            onChange={(value) => {
-              const syntheticEvent = {
-                target: {
-                  name: 'endereco',
-                  value
-                }
-              } as React.ChangeEvent<HTMLInputElement>;
-              onChange(syntheticEvent);
-            }}
-            onAddressFound={setAddress}
+            onChange={onChange}
+            className="w-full bg-gray-800 text-gray-200 text-shadow-dark border border-gray-700 rounded-md p-2 text-sm placeholder:text-gray-400"
+            placeholder="Nome da rua"
+            required
+            style={{color: '#D6BCFA'}} // Light purple text color
           />
         </FormField>
+      </div>
+
+      <div>
+        <AddressLookupField
+          value=""
+          onAddressFound={setAddress}
+        />
       </div>
       
       <div>
