@@ -61,6 +61,29 @@ export const useCart = () => {
           (product.category && product.category.toLowerCase().includes('combo'));
   };
 
+  const isBeer = (product: Product): boolean => {
+    // Check if product is a beer based on category
+    return product.category?.toLowerCase() === 'cervejas' || 
+           product.name.toLowerCase().includes('cerveja') ||
+           product.name.toLowerCase().includes('itaipava') ||
+           product.name.toLowerCase().includes('skol') ||
+           product.name.toLowerCase().includes('brahma') ||
+           product.name.toLowerCase().includes('budweiser') ||
+           product.name.toLowerCase().includes('heineken') ||
+           product.name.toLowerCase().includes('corona') ||
+           product.name.toLowerCase().includes('stella');
+  };
+
+  // Function to determine if a product is customizable
+  const isCustomizableProduct = (product: Product): boolean => {
+    // Products that need customization (ice, alcohol, baly flavor, energy drinks)
+    return isCopao(product) || 
+           isCombo(product) || 
+           requiresFlavor(product.category || '') || 
+           requiresAlcoholChoice(product.category || '') ||
+           containsBaly(product.name);
+  };
+
   const handleSelectCategory = (category: string) => {
     setActiveCategory(activeCategory === category ? null : category);
   };
@@ -85,36 +108,47 @@ export const useCart = () => {
 
   const handleUpdateQuantity = (item: Product, delta: number) => {
     setCart(prevCart => {
-      const existingItem = prevCart.find(
-        (p) =>
-          p.name === item.name &&
-          p.category === item.category &&
-          ((p.ice && item.ice && JSON.stringify(p.ice) === JSON.stringify(item.ice)) ||
-           (!p.ice && !item.ice)) &&
-          p.alcohol === item.alcohol &&
-          p.balyFlavor === item.balyFlavor &&
-          p.energyDrink === item.energyDrink &&
-          p.energyDrinkFlavor === item.energyDrinkFlavor
-      );
-      
-      if (existingItem) {
-        return prevCart
-          .map(p =>
-            p.name === item.name &&
-            p.category === item.category &&
-            ((p.ice && item.ice && JSON.stringify(p.ice) === JSON.stringify(item.ice)) ||
-             (!p.ice && !item.ice)) &&
-            p.alcohol === item.alcohol &&
-            p.balyFlavor === item.balyFlavor &&
-            p.energyDrink === item.energyDrink &&
-            p.energyDrinkFlavor === item.energyDrinkFlavor
+      // For customizable products (copão, combo items with ice/energy drinks), 
+      // add them as separate cart items always, even if they have the same name
+      if (isCustomizableProduct(item)) {
+        const existingIndex = prevCart.findIndex(
+          (p) => p === item // Compare by reference for customizable products
+        );
+        
+        if (existingIndex >= 0) {
+          return prevCart
+            .map((p, idx) => idx === existingIndex 
               ? { ...p, qty: Math.max(0, (p.qty || 1) + delta) }
               : p
-          )
-          .filter(p => (p.qty || 1) > 0);
+            )
+            .filter(p => (p.qty || 1) > 0);
+        }
+        
+        return delta > 0 ? [...prevCart, { ...item, qty: 1 }] : prevCart;
+      } 
+      // For simple products like beer, combine quantities if they have the same name and category
+      else {
+        const existingItem = prevCart.find(
+          (p) =>
+            p.name === item.name &&
+            p.category === item.category &&
+            !isCustomizableProduct(p)
+        );
+        
+        if (existingItem) {
+          return prevCart
+            .map(p =>
+              p.name === item.name &&
+              p.category === item.category &&
+              !isCustomizableProduct(p)
+                ? { ...p, qty: Math.max(0, (p.qty || 1) + delta) }
+                : p
+            )
+            .filter(p => (p.qty || 1) > 0);
+        }
+        
+        return delta > 0 ? [...prevCart, { ...item, qty: 1 }] : prevCart;
       }
-      
-      return delta > 0 ? [...prevCart, { ...item, qty: 1 }] : prevCart;
     });
   };
 
@@ -300,7 +334,9 @@ export const useCart = () => {
       price: (pendingProductWithIce.price || 0) + energyDrinks.totalExtraCost
     };
 
-    handleUpdateQuantity(finalProduct, 1);
+    // Always add as a new item since it's customized
+    setCart(prevCart => [...prevCart, { ...finalProduct, qty: 1 }]);
+    
     setIsEnergyDrinkModalOpen(false);
     setPendingProductWithIce(null);
 
