@@ -131,6 +131,7 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
           ).reduce((sum, p) => sum + (p.qty || 1), 0);
         } else {
           // For simple products like beer, add up all quantities
+          // Only count products that match exactly in name and category
           quantity = cart.filter(p => 
             p.name === item.name && 
             p.category === category

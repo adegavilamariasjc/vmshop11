@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -110,10 +111,9 @@ export const useCart = () => {
     setCart(prevCart => {
       // For customizable products (copão, combo items with ice/energy drinks), 
       // add them as separate cart items always, even if they have the same name
-      if (isCustomizableProduct(item)) {
-        const existingIndex = prevCart.findIndex(
-          (p) => p === item // Compare by reference for customizable products
-        );
+      if (isCustomizableProduct(item) && 
+          (item.ice || item.alcohol || item.balyFlavor || item.energyDrink)) {
+        const existingIndex = prevCart.findIndex(p => p === item); // Compare by reference for customized products
         
         if (existingIndex >= 0) {
           return prevCart
@@ -132,7 +132,7 @@ export const useCart = () => {
           (p) =>
             p.name === item.name &&
             p.category === item.category &&
-            !isCustomizableProduct(p)
+            !p.ice && !p.alcohol && !p.balyFlavor && !p.energyDrink
         );
         
         if (existingItem) {
@@ -140,7 +140,7 @@ export const useCart = () => {
             .map(p =>
               p.name === item.name &&
               p.category === item.category &&
-              !isCustomizableProduct(p)
+              !p.ice && !p.alcohol && !p.balyFlavor && !p.energyDrink
                 ? { ...p, qty: Math.max(0, (p.qty || 1) + delta) }
                 : p
             )
