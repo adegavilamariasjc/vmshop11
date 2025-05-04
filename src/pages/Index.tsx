@@ -77,6 +77,8 @@ const Index = () => {
   const [whatsAppUrl, setWhatsAppUrl] = useState("");
   const { toast } = useToast();
 
+  // Keep getFullProductName function since it's used in the WhatsApp message
+  // but will eventually be removed in favor of the utility function
   const getFullProductName = (name: string, category?: string): string => {
     if (category?.toLowerCase() === 'batidas' && !name.toLowerCase().includes('batida de')) {
       return `Batida de ${name}`;
@@ -200,36 +202,8 @@ const Index = () => {
     
     const total = cart.reduce((sum, p) => sum + (p.price || 0) * (p.qty || 1), 0) + form.bairro.taxa;
     
-    // Group identical items before generating the message
-    const groupedItems = cart.reduce((acc: Product[], item: Product) => {
-      if (!item.qty || item.qty <= 0) return acc;
-      
-      // For customizable products, keep them separate
-      if (item.ice || 
-          item.energyDrinks || 
-          item.energyDrink || 
-          item.name.toLowerCase().includes('copão') || 
-          (item.category && item.category.toLowerCase().includes('combo'))) {
-        acc.push({...item});
-        return acc;
-      }
-      
-      // For simple products, combine quantities
-      const existingItem = acc.find(i => 
-        i.name === item.name && 
-        i.category === item.category && 
-        i.alcohol === item.alcohol && 
-        i.balyFlavor === item.balyFlavor
-      );
-      
-      if (existingItem) {
-        existingItem.qty = (existingItem.qty || 0) + (item.qty || 0);
-      } else {
-        acc.push({...item});
-      }
-      
-      return acc;
-    }, []);
+    // Use the utility function to group identical items
+    const groupedItems = groupCartItems(cart);
     
     const itensPedido = groupedItems
       .map(p => {

@@ -1,4 +1,3 @@
-
 export const formatWhatsApp = (number: string): string => {
   const cleaned = number.replace(/\D/g, '');
   if (!cleaned.startsWith('55') && cleaned.length >= 11) {
@@ -13,6 +12,40 @@ export const getFullProductName = (name: string, category?: string): string => {
     return `Batida de ${name}`;
   }
   return name;
+};
+
+// Function to group identical items in the cart
+export const groupCartItems = (items: Array<any>) => {
+  // Filter out items with zero quantity first
+  const validItems = items.filter(item => item.qty && item.qty > 0);
+  
+  return validItems.reduce((acc: any[], item: any) => {
+    // For customizable products, keep them as individual items
+    if (item.ice || 
+        item.energyDrinks || 
+        item.energyDrink || 
+        item.name.toLowerCase().includes('copão') || 
+        (item.category && item.category.toLowerCase().includes('combo'))) {
+      acc.push({...item});
+      return acc;
+    }
+    
+    // For simple products, combine quantities if they are identical
+    const existingItem = acc.find(i => 
+      i.name === item.name && 
+      i.category === item.category && 
+      i.alcohol === item.alcohol && 
+      i.balyFlavor === item.balyFlavor
+    );
+    
+    if (existingItem) {
+      existingItem.qty = (existingItem.qty || 0) + (item.qty || 0);
+    } else {
+      acc.push({...item});
+    }
+    
+    return acc;
+  }, []);
 };
 
 export const formatWhatsAppMessage = (

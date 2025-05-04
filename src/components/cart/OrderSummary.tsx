@@ -1,6 +1,7 @@
 import React from 'react';
-import { Bairro, Product } from '../../types';
+import { Product } from '../../types';
 import CartItem from './CartItem';
+import { getFullProductName } from '@/utils/formatWhatsApp';
 
 interface OrderSummaryProps {
   cart: Product[];

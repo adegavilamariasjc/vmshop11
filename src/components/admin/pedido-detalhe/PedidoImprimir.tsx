@@ -1,4 +1,5 @@
 import React from 'react';
+import { getFullProductName } from '@/utils/formatWhatsApp';
 
 export const PedidoImprimir = ({
   pedido,
@@ -14,14 +15,6 @@ export const PedidoImprimir = ({
   React.useEffect(() => {
     if (!pedido) return;
     setIsPrinting(true);
-
-    // Function to get the full product name for certain categories
-    const getFullProductName = (item: any): string => {
-      if (item.category?.toLowerCase() === 'batidas' && !item.name.toLowerCase().includes('batida de')) {
-        return `Batida de ${item.name}`;
-      }
-      return item.name;
-    };
 
     // Group identical items by name, category, alcohol, and balyFlavor
     const groupedItems = pedido.itens.reduce((acc: any[], item: any) => {
@@ -59,7 +52,7 @@ export const PedidoImprimir = ({
     // Format items to properly show quantities with grouped items
     const itensFormatados = groupedItems
       .map((item: any) => {
-        const fullName = getFullProductName(item);
+        const fullName = getFullProductName(item.name, item.category);
         let texto = `${item.qty}x ${fullName}`;
         
         // Adicionar detalhes do álcool se presente

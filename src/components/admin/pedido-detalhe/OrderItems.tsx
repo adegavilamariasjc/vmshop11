@@ -1,4 +1,5 @@
 import React from 'react';
+import { getFullProductName } from '@/utils/formatWhatsApp';
 
 interface OrderItem {
   qty: number;
@@ -18,14 +19,6 @@ interface OrderItemsProps {
 }
 
 const OrderItems: React.FC<OrderItemsProps> = ({ items }) => {
-  // Function to get the full product name for certain categories
-  const getFullProductName = (item: OrderItem) => {
-    if (item.category?.toLowerCase() === 'batidas' && !item.name.toLowerCase().includes('batida de')) {
-      return `Batida de ${item.name}`;
-    }
-    return item.name;
-  };
-  
   // Group identical items
   const groupedItems = items.reduce((acc: OrderItem[], item: OrderItem) => {
     // Skip items with zero quantity
@@ -65,7 +58,7 @@ const OrderItems: React.FC<OrderItemsProps> = ({ items }) => {
       {groupedItems.map((item, index) => (
         <div key={index} className="item">
           <div>
-            {item.qty}x {getFullProductName(item)} 
+            {item.qty}x {getFullProductName(item.name, item.category)} 
             {item.alcohol ? ` (${item.alcohol})` : ""}
             {item.balyFlavor ? ` (Baly: ${item.balyFlavor})` : ""}
           </div>

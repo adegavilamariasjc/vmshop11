@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Product } from '../../types';
+import { getFullProductName } from '@/utils/formatWhatsApp';
 
 interface CartItemProps {
   item: Product;
@@ -12,19 +13,11 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
     return null;
   }
 
-  // Function to get the full product name for certain categories
-  const getFullProductName = (product: Product) => {
-    if (product.category?.toLowerCase() === 'batidas' && !product.name.toLowerCase().includes('batida de')) {
-      return `Batida de ${product.name}`;
-    }
-    return product.name;
-  };
-
   return (
     <div className="mb-3">
       <div className="flex justify-between">
         <span className="text-white text-shadow-dark">
-          {item.qty}x {getFullProductName(item)} 
+          {item.qty}x {getFullProductName(item.name, item.category)} 
           {item.alcohol ? ` (${item.alcohol})` : ""}
           {item.balyFlavor ? ` (Baly: ${item.balyFlavor})` : ""}
         </span>
