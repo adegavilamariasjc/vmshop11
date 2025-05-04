@@ -15,10 +15,40 @@ export const PedidoImprimir = ({
     if (!pedido) return;
     setIsPrinting(true);
 
-    // Format items to properly show quantities
-    // Instead of expanding items, we'll keep the quantity intact for grouped items
-    const itensFormatados = pedido.itens
-      .filter((item: any) => item.qty > 0) // Only include items with quantity > 0
+    // Group identical items by name, category, alcohol, and balyFlavor
+    // This ensures that identical products are grouped together with their quantities combined
+    const groupedItems = pedido.itens.reduce((acc: any[], item: any) => {
+      // Skip items with zero quantity
+      if (!item.qty || item.qty <= 0) return acc;
+      
+      // For customizable products (with ice/energy drinks/specific configurations),
+      // keep them as individual items
+      if (item.ice || item.energyDrinks || 
+          item.name.toLowerCase().includes('copão') || 
+          (item.category && item.category.toLowerCase().includes('combo'))) {
+        acc.push(item);
+        return acc;
+      }
+      
+      // For simple products, combine quantities if they are identical
+      const existingItem = acc.find((i: any) => 
+        i.name === item.name && 
+        i.category === item.category && 
+        i.alcohol === item.alcohol && 
+        i.balyFlavor === item.balyFlavor
+      );
+      
+      if (existingItem) {
+        existingItem.qty += item.qty;
+      } else {
+        acc.push({...item});
+      }
+      
+      return acc;
+    }, []);
+
+    // Format items to properly show quantities with grouped items
+    const itensFormatados = groupedItems
       .map((item: any) => {
         let texto = `${item.qty}x ${item.name}`;
         

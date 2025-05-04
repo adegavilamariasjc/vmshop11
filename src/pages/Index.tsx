@@ -200,7 +200,36 @@ const Index = () => {
     
     const total = cart.reduce((sum, p) => sum + (p.price || 0) * (p.qty || 1), 0) + form.bairro.taxa;
     
-    const itensPedido = cart
+    // Group identical items before generating the message
+    const groupedItems = cart.reduce((acc: Product[], item: Product) => {
+      if (!item.qty || item.qty <= 0) return acc;
+      
+      // For customizable products, keep them separate
+      if (item.ice || item.energyDrinks || item.energyDrink || 
+          (item.name && item.name.toLowerCase().includes('copão')) || 
+          (item.category && item.category.toLowerCase().includes('combo'))) {
+        acc.push({...item});
+        return acc;
+      }
+      
+      // For simple products, combine quantities
+      const existingItem = acc.find(i => 
+        i.name === item.name && 
+        i.category === item.category && 
+        i.alcohol === item.alcohol && 
+        i.balyFlavor === item.balyFlavor
+      );
+      
+      if (existingItem) {
+        existingItem.qty = (existingItem.qty || 1) + (item.qty || 1);
+      } else {
+        acc.push({...item});
+      }
+      
+      return acc;
+    }, []);
+    
+    const itensPedido = groupedItems
       .map(p => {
         const fullName = getFullProductName(p.name, p.category);
         const iceText = p.ice

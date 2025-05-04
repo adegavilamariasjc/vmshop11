@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface OrderItem {
@@ -25,13 +24,41 @@ const OrderItems: React.FC<OrderItemsProps> = ({ items }) => {
     return item.name;
   };
   
-  // Filter out any items with zero quantity
-  const validItems = items.filter(item => item.qty > 0);
+  // Group identical items
+  const groupedItems = items.reduce((acc: OrderItem[], item: OrderItem) => {
+    // Skip items with zero quantity
+    if (!item.qty || item.qty <= 0) return acc;
+    
+    // For customizable products (with ice/energy drinks/specific configurations),
+    // keep them as individual items
+    if (item.ice || item.energyDrinks || 
+        item.name.toLowerCase().includes('copão') || 
+        (item.category && item.category.toLowerCase().includes('combo'))) {
+      acc.push(item);
+      return acc;
+    }
+    
+    // For simple products, combine quantities if they are identical
+    const existingItem = acc.find(i => 
+      i.name === item.name && 
+      i.category === item.category && 
+      i.alcohol === item.alcohol && 
+      i.balyFlavor === item.balyFlavor
+    );
+    
+    if (existingItem) {
+      existingItem.qty += item.qty;
+    } else {
+      acc.push({...item});
+    }
+    
+    return acc;
+  }, []);
   
   return (
     <div className="items">
       <h3><strong>ITENS DO PEDIDO</strong></h3>
-      {validItems.map((item, index) => (
+      {groupedItems.map((item, index) => (
         <div key={index} className="item">
           <div>
             {item.qty}x {getFullProductName(item)} 
