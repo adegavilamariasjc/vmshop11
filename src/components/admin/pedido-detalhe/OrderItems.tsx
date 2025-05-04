@@ -9,6 +9,8 @@ interface OrderItem {
   balyFlavor?: string;
   ice?: Record<string, number>;
   energyDrinks?: Array<{ type: string; flavor: string }>;
+  energyDrink?: string;
+  energyDrinkFlavor?: string;
 }
 
 interface OrderItemsProps {
@@ -31,10 +33,12 @@ const OrderItems: React.FC<OrderItemsProps> = ({ items }) => {
     
     // For customizable products (with ice/energy drinks/specific configurations),
     // keep them as individual items
-    if (item.ice || item.energyDrinks || 
+    if (item.ice || 
+        item.energyDrinks || 
+        item.energyDrink || 
         item.name.toLowerCase().includes('copão') || 
         (item.category && item.category.toLowerCase().includes('combo'))) {
-      acc.push(item);
+      acc.push({...item});
       return acc;
     }
     
@@ -75,13 +79,17 @@ const OrderItems: React.FC<OrderItemsProps> = ({ items }) => {
             </div>
           )}
           
-          {item.energyDrinks && item.energyDrinks.length > 0 && (
+          {item.energyDrinks && item.energyDrinks.length > 0 ? (
             <div style={{ marginLeft: '20px', fontSize: '14px' }}>
               Energéticos: {item.energyDrinks.map(ed => 
                 `${ed.type}${ed.flavor !== 'Tradicional' ? ` - ${ed.flavor}` : ''}`
               ).join(", ")}
             </div>
-          )}
+          ) : item.energyDrink ? (
+            <div style={{ marginLeft: '20px', fontSize: '14px' }}>
+              Energético: {item.energyDrink}{item.energyDrinkFlavor !== 'Tradicional' ? ` - ${item.energyDrinkFlavor}` : ''}
+            </div>
+          ) : null}
           
           <div style={{ textAlign: 'right' }}>
             R$ {(item.price * item.qty).toFixed(2)}

@@ -14,10 +14,12 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ cart }) => {
   const groupedItems = validItems.reduce((acc: Product[], item: Product) => {
     // For customizable products (with ice/energy drinks/specific configurations),
     // keep them as individual items
-    if (item.ice || item.energyDrinks || item.energyDrink || 
-        (item.name && item.name.toLowerCase().includes('copão')) || 
+    if (item.ice || 
+        item.energyDrinks || 
+        item.energyDrink || 
+        item.name.toLowerCase().includes('copão') || 
         (item.category && item.category.toLowerCase().includes('combo'))) {
-      acc.push(item);
+      acc.push({...item});
       return acc;
     }
     
@@ -30,7 +32,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ cart }) => {
     );
     
     if (existingItem) {
-      existingItem.qty = (existingItem.qty || 1) + (item.qty || 1);
+      existingItem.qty = (existingItem.qty || 0) + (item.qty || 0);
     } else {
       acc.push({...item});
     }

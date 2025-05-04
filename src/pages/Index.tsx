@@ -205,8 +205,10 @@ const Index = () => {
       if (!item.qty || item.qty <= 0) return acc;
       
       // For customizable products, keep them separate
-      if (item.ice || item.energyDrinks || item.energyDrink || 
-          (item.name && item.name.toLowerCase().includes('copão')) || 
+      if (item.ice || 
+          item.energyDrinks || 
+          item.energyDrink || 
+          item.name.toLowerCase().includes('copão') || 
           (item.category && item.category.toLowerCase().includes('combo'))) {
         acc.push({...item});
         return acc;
@@ -221,7 +223,7 @@ const Index = () => {
       );
       
       if (existingItem) {
-        existingItem.qty = (existingItem.qty || 1) + (item.qty || 1);
+        existingItem.qty = (existingItem.qty || 0) + (item.qty || 0);
       } else {
         acc.push({...item});
       }
@@ -241,9 +243,15 @@ const Index = () => {
           : "";
         const alcoholText = p.alcohol ? ` (Álcool: ${p.alcohol})` : "";
         const balyText = p.balyFlavor ? ` (Baly: ${p.balyFlavor})` : "";
-        const energyDrinkText = p.energyDrink 
-          ? ` (Energético: ${p.energyDrink}${p.energyDrinkFlavor !== 'Tradicional' ? ' - ' + p.energyDrinkFlavor : ''})`
-          : "";
+        
+        let energyDrinkText = "";
+        if (p.energyDrinks && p.energyDrinks.length > 0) {
+          energyDrinkText = ` \n   Energéticos: ${p.energyDrinks.map(ed => 
+            `${ed.type}${ed.flavor !== 'Tradicional' ? ' - ' + ed.flavor : ''}`
+          ).join(", ")}`;
+        } else if (p.energyDrink) {
+          energyDrinkText = ` \n   Energético: ${p.energyDrink}${p.energyDrinkFlavor !== 'Tradicional' ? ' - ' + p.energyDrinkFlavor : ''}`;
+        }
           
         return `${p.qty}x ${fullName}${alcoholText}${balyText}${energyDrinkText}${iceText} - R$${((p.price || 0) * (p.qty || 1)).toFixed(2)}`;
       })

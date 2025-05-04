@@ -8,7 +8,7 @@ export const formatWhatsApp = (number: string): string => {
 };
 
 // Helper function to get full product name
-const getFullProductName = (name: string, category?: string): string => {
+export const getFullProductName = (name: string, category?: string): string => {
   if (category?.toLowerCase() === 'batidas' && !name.toLowerCase().includes('batida de')) {
     return `Batida de ${name}`;
   }

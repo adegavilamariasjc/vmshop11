@@ -15,18 +15,27 @@ export const PedidoImprimir = ({
     if (!pedido) return;
     setIsPrinting(true);
 
+    // Function to get the full product name for certain categories
+    const getFullProductName = (item: any): string => {
+      if (item.category?.toLowerCase() === 'batidas' && !item.name.toLowerCase().includes('batida de')) {
+        return `Batida de ${item.name}`;
+      }
+      return item.name;
+    };
+
     // Group identical items by name, category, alcohol, and balyFlavor
-    // This ensures that identical products are grouped together with their quantities combined
     const groupedItems = pedido.itens.reduce((acc: any[], item: any) => {
       // Skip items with zero quantity
       if (!item.qty || item.qty <= 0) return acc;
       
       // For customizable products (with ice/energy drinks/specific configurations),
       // keep them as individual items
-      if (item.ice || item.energyDrinks || 
+      if (item.ice || 
+          item.energyDrinks || 
+          item.energyDrink || 
           item.name.toLowerCase().includes('copão') || 
           (item.category && item.category.toLowerCase().includes('combo'))) {
-        acc.push(item);
+        acc.push({...item});
         return acc;
       }
       
@@ -39,7 +48,7 @@ export const PedidoImprimir = ({
       );
       
       if (existingItem) {
-        existingItem.qty += item.qty;
+        existingItem.qty = (existingItem.qty || 0) + (item.qty || 0);
       } else {
         acc.push({...item});
       }
@@ -50,7 +59,8 @@ export const PedidoImprimir = ({
     // Format items to properly show quantities with grouped items
     const itensFormatados = groupedItems
       .map((item: any) => {
-        let texto = `${item.qty}x ${item.name}`;
+        const fullName = getFullProductName(item);
+        let texto = `${item.qty}x ${fullName}`;
         
         // Adicionar detalhes do álcool se presente
         if (item.alcohol) {
@@ -81,6 +91,8 @@ export const PedidoImprimir = ({
             .join(", ");
           
           texto += `\n   Energéticos: ${energeticosInfo}`;
+        } else if (item.energyDrink) {
+          texto += `\n   Energético: ${item.energyDrink}${item.energyDrinkFlavor !== 'Tradicional' ? ` - ${item.energyDrinkFlavor}` : ''}`;
         }
 
         // Add price for each item (price per unit × quantity)

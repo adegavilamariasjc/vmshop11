@@ -42,13 +42,17 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
         </div>
       )}
       
-      {item.energyDrinks && item.energyDrinks.length > 0 && (
+      {item.energyDrinks && item.energyDrinks.length > 0 ? (
         <div className="text-sm text-gray-300 text-shadow-light ml-3">
           Energéticos: {item.energyDrinks.map(ed => 
             `${ed.type}${ed.flavor !== 'Tradicional' ? ` - ${ed.flavor}` : ''}`
           ).join(", ")}
         </div>
-      )}
+      ) : item.energyDrink ? (
+        <div className="text-sm text-gray-300 text-shadow-light ml-3">
+          Energético: {item.energyDrink}{item.energyDrinkFlavor !== 'Tradicional' ? ` - ${item.energyDrinkFlavor}` : ''}
+        </div>
+      ) : null}
     </div>
   );
 };
