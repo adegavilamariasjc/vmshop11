@@ -1,4 +1,3 @@
-
 export const formatWhatsApp = (number: string): string => {
   const cleaned = number.replace(/\D/g, '');
   if (!cleaned.startsWith('55') && cleaned.length >= 11) {
@@ -15,38 +14,51 @@ export const getFullProductName = (name: string, category?: string): string => {
   return name;
 };
 
+// Improved function to check if a product should be grouped or not
+export const shouldBeGrouped = (item: any): boolean => {
+  // Products that should NOT be grouped (keep as individual items)
+  if (item.ice || 
+      item.energyDrinks || 
+      item.energyDrink || 
+      item.name.toLowerCase().includes('copão') || 
+      (item.category && item.category.toLowerCase().includes('combo'))) {
+    return false;
+  }
+  
+  // All other items should be grouped (beers, simple products)
+  return true;
+};
+
 // Function to group identical items in the cart
 export const groupCartItems = (items: Array<any>): Array<any> => {
   // Filter out items with zero quantity first
   const validItems = items.filter(item => item.qty && item.qty > 0);
   
-  return validItems.reduce((acc: any[], item: any) => {
+  const groupedItems: any[] = [];
+  const groupingMap = new Map();
+  
+  validItems.forEach(item => {
     // For customizable products, keep them as individual items
-    if (item.ice || 
-        item.energyDrinks || 
-        item.energyDrink || 
-        item.name.toLowerCase().includes('copão') || 
-        (item.category && item.category.toLowerCase().includes('combo'))) {
-      acc.push({...item});
-      return acc;
+    if (!shouldBeGrouped(item)) {
+      groupedItems.push({...item});
+      return;
     }
     
-    // For simple products, combine quantities if they are identical
-    const existingItem = acc.find(i => 
-      i.name === item.name && 
-      i.category === item.category && 
-      i.alcohol === item.alcohol && 
-      i.balyFlavor === item.balyFlavor
-    );
+    // For simple products like beers, create a unique key for grouping
+    const key = `${item.name}-${item.category || ''}-${item.alcohol || ''}-${item.balyFlavor || ''}`;
     
-    if (existingItem) {
-      existingItem.qty = (existingItem.qty || 0) + (item.qty || 0);
+    if (groupingMap.has(key)) {
+      // Update existing item quantity
+      const existingIndex = groupingMap.get(key);
+      groupedItems[existingIndex].qty = (groupedItems[existingIndex].qty || 0) + (item.qty || 0);
     } else {
-      acc.push({...item});
+      // Add new item and store its index
+      groupingMap.set(key, groupedItems.length);
+      groupedItems.push({...item});
     }
-    
-    return acc;
-  }, []);
+  });
+  
+  return groupedItems;
 };
 
 export const formatWhatsAppMessage = (

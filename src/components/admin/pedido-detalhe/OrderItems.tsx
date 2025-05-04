@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { getFullProductName } from '@/utils/formatWhatsApp';
+import { getFullProductName, groupCartItems } from '@/utils/formatWhatsApp';
 
 interface OrderItem {
   qty: number;
@@ -19,38 +20,8 @@ interface OrderItemsProps {
 }
 
 const OrderItems: React.FC<OrderItemsProps> = ({ items }) => {
-  // Group identical items
-  const groupedItems = items.reduce((acc: OrderItem[], item: OrderItem) => {
-    // Skip items with zero quantity
-    if (!item.qty || item.qty <= 0) return acc;
-    
-    // For customizable products (with ice/energy drinks/specific configurations),
-    // keep them as individual items
-    if (item.ice || 
-        item.energyDrinks || 
-        item.energyDrink || 
-        item.name.toLowerCase().includes('copão') || 
-        (item.category && item.category.toLowerCase().includes('combo'))) {
-      acc.push({...item});
-      return acc;
-    }
-    
-    // For simple products, combine quantities if they are identical
-    const existingItem = acc.find(i => 
-      i.name === item.name && 
-      i.category === item.category && 
-      i.alcohol === item.alcohol && 
-      i.balyFlavor === item.balyFlavor
-    );
-    
-    if (existingItem) {
-      existingItem.qty += item.qty;
-    } else {
-      acc.push({...item});
-    }
-    
-    return acc;
-  }, []);
+  // Use the improved groupCartItems function
+  const groupedItems = groupCartItems(items);
   
   return (
     <div className="items">

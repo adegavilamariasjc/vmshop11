@@ -1,45 +1,16 @@
+
 import React from 'react';
 import { Product } from '../../types';
 import CartItem from './CartItem';
-import { getFullProductName } from '@/utils/formatWhatsApp';
+import { groupCartItems } from '@/utils/formatWhatsApp';
 
 interface OrderSummaryProps {
   cart: Product[];
 }
 
 const OrderSummary: React.FC<OrderSummaryProps> = ({ cart }) => {
-  // Filter out any items with zero quantity
-  const validItems = cart.filter(item => item.qty && item.qty > 0);
-  
-  // Group identical items for display
-  const groupedItems = validItems.reduce((acc: Product[], item: Product) => {
-    // For customizable products (with ice/energy drinks/specific configurations),
-    // keep them as individual items
-    if (item.ice || 
-        item.energyDrinks || 
-        item.energyDrink || 
-        item.name.toLowerCase().includes('copão') || 
-        (item.category && item.category.toLowerCase().includes('combo'))) {
-      acc.push({...item});
-      return acc;
-    }
-    
-    // For simple products, combine quantities if they are identical
-    const existingItem = acc.find(i => 
-      i.name === item.name && 
-      i.category === item.category && 
-      i.alcohol === item.alcohol && 
-      i.balyFlavor === item.balyFlavor
-    );
-    
-    if (existingItem) {
-      existingItem.qty = (existingItem.qty || 0) + (item.qty || 0);
-    } else {
-      acc.push({...item});
-    }
-    
-    return acc;
-  }, []);
+  // Group identical items for display using our improved grouping function
+  const groupedItems = groupCartItems(cart);
   
   return (
     <div className="border border-gray-600 rounded-lg p-4 bg-black/50 mb-4">

@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { getFullProductName } from '@/utils/formatWhatsApp';
+import { getFullProductName, groupCartItems } from '@/utils/formatWhatsApp';
 
 export const PedidoImprimir = ({
   pedido,
@@ -16,38 +17,8 @@ export const PedidoImprimir = ({
     if (!pedido) return;
     setIsPrinting(true);
 
-    // Group identical items by name, category, alcohol, and balyFlavor
-    const groupedItems = pedido.itens.reduce((acc: any[], item: any) => {
-      // Skip items with zero quantity
-      if (!item.qty || item.qty <= 0) return acc;
-      
-      // For customizable products (with ice/energy drinks/specific configurations),
-      // keep them as individual items
-      if (item.ice || 
-          item.energyDrinks || 
-          item.energyDrink || 
-          item.name.toLowerCase().includes('copão') || 
-          (item.category && item.category.toLowerCase().includes('combo'))) {
-        acc.push({...item});
-        return acc;
-      }
-      
-      // For simple products, combine quantities if they are identical
-      const existingItem = acc.find((i: any) => 
-        i.name === item.name && 
-        i.category === item.category && 
-        i.alcohol === item.alcohol && 
-        i.balyFlavor === item.balyFlavor
-      );
-      
-      if (existingItem) {
-        existingItem.qty = (existingItem.qty || 0) + (item.qty || 0);
-      } else {
-        acc.push({...item});
-      }
-      
-      return acc;
-    }, []);
+    // Use the improved groupCartItems function for consistent grouping
+    const groupedItems = groupCartItems(pedido.itens);
 
     // Format items to properly show quantities with grouped items
     const itensFormatados = groupedItems

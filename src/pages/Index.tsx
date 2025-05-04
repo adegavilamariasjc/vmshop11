@@ -202,12 +202,12 @@ const Index = () => {
     
     const total = cart.reduce((sum, p) => sum + (p.price || 0) * (p.qty || 1), 0) + form.bairro.taxa;
     
-    // Use the utility function to group identical items
+    // Use the improved groupCartItems function for consistent grouping
     const groupedItems = groupCartItems(cart);
     
     const itensPedido = groupedItems
       .map(p => {
-        const fullName = getFullProductName(p.name, p.category);
+        const fullName = p.name;
         const iceText = p.ice
           ? " \n   Gelo: " +
             Object.entries(p.ice)
