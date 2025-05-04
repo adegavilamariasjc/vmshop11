@@ -1,3 +1,4 @@
+
 export const formatWhatsApp = (number: string): string => {
   const cleaned = number.replace(/\D/g, '');
   if (!cleaned.startsWith('55') && cleaned.length >= 11) {
@@ -15,7 +16,7 @@ export const getFullProductName = (name: string, category?: string): string => {
 };
 
 // Function to group identical items in the cart
-export const groupCartItems = (items: Array<any>) => {
+export const groupCartItems = (items: Array<any>): Array<any> => {
   // Filter out items with zero quantity first
   const validItems = items.filter(item => item.qty && item.qty > 0);
   
@@ -63,7 +64,8 @@ export const formatWhatsAppMessage = (
   itemsText: string,
   total: number
 ): string => {
-  const trocoValue = Number(troco) || 0;
+  // Parse troco as a number to ensure it's not treated as unknown
+  const trocoValue = parseFloat(troco) || 0;
   const trocoFinal = trocoValue - total;
 
   const trocoMessage = pagamento === "Dinheiro"

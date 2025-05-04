@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useCart } from '../hooks/useCart';
 import { AnimatePresence } from 'framer-motion';
 import { gerarCodigoPedido } from '../data/products';
-import { formatWhatsAppMessage } from '../utils/formatWhatsApp';
+import { formatWhatsAppMessage, groupCartItems } from '../utils/formatWhatsApp';
 import { FormData, Product } from '../types';
 import PageLayout from '../components/PageLayout';
 import ProductSelectionView from '../components/ProductSelectionView';
