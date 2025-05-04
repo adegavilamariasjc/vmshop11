@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 export const PedidoImprimir = ({
@@ -16,51 +15,48 @@ export const PedidoImprimir = ({
     if (!pedido) return;
     setIsPrinting(true);
 
-    // Expand items to handle multiples individually
-    const expandedItems: any[] = [];
-    pedido.itens.forEach((item: any) => {
-      for (let i = 0; i < item.qty; i++) {
-        expandedItems.push({...item, qty: 1});
-      }
-    });
-
-    const itensFormatados = expandedItems.map((item: any) => {
-      let texto = `${item.qty}x ${item.name}`;
-      
-      // Adicionar detalhes do álcool se presente
-      if (item.alcohol) {
-        texto += ` (${item.alcohol})`;
-      }
-      
-      // Adicionar detalhes do sabor Baly se presente
-      if (item.balyFlavor) {
-        texto += ` (Baly: ${item.balyFlavor})`;
-      }
-
-      // Adicionar detalhes do gelo se presente
-      if (item.ice && Object.entries(item.ice).some(([_, qty]: [string, any]) => qty > 0)) {
-        const geloInfo = Object.entries(item.ice)
-          .filter(([_, qty]: [string, any]) => qty > 0)
-          .map(([flavor, qty]: [string, any]) => `${flavor} x${qty}`)
-          .join(", ");
-
-        texto += `\n   Gelo: ${geloInfo}`;
-      }
-
-      // Adicionar detalhes dos energéticos se presente
-      if (item.energyDrinks && item.energyDrinks.length > 0) {
-        const energeticosInfo = item.energyDrinks
-          .map((ed: any) => 
-            `${ed.type}${ed.flavor !== 'Tradicional' ? ` - ${ed.flavor}` : ''}`
-          )
-          .join(", ");
+    // Format items to properly show quantities
+    // Instead of expanding items, we'll keep the quantity intact for grouped items
+    const itensFormatados = pedido.itens
+      .filter((item: any) => item.qty > 0) // Only include items with quantity > 0
+      .map((item: any) => {
+        let texto = `${item.qty}x ${item.name}`;
         
-        texto += `\n   Energéticos: ${energeticosInfo}`;
-      }
+        // Adicionar detalhes do álcool se presente
+        if (item.alcohol) {
+          texto += ` (${item.alcohol})`;
+        }
+        
+        // Adicionar detalhes do sabor Baly se presente
+        if (item.balyFlavor) {
+          texto += ` (Baly: ${item.balyFlavor})`;
+        }
 
-      texto += `\n   R$ ${(item.price).toFixed(2)}`;
-      return texto;
-    }).join('\n\n');
+        // Adicionar detalhes do gelo se presente
+        if (item.ice && Object.entries(item.ice).some(([_, qty]: [string, any]) => qty > 0)) {
+          const geloInfo = Object.entries(item.ice)
+            .filter(([_, qty]: [string, any]) => qty > 0)
+            .map(([flavor, qty]: [string, any]) => `${flavor} x${qty}`)
+            .join(", ");
+
+          texto += `\n   Gelo: ${geloInfo}`;
+        }
+
+        // Adicionar detalhes dos energéticos se presente
+        if (item.energyDrinks && item.energyDrinks.length > 0) {
+          const energeticosInfo = item.energyDrinks
+            .map((ed: any) => 
+              `${ed.type}${ed.flavor !== 'Tradicional' ? ` - ${ed.flavor}` : ''}`
+            )
+            .join(", ");
+          
+          texto += `\n   Energéticos: ${energeticosInfo}`;
+        }
+
+        // Add price for each item (price per unit × quantity)
+        texto += `\n   R$ ${(item.price * item.qty).toFixed(2)}`;
+        return texto;
+      }).join('\n\n');
 
     const trocoInfo = pedido.forma_pagamento === 'Dinheiro' && pedido.troco 
       ? `\nTROCO PARA: R$ ${pedido.troco}` 

@@ -127,15 +127,17 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
           quantity = cart.filter(p => 
             p.name === item.name && 
             p.category === category && 
-            !p.ice && !p.alcohol && !p.balyFlavor && !p.energyDrink
-          ).reduce((sum, p) => sum + (p.qty || 1), 0);
+            !p.ice && !p.alcohol && !p.balyFlavor && !p.energyDrink && 
+            p.qty && p.qty > 0 // Only count items with qty > 0
+          ).reduce((sum, p) => sum + (p.qty || 0), 0);
         } else {
           // For simple products like beer, add up all quantities
           // Only count products that match exactly in name and category
           quantity = cart.filter(p => 
             p.name === item.name && 
-            p.category === category
-          ).reduce((sum, p) => sum + (p.qty || 1), 0);
+            p.category === category && 
+            p.qty && p.qty > 0 // Only count items with qty > 0
+          ).reduce((sum, p) => sum + (p.qty || 0), 0);
         }
         
         return (
@@ -156,7 +158,8 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
                     const matchingItems = cart.filter(p => 
                       p.name === item.name && 
                       p.category === category &&
-                      (!isCustomizable || (!p.ice && !p.alcohol && !p.balyFlavor && !p.energyDrink))
+                      (!isCustomizable || (!p.ice && !p.alcohol && !p.balyFlavor && !p.energyDrink)) &&
+                      p.qty && p.qty > 0 // Only consider items with qty > 0
                     );
                     
                     if (matchingItems.length > 0) {

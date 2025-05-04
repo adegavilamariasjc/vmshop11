@@ -7,6 +7,11 @@ interface CartItemProps {
 }
 
 const CartItem: React.FC<CartItemProps> = ({ item }) => {
+  // Return null if the quantity is zero
+  if (!item.qty || item.qty <= 0) {
+    return null;
+  }
+
   // Function to get the full product name for certain categories
   const getFullProductName = (product: Product) => {
     if (product.category?.toLowerCase() === 'batidas' && !product.name.toLowerCase().includes('batida de')) {
@@ -19,12 +24,12 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
     <div className="mb-3">
       <div className="flex justify-between">
         <span className="text-white text-shadow-dark">
-          {item.qty || 1}x {getFullProductName(item)} 
+          {item.qty}x {getFullProductName(item)} 
           {item.alcohol ? ` (${item.alcohol})` : ""}
           {item.balyFlavor ? ` (Baly: ${item.balyFlavor})` : ""}
         </span>
         <span className="text-white font-semibold text-shadow-dark">
-          R$ {((item.price || 0) * (item.qty || 1)).toFixed(2)}
+          R$ {((item.price || 0) * item.qty).toFixed(2)}
         </span>
       </div>
       
