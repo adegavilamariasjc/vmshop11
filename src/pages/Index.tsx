@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../hooks/useCart';
 import { AnimatePresence } from 'framer-motion';
@@ -235,6 +234,10 @@ const Index = () => {
       })
       .join("\n");
     
+    // Parse troco as number to ensure proper comparison
+    const trocoValue = parseFloat(form.troco) || 0;
+    const trocoFinal = trocoValue - total;
+
     const mensagem = formatWhatsAppMessage(
       codigoPedido,
       form.nome,
@@ -246,7 +249,7 @@ const Index = () => {
       form.bairro.taxa,
       form.whatsapp,
       form.pagamento,
-      form.troco,
+      trocoValue.toString(), // Pass as string after parsing to ensure consistent type
       itensPedido,
       total
     );
