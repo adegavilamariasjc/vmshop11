@@ -1,203 +1,216 @@
 
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { FormData, Product } from '../types';
-import { formatWhatsAppMessage, groupCartItems } from '../utils/formatWhatsApp';
+import { Product, FormData } from '../types';
+import { formatWhatsApp, formatWhatsAppMessage, groupCartItems } from '../utils/formatWhatsApp';
 import { supabase } from '@/lib/supabase/client';
-import { savePedido } from '@/lib/supabase';
 
-export const useOrderSubmission = (
-  codigoPedido: string,
-  cart: Product[],
-  form: FormData,
-  isOpen: boolean
-) => {
+export const useOrderSubmission = (codigoPedido: string, cart: Product[], form: FormData, isStoreOpen: boolean) => {
+  const { toast } = useToast();
   const [isSendingOrder, setIsSendingOrder] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isDuplicateOrder, setIsDuplicateOrder] = useState(false);
-  const [whatsAppUrl, setWhatsAppUrl] = useState("");
-  const { toast } = useToast();
-
-  const checkDuplicateOrder = async (clienteNome: string, clienteWhatsapp: string, total: number) => {
-    try {
-      const thirtyMinutesAgo = new Date();
-      thirtyMinutesAgo.setMinutes(thirtyMinutesAgo.getMinutes() - 30);
-      
-      const { data, error } = await supabase
-        .from('pedidos')
-        .select('*')
-        .eq('cliente_nome', clienteNome)
-        .eq('cliente_whatsapp', clienteWhatsapp)
-        .gte('data_criacao', thirtyMinutesAgo.toISOString())
-        .order('data_criacao', { ascending: false });
-        
-      if (error) {
-        console.error('Error checking for duplicate orders:', error);
-        return false;
-      }
-      
-      if (data && data.length > 0) {
-        for (const prevOrder of data) {
-          const totalDifference = Math.abs(prevOrder.total - total);
-          const percentDifference = (totalDifference / total) * 100;
-          
-          if (percentDifference < 10) {
-            return true;
-          }
-        }
-      }
-      
-      return false;
-    } catch (err) {
-      console.error('Error checking for duplicate orders:', err);
-      return false;
-    }
-  };
-
-  const preparePedido = async () => {
-    if (cart.length === 0 || !isOpen) return false;
-    
-    const total = cart.reduce((sum, p) => sum + (p.price || 0) * (p.qty || 1), 0) + form.bairro.taxa;
-    
-    const isDuplicate = await checkDuplicateOrder(form.nome, form.whatsapp, total);
-    setIsDuplicateOrder(isDuplicate);
-
-    if (isDuplicate) {
-      return true;
-    }
-    
-    try {
-      // Ensure troco is parsed as a number for safe storage and comparison
-      const trocoValue = parseFloat(form.troco) || 0;
-      
-      const pedido = await savePedido({
-        codigo_pedido: codigoPedido,
-        cliente_nome: form.nome,
-        cliente_endereco: form.endereco,
-        cliente_numero: form.numero,
-        cliente_complemento: form.complemento,
-        cliente_referencia: form.referencia,
-        cliente_bairro: form.bairro.nome,
-        taxa_entrega: form.bairro.taxa,
-        cliente_whatsapp: form.whatsapp,
-        forma_pagamento: form.pagamento,
-        troco: trocoValue.toString(), // Convert back to string for consistent storage
-        observacao: form.observacao,
-        itens: cart,
-        total: total,
-        status: 'pendente'
-      });
-      
-      return !!pedido;
-    } catch (err) {
-      console.error('Erro inesperado ao salvar pedido:', err);
-      return false;
-    }
-  };
-
-  const createWhatsAppMessage = () => {
-    if (cart.length === 0) {
-      return "";
-    }
-    
-    const total = cart.reduce((sum, p) => sum + (p.price || 0) * (p.qty || 1), 0) + form.bairro.taxa;
-    
-    // Use the improved groupCartItems function for consistent grouping
-    const groupedItems = groupCartItems(cart);
-    
-    const itensPedido = groupedItems
-      .map(p => {
-        const fullName = p.name;
-        const iceText = p.ice
-          ? " \n   Gelo: " +
-            Object.entries(p.ice)
-              .filter(([flavor, qty]) => qty > 0)
-              .map(([flavor, qty]) => `${flavor} x${qty}`)
-              .join(", ")
-          : "";
-        const alcoholText = p.alcohol ? ` (Álcool: ${p.alcohol})` : "";
-        const balyText = p.balyFlavor ? ` (Baly: ${p.balyFlavor})` : "";
-        
-        let energyDrinkText = "";
-        if (p.energyDrinks && p.energyDrinks.length > 0) {
-          energyDrinkText = ` \n   Energéticos: ${p.energyDrinks.map(ed => 
-            `${ed.type}${ed.flavor !== 'Tradicional' ? ' - ' + ed.flavor : ''}`
-          ).join(", ")}`;
-        } else if (p.energyDrink) {
-          energyDrinkText = ` \n   Energético: ${p.energyDrink}${p.energyDrinkFlavor !== 'Tradicional' ? ' - ' + p.energyDrinkFlavor : ''}`;
-        }
-          
-        return `${p.qty}x ${fullName}${alcoholText}${balyText}${energyDrinkText}${iceText} - R$${((p.price || 0) * (p.qty || 1)).toFixed(2)}`;
-      })
-      .join("\n");
-    
-    // Parse troco as number to ensure proper comparison
-    const trocoValue = parseFloat(form.troco) || 0;
-
-    const mensagem = formatWhatsAppMessage(
-      codigoPedido,
-      form.nome,
-      form.endereco,
-      form.numero,
-      form.complemento,
-      form.referencia,
-      form.bairro.nome,
-      form.bairro.taxa,
-      form.whatsapp,
-      form.pagamento,
-      trocoValue.toString(), // Pass as string after parsing to ensure consistent type
-      itensPedido,
-      total
-    );
-
-    const mensagemEncoded = mensagem.replace(/\n/g, "%0A");
-    return `https://wa.me/5512982704573?text=${mensagemEncoded}`;
-  };
 
   const processOrder = async () => {
-    if (cart.length === 0 || !isOpen) {
+    if (!isStoreOpen) {
+      toast({
+        title: "Loja Fechada",
+        description: "A loja está fechada no momento. Não é possível enviar pedidos.",
+        variant: "destructive",
+      });
       return;
     }
-    
+
+    if (cart.length === 0) {
+      toast({
+        title: "Carrinho vazio",
+        description: "Adicione itens ao seu carrinho antes de finalizar o pedido.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const subtotal = cart.reduce((sum, item) => sum + (item.price || 0) * (item.qty || 1), 0);
+    const total = subtotal + form.bairro.taxa;
+
+    if (subtotal < 20) {
+      toast({
+        title: "Valor mínimo não atingido",
+        description: "O pedido mínimo é de R$ 20,00",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (form.nome === '') {
+      toast({
+        title: "Campo obrigatório",
+        description: "Por favor, informe seu nome.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (form.endereco === '') {
+      toast({
+        title: "Campo obrigatório",
+        description: "Por favor, informe seu endereço.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (form.bairro.nome === 'Selecione Um Bairro') {
+      toast({
+        title: "Campo obrigatório",
+        description: "Por favor, selecione seu bairro.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (form.pagamento === '') {
+      toast({
+        title: "Campo obrigatório",
+        description: "Por favor, informe a forma de pagamento.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSendingOrder(true);
-    
+
     try {
-      const success = await preparePedido();
+      // Group identical items for display
+      const groupedItems = groupCartItems(cart);
       
-      if (!success) {
+      // Create the items text for WhatsApp
+      const itemsText = groupedItems.map(item => {
+        const itemName = item.name;
+        const itemQty = item.qty || 1;
+        const itemPrice = item.price || 0;
+        const totalPrice = itemPrice * itemQty;
+        
+        let itemDesc = `${itemQty}x ${itemName} - R$${totalPrice.toFixed(2).replace('.', ',')}`;
+        
+        if (item.alcohol) {
+          itemDesc += `\n   ↳ Álcool: ${item.alcohol}`;
+        }
+        
+        if (item.balyFlavor) {
+          itemDesc += `\n   ↳ Sabor Baly: ${item.balyFlavor}`;
+        }
+        
+        if (item.ice && Object.values(item.ice).some(qty => qty > 0)) {
+          const iceDesc = Object.entries(item.ice)
+            .filter(([_, qty]) => qty > 0)
+            .map(([flavor, qty]) => `${flavor} x${qty}`)
+            .join(", ");
+          itemDesc += `\n   ↳ Gelo: ${iceDesc}`;
+        }
+        
+        if (item.energyDrinks && item.energyDrinks.length > 0) {
+          const energyDesc = item.energyDrinks.map(
+            ed => `${ed.type}${ed.flavor !== 'Tradicional' ? ` - ${ed.flavor}` : ''}`
+          ).join(", ");
+          itemDesc += `\n   ↳ Energéticos: ${energyDesc}`;
+        } else if (item.energyDrink) {
+          itemDesc += `\n   ↳ Energético: ${item.energyDrink}${item.energyDrinkFlavor !== 'Tradicional' ? ` - ${item.energyDrinkFlavor}` : ''}`;
+        }
+        
+        return itemDesc;
+      }).join('\n');
+      
+      // Create the WhatsApp message
+      const message = formatWhatsAppMessage(
+        codigoPedido,
+        form.nome,
+        form.endereco,
+        form.numero,
+        form.complemento,
+        form.referencia,
+        form.bairro.nome,
+        form.bairro.taxa,
+        form.whatsapp,
+        form.pagamento,
+        form.troco,
+        itemsText,
+        total
+      );
+      
+      // Parse troco as a number to fix the type error
+      const trocoValue = parseFloat(form.troco) || 0;
+      
+      // Save order to database
+      const { error: orderError } = await supabase
+        .from('pedidos')
+        .insert({
+          codigo_pedido: codigoPedido,
+          cliente_nome: form.nome,
+          cliente_endereco: form.endereco,
+          cliente_numero: form.numero,
+          cliente_complemento: form.complemento,
+          cliente_referencia: form.referencia,
+          cliente_bairro: form.bairro.nome,
+          cliente_whatsapp: form.whatsapp,
+          forma_pagamento: form.pagamento,
+          troco: form.troco,
+          observacao: form.observacao,
+          itens: cart,
+          total: total,
+          taxa_entrega: form.bairro.taxa,
+          status: 'pendente'
+        });
+      
+      if (orderError) {
+        console.error('Error saving order:', orderError);
         toast({
-          title: 'Erro',
-          description: 'Não foi possível registrar o pedido. Tente novamente.',
-          variant: 'destructive'
+          title: "Erro ao salvar pedido",
+          description: "Por favor, tente novamente.",
+          variant: "destructive",
         });
         setIsSendingOrder(false);
         return;
       }
       
-      if (!isDuplicateOrder) {
-        const url = createWhatsAppMessage();
-        setWhatsAppUrl(url);
-      }
+      // Check for duplicate orders
+      const now = new Date();
+      const thirtyMinutesAgo = new Date(now.getTime() - 30 * 60 * 1000);
       
+      const { data: recentOrders } = await supabase
+        .from('pedidos')
+        .select('*')
+        .eq('cliente_whatsapp', form.whatsapp)
+        .gte('data_criacao', thirtyMinutesAgo.toISOString())
+        .order('data_criacao', { ascending: false });
+      
+      const isDuplicate = recentOrders && recentOrders.length > 1;
+      setIsDuplicateOrder(isDuplicate);
+      
+      // Generate WhatsApp URL with the formatted message
+      const whatsappNumber = "5521970271541"; // CODERS Delivery number
+      const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+      
+      // Open WhatsApp in a new window
+      window.open(whatsappUrl, '_blank');
+      
+      // Show success modal
       setShowSuccessModal(true);
+      setIsSendingOrder(false);
       
-    } catch (err) {
-      console.error('Erro ao enviar pedido:', err);
+    } catch (error) {
+      console.error('Error processing order:', error);
       toast({
-        title: 'Erro',
-        description: 'Ocorreu um erro ao enviar o pedido. Tente novamente.',
-        variant: 'destructive'
+        title: "Erro ao processar pedido",
+        description: "Por favor, tente novamente.",
+        variant: "destructive",
       });
-    } finally {
       setIsSendingOrder(false);
     }
   };
 
   const handleOrderConfirmation = () => {
-    if (!isDuplicateOrder && whatsAppUrl) {
-      window.open(whatsAppUrl, "_blank");
-    }
-    
+    // Reset form and cart after confirming order
     window.location.reload();
   };
 
@@ -205,7 +218,6 @@ export const useOrderSubmission = (
     isSendingOrder,
     showSuccessModal,
     isDuplicateOrder,
-    whatsAppUrl,
     setShowSuccessModal,
     processOrder,
     handleOrderConfirmation
