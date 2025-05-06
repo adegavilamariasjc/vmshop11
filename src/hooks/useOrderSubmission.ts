@@ -136,7 +136,7 @@ export const useOrderSubmission = (codigoPedido: string, cart: Product[], form: 
         form.bairro.taxa,
         form.whatsapp,
         form.pagamento,
-        trocoValue.toString(),
+        form.troco,
         itemsText,
         total
       );
