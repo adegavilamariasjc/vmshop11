@@ -121,6 +121,9 @@ export const useOrderSubmission = (codigoPedido: string, cart: Product[], form: 
         return itemDesc;
       }).join('\n');
       
+      // Parse troco as a number to fix the type error
+      const trocoValue = parseFloat(form.troco) || 0;
+      
       // Create the WhatsApp message
       const message = formatWhatsAppMessage(
         codigoPedido,
@@ -138,9 +141,6 @@ export const useOrderSubmission = (codigoPedido: string, cart: Product[], form: 
         total
       );
       
-      // Parse troco as a number to fix the type error
-      const trocoValue = parseFloat(form.troco) || 0;
-      
       // Save order to database
       const { error: orderError } = await supabase
         .from('pedidos')
@@ -156,7 +156,7 @@ export const useOrderSubmission = (codigoPedido: string, cart: Product[], form: 
           forma_pagamento: form.pagamento,
           troco: form.troco,
           observacao: form.observacao,
-          itens: cart,
+          itens: JSON.stringify(cart),
           total: total,
           taxa_entrega: form.bairro.taxa,
           status: 'pendente'
