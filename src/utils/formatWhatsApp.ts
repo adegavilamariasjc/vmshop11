@@ -89,7 +89,7 @@ export const formatWhatsAppMessage = (
   total: number
 ): string => {
   // Parse troco as a number to fix the type error
-  const trocoValue = parseFloat(troco) || 0;
+  const trocoValue = troco ? parseFloat(troco) : 0;
   const trocoFinal = trocoValue - total;
 
   const trocoMessage = pagamento === "Dinheiro" && trocoValue > 0
