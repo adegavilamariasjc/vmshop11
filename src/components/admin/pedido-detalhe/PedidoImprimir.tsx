@@ -75,8 +75,8 @@ export const PedidoImprimir = ({
     );
 
     const trocoInfo = pedido.forma_pagamento === 'Dinheiro' && pedido.troco 
-      ? `\nTROCO PARA: R$ ${pedido.troco}` 
-      : '';
+      ? `\nTROCO PARA: R$${pedido.troco} (TROCO R$${parseFloat(pedido.troco) >= pedido.total ? (parseFloat(pedido.troco) - pedido.total).toFixed(2).replace('.', ',') : '0,00'})\n`
+      : "";
 
     const conteudoImpressao = `
 ADEGA VM
@@ -94,9 +94,9 @@ ${pedido.observacao ? `OBSERVAÇÃO: ${pedido.observacao}` : ''}
 ITENS DO PEDIDO:
 ${itensFormatados}
 
-SUBTOTAL: R$ ${subtotal.toFixed(2)}
-TAXA DE ENTREGA: R$ ${pedido.taxa_entrega.toFixed(2)}
-TOTAL: R$ ${pedido.total.toFixed(2)}
+SUBTOTAL: R$ ${subtotal.toFixed(2).replace('.', ',')}
+TAXA DE ENTREGA: R$ ${pedido.taxa_entrega.toFixed(2).replace('.', ',')}
+TOTAL: R$ ${pedido.total.toFixed(2).replace('.', ',')}
 
 FORMA DE PAGAMENTO: ${pedido.forma_pagamento}
 ${trocoInfo}

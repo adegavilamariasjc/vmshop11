@@ -32,8 +32,19 @@ export const shouldBeGrouped = (item: any): boolean => {
 
 // Function to group identical items in the cart
 export const groupCartItems = (items: Array<any>): Array<any> => {
+  // Handle case when items might be a JSON string (from database)
+  let itemsArray = items;
+  if (typeof items === 'string') {
+    try {
+      itemsArray = JSON.parse(items);
+    } catch (e) {
+      console.error("Error parsing items:", e);
+      return [];
+    }
+  }
+
   // Filter out items with zero quantity first
-  const validItems = items.filter(item => item.qty && item.qty > 0);
+  const validItems = itemsArray.filter(item => item.qty && item.qty > 0);
   
   const groupedItems: any[] = [];
   const groupingMap = new Map();
@@ -81,7 +92,7 @@ export const formatWhatsAppMessage = (
   const trocoValue = parseFloat(troco) || 0;
   const trocoFinal = trocoValue - total;
 
-  const trocoMessage = pagamento === "Dinheiro"
+  const trocoMessage = pagamento === "Dinheiro" && trocoValue > 0
     ? `\uD83D\uDCB0 Troco para: R$${trocoValue.toFixed(2).replace('.', ',')} (TROCO R$${trocoFinal >= 0 ? trocoFinal.toFixed(2).replace('.', ',') : '0,00'})\n`
     : "";
 

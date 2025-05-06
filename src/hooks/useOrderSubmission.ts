@@ -141,7 +141,7 @@ export const useOrderSubmission = (codigoPedido: string, cart: Product[], form: 
         total
       );
       
-      // Save order to database
+      // Save order to database - convert cart to JSON string to fix type error
       const { error: orderError } = await supabase
         .from('pedidos')
         .insert({
@@ -156,8 +156,8 @@ export const useOrderSubmission = (codigoPedido: string, cart: Product[], form: 
           forma_pagamento: form.pagamento,
           troco: form.troco,
           observacao: form.observacao,
-          // Convertemos o array para JSON antes de salvar
-          itens: cart,
+          // Convert the array to JSON before saving
+          itens: JSON.stringify(cart),
           total: total,
           taxa_entrega: form.bairro.taxa,
           status: 'pendente'
