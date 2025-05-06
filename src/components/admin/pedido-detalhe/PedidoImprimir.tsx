@@ -17,8 +17,12 @@ export const PedidoImprimir = ({
     if (!pedido) return;
     setIsPrinting(true);
 
+    // Garantir que itens é um array
+    const itens = Array.isArray(pedido.itens) ? pedido.itens : 
+                 (typeof pedido.itens === 'string' ? JSON.parse(pedido.itens) : []);
+
     // Use the improved groupCartItems function for consistent grouping
-    const groupedItems = groupCartItems(pedido.itens);
+    const groupedItems = groupCartItems(itens);
 
     // Format items to properly show quantities with grouped items
     const itensFormatados = groupedItems
@@ -60,9 +64,15 @@ export const PedidoImprimir = ({
         }
 
         // Add price for each item (price per unit × quantity)
-        texto += `\n   R$ ${(item.price * item.qty).toFixed(2)}`;
+        texto += `\n   R$ ${((item.price || 0) * (item.qty || 1)).toFixed(2)}`;
         return texto;
       }).join('\n\n');
+
+    // Calcular subtotal corretamente
+    const subtotal = groupedItems.reduce(
+      (sum, item) => sum + ((item.price || 0) * (item.qty || 1)), 
+      0
+    );
 
     const trocoInfo = pedido.forma_pagamento === 'Dinheiro' && pedido.troco 
       ? `\nTROCO PARA: R$ ${pedido.troco}` 
@@ -84,7 +94,7 @@ ${pedido.observacao ? `OBSERVAÇÃO: ${pedido.observacao}` : ''}
 ITENS DO PEDIDO:
 ${itensFormatados}
 
-SUBTOTAL: R$ ${(pedido.total - pedido.taxa_entrega).toFixed(2)}
+SUBTOTAL: R$ ${subtotal.toFixed(2)}
 TAXA DE ENTREGA: R$ ${pedido.taxa_entrega.toFixed(2)}
 TOTAL: R$ ${pedido.total.toFixed(2)}
 

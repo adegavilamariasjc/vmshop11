@@ -13,7 +13,6 @@ import OrderSummary from './cart/OrderSummary';
 import CartSummary from './CartSummary';
 import { Button } from './ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface CartPreviewModalProps {
@@ -54,6 +53,8 @@ const CartPreviewModal: React.FC<CartPreviewModalProps> = ({
       });
       return;
     }
+    
+    // Feche o modal e prossiga para o checkout
     onClose();
     onProceedToCheckout();
   };
@@ -65,11 +66,6 @@ const CartPreviewModal: React.FC<CartPreviewModalProps> = ({
       description: "Todos os itens foram removidos do carrinho",
     });
     onClose();
-    
-    // Adiciona um pequeno delay antes de atualizar a página
-    setTimeout(() => {
-      window.location.reload();
-    }, 500);
   };
 
   return (

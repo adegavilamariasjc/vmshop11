@@ -13,6 +13,9 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
     return null;
   }
 
+  // Calcular o preço total do item
+  const totalPrice = (item.price || 0) * (item.qty || 1);
+
   return (
     <div className="mb-3">
       <div className="flex justify-between">
@@ -22,7 +25,7 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
           {item.balyFlavor ? ` (Baly: ${item.balyFlavor})` : ""}
         </span>
         <span className="text-white font-semibold text-shadow-dark">
-          R$ {((item.price || 0) * (item.qty || 0)).toFixed(2)}
+          R$ {totalPrice.toFixed(2)}
         </span>
       </div>
       

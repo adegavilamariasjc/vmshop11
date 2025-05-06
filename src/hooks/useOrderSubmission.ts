@@ -136,7 +136,7 @@ export const useOrderSubmission = (codigoPedido: string, cart: Product[], form: 
         form.bairro.taxa,
         form.whatsapp,
         form.pagamento,
-        form.troco,
+        trocoValue.toString(),
         itemsText,
         total
       );
@@ -156,7 +156,8 @@ export const useOrderSubmission = (codigoPedido: string, cart: Product[], form: 
           forma_pagamento: form.pagamento,
           troco: form.troco,
           observacao: form.observacao,
-          itens: JSON.stringify(cart),
+          // Convertemos o array para JSON antes de salvar
+          itens: cart,
           total: total,
           taxa_entrega: form.bairro.taxa,
           status: 'pendente'

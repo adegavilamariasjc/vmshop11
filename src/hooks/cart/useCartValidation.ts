@@ -67,6 +67,8 @@ export const useCartValidation = (
   ]);
 
   const checkMissingFlavorsAndProceed = () => {
+    console.log("Checking missing flavors and proceeding to checkout");
+    
     if (state.cart.length === 0) {
       toast({
         title: "Carrinho vazio",
@@ -76,16 +78,19 @@ export const useCartValidation = (
       return;
     }
     
+    // Close all modals
     if (state.isFlavorModalOpen) state.setIsFlavorModalOpen(false);
     if (state.isAlcoholModalOpen) state.setIsAlcoholModalOpen(false);
     if (state.isBalyModalOpen) state.setIsBalyModalOpen(false);
     if (state.isEnergyDrinkModalOpen) state.setIsEnergyDrinkModalOpen(false);
     
+    // Clear any pending products
     if (state.pendingProductWithIce) state.setPendingProductWithIce(null);
     if (state.selectedProductForFlavor) state.setSelectedProductForFlavor(null);
     if (state.selectedProductForAlcohol) state.setSelectedProductForAlcohol(null);
     if (state.selectedProductForBaly) state.setSelectedProductForBaly(null);
     
+    // Check for items missing customization
     const missing = state.cart.filter(
       item =>
         (requiresFlavor(item.category || '') && (!item.ice || Object.values(item.ice).reduce((a, b) => a + b, 0) === 0)) ||
@@ -94,6 +99,8 @@ export const useCartValidation = (
         (isCopao(item) && !item.energyDrink) ||
         (isCombo(item) && !item.energyDrink)
     );
+    
+    console.log("Missing items:", missing);
     
     if (missing.length > 0) {
       const itemPend = missing[0];
@@ -117,6 +124,8 @@ export const useCartValidation = (
         state.setIsEnergyDrinkModalOpen(true);
       }
     } else {
+      // No missing items, proceed to checkout
+      console.log("No missing items, proceeding to checkout");
       state.setShowSummary(true);
       window.scrollTo(0, 0);
     }

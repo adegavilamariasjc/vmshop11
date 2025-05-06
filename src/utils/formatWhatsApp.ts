@@ -77,7 +77,7 @@ export const formatWhatsAppMessage = (
   itemsText: string,
   total: number
 ): string => {
-  // Parse troco as a number to ensure proper comparison
+  // Parse troco as a number to fix the type error
   const trocoValue = parseFloat(troco) || 0;
   const trocoFinal = trocoValue - total;
 
