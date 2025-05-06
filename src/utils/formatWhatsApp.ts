@@ -31,9 +31,9 @@ export const shouldBeGrouped = (item: any): boolean => {
 };
 
 // Function to group identical items in the cart
-export const groupCartItems = (items: Array<any>): Array<any> => {
+export const groupCartItems = (items: Array<any> | string): Array<any> => {
   // Handle case when items might be a JSON string (from database)
-  let itemsArray = items;
+  let itemsArray = Array.isArray(items) ? items : [];
   if (typeof items === 'string') {
     try {
       itemsArray = JSON.parse(items);
