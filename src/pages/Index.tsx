@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../hooks/useCart';
 import { AnimatePresence } from 'framer-motion';
@@ -170,6 +171,9 @@ const Index = () => {
     }
     
     try {
+      // Ensure troco is parsed as a number for safe storage and comparison
+      const trocoValue = parseFloat(form.troco) || 0;
+      
       const pedido = await savePedido({
         codigo_pedido: codigoPedido,
         cliente_nome: form.nome,
@@ -181,7 +185,7 @@ const Index = () => {
         taxa_entrega: form.bairro.taxa,
         cliente_whatsapp: form.whatsapp,
         forma_pagamento: form.pagamento,
-        troco: form.troco,
+        troco: trocoValue.toString(), // Convert back to string for consistent storage
         observacao: form.observacao,
         itens: cart,
         total: total,
