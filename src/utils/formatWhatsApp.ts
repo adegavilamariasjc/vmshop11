@@ -1,3 +1,4 @@
+
 export const formatWhatsApp = (number: string): string => {
   const cleaned = number.replace(/\D/g, '');
   if (!cleaned.startsWith('55') && cleaned.length >= 11) {
@@ -76,7 +77,7 @@ export const formatWhatsAppMessage = (
   itemsText: string,
   total: number
 ): string => {
-  // Parse troco as a number to ensure it's not treated as unknown
+  // Parse troco as a number to ensure proper comparison
   const trocoValue = parseFloat(troco) || 0;
   const trocoFinal = trocoValue - total;
 
