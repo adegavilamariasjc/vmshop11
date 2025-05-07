@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ShoppingCart, Trash2, ArrowRight, X, AlertCircle } from 'lucide-react';
+import { ShoppingCart, Trash2, ArrowRight, X, AlertCircle, ShoppingBag } from 'lucide-react';
 import { Product } from '../types';
 import {
   Dialog,
@@ -68,6 +68,10 @@ const CartPreviewModal: React.FC<CartPreviewModalProps> = ({
     onClose();
   };
 
+  const handleContinueShopping = () => {
+    onClose();
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px] flex flex-col max-h-[90vh] overflow-hidden">
@@ -106,23 +110,32 @@ const CartPreviewModal: React.FC<CartPreviewModalProps> = ({
           </div>
         </div>
 
-        <div className="flex gap-3 mt-4 pt-4 border-t border-gray-700 shrink-0">
+        <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t border-gray-700 shrink-0">
           <Button
             variant="destructive"
-            className="w-full"
+            className="flex-1"
             onClick={handleClearCart}
             disabled={cart.length === 0}
           >
             <Trash2 className="h-4 w-4 mr-2" />
             Limpar
           </Button>
+          
           <Button
-            className={`w-full ${isStoreOpen ? 'bg-purple-dark hover:bg-purple-600' : 'bg-gray-600 hover:bg-gray-700'}`}
+            className="flex-1 bg-gray-600 hover:bg-gray-700"
+            onClick={handleContinueShopping}
+          >
+            <ShoppingBag className="h-4 w-4 mr-2" />
+            Continuar Comprando
+          </Button>
+          
+          <Button
+            className={`flex-1 ${isStoreOpen ? 'bg-purple-dark hover:bg-purple-600' : 'bg-gray-600 hover:bg-gray-700'}`}
             onClick={handleProceed}
             disabled={cart.length === 0}
           >
             <ArrowRight className="h-4 w-4 mr-2" />
-            Avançar
+            Finalizar Pedido
           </Button>
         </div>
       </DialogContent>

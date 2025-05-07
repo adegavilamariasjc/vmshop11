@@ -78,57 +78,10 @@ export const useCartValidation = (
       return;
     }
     
-    // Close all modals
-    if (state.isFlavorModalOpen) state.setIsFlavorModalOpen(false);
-    if (state.isAlcoholModalOpen) state.setIsAlcoholModalOpen(false);
-    if (state.isBalyModalOpen) state.setIsBalyModalOpen(false);
-    if (state.isEnergyDrinkModalOpen) state.setIsEnergyDrinkModalOpen(false);
-    
-    // Clear any pending products
-    if (state.pendingProductWithIce) state.setPendingProductWithIce(null);
-    if (state.selectedProductForFlavor) state.setSelectedProductForFlavor(null);
-    if (state.selectedProductForAlcohol) state.setSelectedProductForAlcohol(null);
-    if (state.selectedProductForBaly) state.setSelectedProductForBaly(null);
-    
-    // Check for items missing customization
-    const missing = state.cart.filter(
-      item =>
-        (requiresFlavor(item.category || '') && (!item.ice || Object.values(item.ice).reduce((a, b) => a + b, 0) === 0)) ||
-        (requiresAlcoholChoice(item.category || '') && !item.alcohol) ||
-        (containsBaly(item.name) && !item.balyFlavor) ||
-        (isCopao(item) && !item.energyDrink) ||
-        (isCombo(item) && !item.energyDrink)
-    );
-    
-    console.log("Missing items:", missing);
-    
-    if (missing.length > 0) {
-      const itemPend = missing[0];
-      
-      if (requiresFlavor(itemPend.category || '') && (!itemPend.ice || Object.values(itemPend.ice || {}).reduce((a, b) => a + b, 0) === 0)) {
-        state.setSelectedProductForFlavor(itemPend);
-        state.setIsFlavorModalOpen(true);
-      } else if (requiresAlcoholChoice(itemPend.category || '') && !itemPend.alcohol) {
-        state.setSelectedProductForAlcohol(itemPend);
-        state.setIsAlcoholModalOpen(true);
-      } else if (containsBaly(itemPend.name) && !itemPend.balyFlavor) {
-        state.setSelectedProductForBaly(itemPend);
-        state.setIsBalyModalOpen(true);
-      } else if (isCopao(itemPend) && !itemPend.energyDrink) {
-        state.setPendingProductWithIce(itemPend);
-        state.setCurrentProductType('copao');
-        state.setIsEnergyDrinkModalOpen(true);
-      } else if (isCombo(itemPend) && !itemPend.energyDrink) {
-        state.setPendingProductWithIce(itemPend);
-        state.setCurrentProductType('combo');
-        state.setIsEnergyDrinkModalOpen(true);
-      }
-    } else {
-      // No missing items, proceed to checkout
-      console.log("No missing items, proceeding to checkout");
-      state.setShowSummary(true);
-      window.scrollTo(0, 0);
-    }
+    // Proceda diretamente para o checkout sem verificar itens incompletos
+    // O usuário já finalizou sua revisão e quer ir para o formulário de finalização
+    state.setShowSummary(true);
+    window.scrollTo(0, 0);
   };
 
   return {
