@@ -121,7 +121,7 @@ export const useOrderSubmission = (codigoPedido: string, cart: Product[], form: 
         return itemDesc;
       }).join('\n');
       
-      // Converter troco para número para evitar erro de tipo
+      // Converter troco para número para evitar erro de tipo - CORREÇÃO AQUI
       const trocoValue = form.troco ? parseFloat(form.troco.replace(',', '.')) : 0;
       
       // Create the WhatsApp message

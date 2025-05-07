@@ -25,7 +25,7 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
           {item.balyFlavor ? ` (Baly: ${item.balyFlavor})` : ""}
         </span>
         <span className="text-white font-semibold text-shadow-dark">
-          R$ {totalPrice.toFixed(2)}
+          R$ {totalPrice.toFixed(2).replace('.', ',')}
         </span>
       </div>
       
