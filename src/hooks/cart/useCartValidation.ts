@@ -78,8 +78,7 @@ export const useCartValidation = (
       return;
     }
     
-    // Proceda diretamente para o checkout sem verificar itens incompletos
-    // O usuário já finalizou sua revisão e quer ir para o formulário de finalização
+    // Proceder diretamente para o checkout sem verificações adicionais
     state.setShowSummary(true);
     window.scrollTo(0, 0);
   };

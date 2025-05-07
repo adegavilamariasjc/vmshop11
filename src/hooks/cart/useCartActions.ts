@@ -51,20 +51,36 @@ export const useCartActions = (
     setIsBalyModalOpen: React.Dispatch<React.SetStateAction<boolean>>
   ) => {
     const productWithCategory = { ...item, category: activeCategory || '' };
+    console.log('Adding product:', productWithCategory.name, 'Category:', activeCategory);
     
+    // Verificar se é um produto que requer seleção de sabores de gelo
     if (requiresFlavor(activeCategory || '')) {
+      console.log('This product requires flavor selection');
       setSelectedProductForFlavor(productWithCategory);
       setIsFlavorModalOpen(true);
-    } else if (requiresAlcoholChoice(activeCategory || '')) {
+      return;
+    } 
+    
+    // Verificar se é um produto que requer seleção de álcool
+    if (requiresAlcoholChoice(activeCategory || '')) {
+      console.log('This product requires alcohol choice');
       setSelectedProductForAlcohol(productWithCategory);
-      setSelectedAlcohol(null);
+      setSelectedAlcohol(null); // Reset previous selection
       setIsAlcoholModalOpen(true);
-    } else if (containsBaly(item.name)) {
+      return;
+    } 
+    
+    // Verificar se é um produto que contém Baly
+    if (containsBaly(item.name)) {
+      console.log('This product contains Baly');
       setSelectedProductForBaly(productWithCategory);
       setIsBalyModalOpen(true);
-    } else {
-      handleUpdateQuantity(productWithCategory, 1);
+      return;
     }
+    
+    // Se chegou aqui, é um produto simples sem customizações
+    console.log('This is a simple product, adding directly');
+    handleUpdateQuantity(productWithCategory, 1);
   };
 
   const handleUpdateQuantity = (item: Product, delta: number) => {
@@ -143,9 +159,9 @@ export const useCartActions = (
     const itemWithIce = { ...state.selectedProductForFlavor, ice: state.selectedIce };
     
     state.setIsFlavorModalOpen(false);
-    state.setSelectedProductForFlavor(null);
     
     if (isCopao(itemWithIce)) {
+      console.log("É um copão, abrindo seleção de energéticos");
       state.setPendingProductWithIce(itemWithIce);
       state.setIsEnergyDrinkModalOpen(true);
       
@@ -154,6 +170,7 @@ export const useCartActions = (
         description: "Agora selecione o energético para seu copão.",
       });
     } else if (isCombo(itemWithIce)) {
+      console.log("É um combo, abrindo seleção de energéticos");
       state.setPendingProductWithIce(itemWithIce);
       state.setIsEnergyDrinkModalOpen(true);
       
@@ -162,9 +179,11 @@ export const useCartActions = (
         description: "Agora selecione o energético para seu combo.",
       });
     } else if (containsBaly(itemWithIce.name)) {
+      console.log("Contém Baly, abrindo seleção de sabor do Baly");
       state.setSelectedProductForBaly(itemWithIce);
       state.setIsBalyModalOpen(true);
     } else {
+      console.log("Produto com gelo pronto, adicionando ao carrinho");
       handleUpdateQuantity(itemWithIce, 1);
       
       toast({
@@ -172,6 +191,9 @@ export const useCartActions = (
         description: `${state.selectedProductForFlavor.name} adicionado ao pedido.`,
       });
     }
+    
+    // Importante: resetar o selectedProductForFlavor depois de processar o item
+    state.setSelectedProductForFlavor(null);
   };
 
   const confirmAlcoholSelection = (selectedAlcohol: AlcoholOption | null) => {
@@ -185,10 +207,12 @@ export const useCartActions = (
     };
     
     if (containsBaly(itemWithAlcohol.name)) {
+      console.log("Produto com álcool contém Baly, abrindo seleção de sabor do Baly");
       state.setSelectedProductForBaly(itemWithAlcohol);
       state.setIsAlcoholModalOpen(false);
       state.setIsBalyModalOpen(true);
     } else {
+      console.log("Produto com álcool pronto, adicionando ao carrinho");
       handleUpdateQuantity(itemWithAlcohol, 1);
       state.setIsAlcoholModalOpen(false);
       
@@ -197,6 +221,9 @@ export const useCartActions = (
         description: `${state.selectedProductForAlcohol.name} com ${selectedAlcohol.name} adicionado ao pedido.`,
       });
     }
+    
+    // Importante: resetar o selectedProductForAlcohol depois de processar o item
+    state.setSelectedProductForAlcohol(null);
   };
 
   const confirmBalySelection = (flavor: string) => {
@@ -207,6 +234,7 @@ export const useCartActions = (
       balyFlavor: flavor
     };
     
+    console.log("Produto com Baly pronto, adicionando ao carrinho");
     handleUpdateQuantity(itemWithBaly, 1);
     state.setIsBalyModalOpen(false);
     
@@ -214,6 +242,9 @@ export const useCartActions = (
       title: "Item adicionado",
       description: `${state.selectedProductForBaly.name} com Baly ${flavor} adicionado ao pedido.`,
     });
+    
+    // Importante: resetar o selectedProductForBaly depois de processar o item
+    state.setSelectedProductForBaly(null);
   };
 
   const handleEnergyDrinkSelection = (energyDrinks: { 
@@ -235,6 +266,7 @@ export const useCartActions = (
       price: (state.pendingProductWithIce.price || 0) + energyDrinks.totalExtraCost
     };
 
+    console.log("Produto com energéticos pronto, adicionando ao carrinho");
     // Always add as a new item since it's customized
     state.setCart(prevCart => [...prevCart, { ...finalProduct, qty: 1 }]);
     

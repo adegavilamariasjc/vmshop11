@@ -89,11 +89,11 @@ export const formatWhatsAppMessage = (
   total: number
 ): string => {
   // Converter troco para número para evitar erro de tipo
-  const trocoValue: number = troco ? parseFloat(troco) : 0;
-  const trocoFinal = trocoValue - total;
+  const trocoValue = troco ? parseFloat(troco.replace(',', '.')) : 0;
+  const trocoFinal = trocoValue > 0 ? trocoValue - total : 0;
 
   const trocoMessage = pagamento === "Dinheiro" && trocoValue > 0
-    ? `\uD83D\uDCB0 Troco para: R$${trocoValue.toFixed(2).replace('.', ',')} (TROCO R$${trocoFinal >= 0 ? trocoFinal.toFixed(2).replace('.', ',') : '0,00'})\n`
+    ? `\uD83D\uDCB0 Troco para: R$${trocoValue.toFixed(2).replace('.', ',')} (TROCO R$${trocoFinal.toFixed(2).replace('.', ',')})\n`
     : "";
 
   return (
