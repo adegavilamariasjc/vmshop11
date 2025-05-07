@@ -16,19 +16,11 @@ const AudioPlayer = () => {
   const togglePlayPause = () => {
     if (audioRef.current) {
       if (isPlaying) {
-        stopAudio();
+        audioRef.current.pause();
       } else {
         audioRef.current.play();
-        setIsPlaying(true);
       }
-    }
-  };
-  
-  const stopAudio = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      setIsPlaying(false);
+      setIsPlaying(!isPlaying);
     }
   };
 

@@ -2,109 +2,84 @@
 import React from 'react';
 import FormField from './FormField';
 import AddressLookupField from './AddressLookupField';
-import { Input } from '@/components/ui/input';
 
 interface AddressFieldsProps {
   endereco: string;
   numero: string;
   complemento: string;
   referencia: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  setAddress: (address: { street: string; neighborhood: string }) => void;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
+  setAddress: (address: {street: string, neighborhood: string}) => void;
 }
 
-const AddressFields: React.FC<AddressFieldsProps> = ({
-  endereco,
-  numero,
-  complemento,
-  referencia,
+const AddressFields: React.FC<AddressFieldsProps> = ({ 
+  endereco, 
+  numero, 
+  complemento, 
+  referencia, 
   onChange,
   setAddress
 }) => {
-  // Ensure house number only accepts digits
-  const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, ''); // Remove non-digits
-    
-    const syntheticEvent = {
-      ...e,
-      target: {
-        ...e.target,
-        name: 'numero',
-        value
-      }
-    };
-    
-    onChange(syntheticEvent);
-  };
-  
   return (
     <div className="space-y-3">
-      <div>
+      <AddressLookupField onAddressFound={setAddress} />
+      
+      <div className="col-span-2">
         <FormField id="endereco" label="Endereço" required>
-          <Input
+          <input
             id="endereco"
             name="endereco"
             type="text"
             value={endereco}
             onChange={onChange}
-            className="w-full bg-gray-800 text-gray-200 text-shadow-dark border border-gray-700 rounded-md p-2 text-sm placeholder:text-gray-400"
-            placeholder="Nome da rua"
+            className="w-full bg-gray-800 text-white border border-gray-700 rounded-md p-2 text-sm"
+            placeholder="Rua / Avenida"
             required
-            style={{color: '#D6BCFA'}} // Light purple text color
-          />
-        </FormField>
-      </div>
-
-      <div>
-        <AddressLookupField
-          value=""
-          onAddressFound={setAddress}
-        />
-      </div>
-      
-      <div>
-        <FormField id="numero" label="Número" required>
-          <Input
-            id="numero"
-            name="numero"
-            type="text"
-            inputMode="numeric"
-            value={numero}
-            onChange={handleNumberChange}
-            className="w-full bg-gray-800 text-gray-200 text-shadow-dark border border-gray-700 rounded-md p-2 text-sm placeholder:text-gray-400"
-            placeholder="Apenas números"
-            required
-            style={{color: '#D6BCFA'}} // Light purple text color
           />
         </FormField>
       </div>
       
-      <div>
-        <FormField id="complemento" label="Complemento">
-          <Input
-            id="complemento"
-            name="complemento"
-            type="text"
-            value={complemento}
-            onChange={onChange}
-            className="w-full bg-gray-800 text-gray-200 text-shadow-dark border border-gray-700 rounded-md p-2 text-sm placeholder:text-gray-400"
-            placeholder="Apto, Bloco, etc."
-            style={{color: '#D6BCFA'}} // Light purple text color
-          />
-        </FormField>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <FormField id="numero" label="Número" required>
+            <input
+              id="numero"
+              name="numero"
+              type="text"
+              value={numero}
+              onChange={onChange}
+              className="w-full bg-gray-800 text-white border border-gray-700 rounded-md p-2 text-sm"
+              placeholder="Número"
+              required
+            />
+          </FormField>
+        </div>
+        
+        <div>
+          <FormField id="complemento" label="Complemento">
+            <input
+              id="complemento"
+              name="complemento"
+              type="text"
+              value={complemento}
+              onChange={onChange}
+              className="w-full bg-gray-800 text-white border border-gray-700 rounded-md p-2 text-sm"
+              placeholder="Apto / Casa / Bloco"
+            />
+          </FormField>
+        </div>
       </div>
       
-      <div>
-        <FormField id="referencia" label="Ponto de Referência">
-          <Input
+      <div className="col-span-2">
+        <FormField id="referencia" label="Referência">
+          <input
             id="referencia"
             name="referencia"
             type="text"
             value={referencia}
             onChange={onChange}
-            className="w-full bg-gray-800 text-gray-200 text-shadow-dark border border-gray-700 rounded-md p-2 text-sm placeholder:text-gray-400"
+            className="w-full bg-gray-800 text-white border border-gray-700 rounded-md p-2 text-sm"
             placeholder="Próximo a..."
-            style={{color: '#D6BCFA'}} // Light purple text color
           />
         </FormField>
       </div>

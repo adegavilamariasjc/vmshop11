@@ -1,97 +1,331 @@
-
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { Product, AlcoholOption } from '../types';
-import { useCartState } from './cart/useCartState';
-import { useCartActions } from './cart/useCartActions';
-import { useCartValidation } from './cart/useCartValidation';
-import { useProductHelpers } from './cart/useProductHelpers';
+import { 
+  Product, 
+  AlcoholOption, 
+  FormData, 
+  Bairro 
+} from '../types';
+import { 
+  requiresFlavor, 
+  requiresAlcoholChoice, 
+  iceFlavors, 
+  getMaxIce,
+  containsBaly
+} from '../data/products';
 
 export const useCart = () => {
   const { toast } = useToast();
-  
-  // Import all state from useCartState
-  const cartState = useCartState();
-  
-  // Import product helpers
-  const productHelpers = useProductHelpers();
-  
-  // Import cart actions
-  const cartActions = useCartActions(cartState);
-  
-  // Import cart validation
-  const cartValidation = useCartValidation(cartState);
+  const [cart, setCart] = useState<Product[]>([]);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [showSummary, setShowSummary] = useState(false);
+  const [isFlavorModalOpen, setIsFlavorModalOpen] = useState(false);
+  const [isAlcoholModalOpen, setIsAlcoholModalOpen] = useState(false);
+  const [isBalyModalOpen, setIsBalyModalOpen] = useState(false);
+  const [isEnergyDrinkModalOpen, setIsEnergyDrinkModalOpen] = useState(false);
+  const [selectedProductForFlavor, setSelectedProductForFlavor] = useState<Product | null>(null);
+  const [selectedProductForAlcohol, setSelectedProductForAlcohol] = useState<Product | null>(null);
+  const [selectedProductForBaly, setSelectedProductForBaly] = useState<Product | null>(null);
+  const [selectedIce, setSelectedIce] = useState<Record<string, number>>({});
+  const [selectedAlcohol, setSelectedAlcohol] = useState<AlcoholOption | null>(null);
+  const [pendingProductWithIce, setPendingProductWithIce] = useState<Product | null>(null);
+  const [currentProductType, setCurrentProductType] = useState<'copao' | 'combo'>('combo');
+
+  useEffect(() => {
+    if (selectedProductForFlavor) {
+      const initialIce: Record<string, number> = {};
+      iceFlavors.forEach(flavor => { initialIce[flavor] = 0; });
+      setSelectedIce(initialIce);
+    }
+  }, [selectedProductForFlavor]);
+
+  useEffect(() => {
+    console.log('Modal states:', {
+      isFlavorModalOpen,
+      isAlcoholModalOpen,
+      isBalyModalOpen,
+      isEnergyDrinkModalOpen,
+      pendingProductWithIce: pendingProductWithIce ? pendingProductWithIce.name : 'none',
+      selectedProductForFlavor: selectedProductForFlavor ? selectedProductForFlavor.name : 'none',
+      selectedProductCategory: selectedProductForFlavor ? selectedProductForFlavor.category : 'none',
+      currentProductType
+    });
+  }, [isFlavorModalOpen, isAlcoholModalOpen, isBalyModalOpen, isEnergyDrinkModalOpen, pendingProductWithIce, selectedProductForFlavor, currentProductType]);
+
+  const isCopao = (product: Product): boolean => {
+    return product.name.toLowerCase().includes('copão');
+  };
+
+  const isCombo = (product: Product): boolean => {
+    return product.category === "Combos" || 
+          (product.category && product.category.toLowerCase().includes('combo'));
+  };
 
   const handleSelectCategory = (category: string) => {
-    cartActions.handleSelectCategory(category, cartState.activeCategory, cartState.setActiveCategory);
+    setActiveCategory(activeCategory === category ? null : category);
   };
 
   const handleAddProduct = (item: Product) => {
-    cartActions.handleAddProduct(
-      item,
-      cartState.activeCategory,
-      cartState.setSelectedProductForFlavor,
-      cartState.setIsFlavorModalOpen,
-      cartState.setSelectedProductForAlcohol,
-      cartState.setSelectedAlcohol,
-      cartState.setIsAlcoholModalOpen,
-      cartState.setSelectedProductForBaly,
-      cartState.setIsBalyModalOpen
-    );
+    const productWithCategory = { ...item, category: activeCategory || '' };
+    
+    if (requiresFlavor(activeCategory || '')) {
+      setSelectedProductForFlavor(productWithCategory);
+      setIsFlavorModalOpen(true);
+    } else if (requiresAlcoholChoice(activeCategory || '')) {
+      setSelectedProductForAlcohol(productWithCategory);
+      setSelectedAlcohol(null);
+      setIsAlcoholModalOpen(true);
+    } else if (containsBaly(item.name)) {
+      setSelectedProductForBaly(productWithCategory);
+      setIsBalyModalOpen(true);
+    } else {
+      handleUpdateQuantity(productWithCategory, 1);
+    }
   };
 
   const handleUpdateQuantity = (item: Product, delta: number) => {
-    cartActions.handleUpdateQuantity(item, delta);
+    setCart(prevCart => {
+      const existingItem = prevCart.find(
+        (p) =>
+          p.name === item.name &&
+          p.category === item.category &&
+          ((p.ice && item.ice && JSON.stringify(p.ice) === JSON.stringify(item.ice)) ||
+           (!p.ice && !item.ice)) &&
+          p.alcohol === item.alcohol &&
+          p.balyFlavor === item.balyFlavor &&
+          p.energyDrink === item.energyDrink &&
+          p.energyDrinkFlavor === item.energyDrinkFlavor
+      );
+      
+      if (existingItem) {
+        return prevCart
+          .map(p =>
+            p.name === item.name &&
+            p.category === item.category &&
+            ((p.ice && item.ice && JSON.stringify(p.ice) === JSON.stringify(item.ice)) ||
+             (!p.ice && !item.ice)) &&
+            p.alcohol === item.alcohol &&
+            p.balyFlavor === item.balyFlavor &&
+            p.energyDrink === item.energyDrink &&
+            p.energyDrinkFlavor === item.energyDrinkFlavor
+              ? { ...p, qty: Math.max(0, (p.qty || 1) + delta) }
+              : p
+          )
+          .filter(p => (p.qty || 1) > 0);
+      }
+      
+      return delta > 0 ? [...prevCart, { ...item, qty: 1 }] : prevCart;
+    });
   };
 
   const updateIceQuantity = (flavor: string, delta: number) => {
-    cartActions.updateIceQuantity(flavor, delta);
+    setSelectedIce(prev => {
+      const currentTotal = Object.values(prev).reduce((sum, v) => sum + v, 0);
+      const maxIce = getMaxIce(selectedProductForFlavor?.category || "");
+      
+      if (delta > 0 && currentTotal >= maxIce) return prev;
+      
+      return { 
+        ...prev, 
+        [flavor]: Math.max(0, (prev[flavor] || 0) + delta) 
+      };
+    });
   };
 
   const confirmFlavorSelection = () => {
-    cartActions.confirmFlavorSelection();
+    if (!selectedProductForFlavor) return;
+    
+    const totalIce = Object.values(selectedIce).reduce((sum, v) => sum + v, 0);
+    
+    if (totalIce === 0) {
+      toast({
+        title: "Seleção incompleta",
+        description: "Por favor, selecione ao menos 1 unidade de gelo.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const itemWithIce = { ...selectedProductForFlavor, ice: selectedIce };
+    
+    setIsFlavorModalOpen(false);
+    setSelectedProductForFlavor(null);
+    
+    if (isCopao(itemWithIce)) {
+      setPendingProductWithIce(itemWithIce);
+      setCurrentProductType('copao');
+      setIsEnergyDrinkModalOpen(true);
+      
+      toast({
+        title: "Gelo adicionado",
+        description: "Agora selecione o energético para seu copão.",
+      });
+    } else if (isCombo(itemWithIce)) {
+      setPendingProductWithIce(itemWithIce);
+      setCurrentProductType('combo');
+      setIsEnergyDrinkModalOpen(true);
+      
+      toast({
+        title: "Gelo adicionado",
+        description: "Agora selecione o energético para seu combo.",
+      });
+    } else if (containsBaly(itemWithIce.name)) {
+      setSelectedProductForBaly(itemWithIce);
+      setIsBalyModalOpen(true);
+    } else {
+      handleUpdateQuantity(itemWithIce, 1);
+      
+      toast({
+        title: "Item adicionado",
+        description: `${selectedProductForFlavor.name} adicionado ao pedido.`,
+      });
+    }
   };
 
   const confirmAlcoholSelection = () => {
-    cartActions.confirmAlcoholSelection(cartState.selectedAlcohol);
+    if (!selectedProductForAlcohol || !selectedAlcohol) return;
+    
+    const extraCost = selectedAlcohol.extraCost || 0;
+    const itemWithAlcohol = {
+      ...selectedProductForAlcohol,
+      alcohol: selectedAlcohol.name,
+      price: (selectedProductForAlcohol.price || 0) + extraCost,
+    };
+    
+    if (containsBaly(itemWithAlcohol.name)) {
+      setSelectedProductForBaly(itemWithAlcohol);
+      setIsAlcoholModalOpen(false);
+      setIsBalyModalOpen(true);
+    } else {
+      handleUpdateQuantity(itemWithAlcohol, 1);
+      setIsAlcoholModalOpen(false);
+      
+      toast({
+        title: "Item adicionado",
+        description: `${selectedProductForAlcohol.name} com ${selectedAlcohol.name} adicionado ao pedido.`,
+      });
+    }
   };
 
   const confirmBalySelection = (flavor: string) => {
-    cartActions.confirmBalySelection(flavor);
+    if (!selectedProductForBaly || !flavor) return;
+    
+    const itemWithBaly = {
+      ...selectedProductForBaly,
+      balyFlavor: flavor
+    };
+    
+    handleUpdateQuantity(itemWithBaly, 1);
+    setIsBalyModalOpen(false);
+    
+    toast({
+      title: "Item adicionado",
+      description: `${selectedProductForBaly.name} com Baly ${flavor} adicionado ao pedido.`,
+    });
   };
 
   const checkMissingFlavorsAndProceed = () => {
-    cartValidation.checkMissingFlavorsAndProceed();
+    if (cart.length === 0) {
+      toast({
+        title: "Carrinho vazio",
+        description: "Por favor, adicione itens ao seu pedido antes de continuar.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (isFlavorModalOpen) setIsFlavorModalOpen(false);
+    if (isAlcoholModalOpen) setIsAlcoholModalOpen(false);
+    if (isBalyModalOpen) setIsBalyModalOpen(false);
+    if (isEnergyDrinkModalOpen) setIsEnergyDrinkModalOpen(false);
+    
+    if (pendingProductWithIce) setPendingProductWithIce(null);
+    if (selectedProductForFlavor) setSelectedProductForFlavor(null);
+    if (selectedProductForAlcohol) setSelectedProductForAlcohol(null);
+    if (selectedProductForBaly) setSelectedProductForBaly(null);
+    
+    const missing = cart.filter(
+      item =>
+        (requiresFlavor(item.category || '') && (!item.ice || Object.values(item.ice).reduce((a, b) => a + b, 0) === 0)) ||
+        (requiresAlcoholChoice(item.category || '') && !item.alcohol) ||
+        (containsBaly(item.name) && !item.balyFlavor) ||
+        (isCopao(item) && !item.energyDrink) ||
+        (isCombo(item) && !item.energyDrink)
+    );
+    
+    if (missing.length > 0) {
+      const itemPend = missing[0];
+      
+      if (requiresFlavor(itemPend.category || '') && (!itemPend.ice || Object.values(itemPend.ice || {}).reduce((a, b) => a + b, 0) === 0)) {
+        setSelectedProductForFlavor(itemPend);
+        setIsFlavorModalOpen(true);
+      } else if (requiresAlcoholChoice(itemPend.category || '') && !itemPend.alcohol) {
+        setSelectedProductForAlcohol(itemPend);
+        setSelectedAlcohol(null);
+        setIsAlcoholModalOpen(true);
+      } else if (containsBaly(itemPend.name) && !itemPend.balyFlavor) {
+        setSelectedProductForBaly(itemPend);
+        setIsBalyModalOpen(true);
+      } else if (isCopao(itemPend) && !itemPend.energyDrink) {
+        setPendingProductWithIce(itemPend);
+        setCurrentProductType('copao');
+        setIsEnergyDrinkModalOpen(true);
+      } else if (isCombo(itemPend) && !itemPend.energyDrink) {
+        setPendingProductWithIce(itemPend);
+        setCurrentProductType('combo');
+        setIsEnergyDrinkModalOpen(true);
+      }
+    } else {
+      setShowSummary(true);
+      window.scrollTo(0, 0);
+    }
   };
 
   const handleEnergyDrinkSelection = (energyDrinks: { 
     selections: Array<{ type: string; flavor: string }>;
     totalExtraCost: number;
   }) => {
-    cartActions.handleEnergyDrinkSelection(energyDrinks);
+    if (!pendingProductWithIce) return;
+
+    const firstEnergyDrink = energyDrinks.selections.length > 0 ? 
+      energyDrinks.selections[0].type : '';
+    const firstEnergyDrinkFlavor = energyDrinks.selections.length > 0 ? 
+      energyDrinks.selections[0].flavor : '';
+
+    const finalProduct = {
+      ...pendingProductWithIce,
+      energyDrink: firstEnergyDrink,
+      energyDrinkFlavor: firstEnergyDrinkFlavor,
+      energyDrinks: energyDrinks.selections,
+      price: (pendingProductWithIce.price || 0) + energyDrinks.totalExtraCost
+    };
+
+    handleUpdateQuantity(finalProduct, 1);
+    setIsEnergyDrinkModalOpen(false);
+    setPendingProductWithIce(null);
+
+    toast({
+      title: "Energéticos selecionados",
+      description: `${energyDrinks.selections.length} energético(s) adicionado(s) ao pedido.`,
+    });
   };
 
   return {
-    // State
-    cart: cartState.cart,
-    activeCategory: cartState.activeCategory,
-    showSummary: cartState.showSummary,
-    isFlavorModalOpen: cartState.isFlavorModalOpen,
-    isAlcoholModalOpen: cartState.isAlcoholModalOpen,
-    isBalyModalOpen: cartState.isBalyModalOpen,
-    isEnergyDrinkModalOpen: cartState.isEnergyDrinkModalOpen,
-    selectedProductForFlavor: cartState.selectedProductForFlavor,
-    selectedProductForAlcohol: cartState.selectedProductForAlcohol,
-    selectedProductForBaly: cartState.selectedProductForBaly,
-    selectedIce: cartState.selectedIce,
-    selectedAlcohol: cartState.selectedAlcohol,
-    pendingProductWithIce: cartState.pendingProductWithIce,
-    currentProductType: cartState.currentProductType,
-    
-    // State setters
-    setShowSummary: cartState.setShowSummary,
-    
-    // Actions
+    cart,
+    activeCategory,
+    showSummary,
+    isFlavorModalOpen,
+    isAlcoholModalOpen,
+    isBalyModalOpen,
+    isEnergyDrinkModalOpen,
+    selectedProductForFlavor,
+    selectedProductForAlcohol,
+    selectedProductForBaly,
+    selectedIce,
+    selectedAlcohol,
+    pendingProductWithIce,
+    currentProductType,
+    setShowSummary,
     handleSelectCategory,
     handleAddProduct,
     handleUpdateQuantity,
@@ -100,13 +334,13 @@ export const useCart = () => {
     confirmAlcoholSelection,
     confirmBalySelection,
     checkMissingFlavorsAndProceed,
-    setIsFlavorModalOpen: cartState.setIsFlavorModalOpen,
-    setIsAlcoholModalOpen: cartState.setIsAlcoholModalOpen,
-    setIsBalyModalOpen: cartState.setIsBalyModalOpen,
-    setSelectedAlcohol: cartState.setSelectedAlcohol,
-    setSelectedProductForBaly: cartState.setSelectedProductForBaly,
-    setIsEnergyDrinkModalOpen: cartState.setIsEnergyDrinkModalOpen,
-    setPendingProductWithIce: cartState.setPendingProductWithIce,
+    setIsFlavorModalOpen,
+    setIsAlcoholModalOpen,
+    setIsBalyModalOpen,
+    setSelectedAlcohol,
+    setSelectedProductForBaly,
+    setIsEnergyDrinkModalOpen,
+    setPendingProductWithIce,
     handleEnergyDrinkSelection
   };
 };

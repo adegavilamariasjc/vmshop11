@@ -307,7 +307,7 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
                 <h3 className="text-purple-light font-semibold mb-1 flex items-center gap-2 text-sm">
                   🔹 {option.name}
                   {extraCost > 0 && (
-                    <span className="text-xs text-gray-300">(+R${extraCost.toFixed(2).replace('.', ',')})</span>
+                    <span className="text-xs text-gray-300">(+R${extraCost.toFixed(2)})</span>
                   )}
                 </h3>
                 <div className="grid grid-cols-2 gap-1 text-xs">

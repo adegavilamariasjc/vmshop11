@@ -6,27 +6,18 @@ import { searchAddressByCep } from '../../utils/addressLookup';
 import FormField from './FormField';
 
 interface AddressLookupFieldProps {
-  value?: string;
-  onChange?: (value: string) => void;
   onAddressFound: (address: { street: string, neighborhood: string }) => void;
 }
 
-const AddressLookupField: React.FC<AddressLookupFieldProps> = ({ 
-  value = '', 
-  onChange, 
-  onAddressFound 
-}) => {
+const AddressLookupField: React.FC<AddressLookupFieldProps> = ({ onAddressFound }) => {
   const { toast } = useToast();
-  const [cep, setCep] = useState(value);
+  const [cep, setCep] = useState('');
   const [isSearching, setIsSearching] = useState(false);
 
   const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, '');
     if (value.length <= 8) {
       setCep(value);
-      if (onChange) {
-        onChange(value);
-      }
     }
   };
 
@@ -70,10 +61,9 @@ const AddressLookupField: React.FC<AddressLookupFieldProps> = ({
           type="text"
           value={cep}
           onChange={handleCepChange}
-          className="flex-1 p-3 bg-gray-900 border border-gray-600 rounded-l-md text-gray-200"
+          className="flex-1 p-3 bg-gray-900 border border-gray-600 rounded-l-md text-white"
           placeholder="Apenas números"
           maxLength={8}
-          style={{color: '#D6BCFA'}} // Light purple text color
         />
         <button
           type="button"

@@ -22,7 +22,7 @@ const DelivererSelectModal: React.FC<DelivererSelectModalProps> = ({
   onOpenChange,
   onConfirm
 }) => {
-  const [selectedDeliverer, setSelectedDeliverer] = React.useState('ANDRE');
+  const [selectedDeliverer, setSelectedDeliverer] = React.useState('MOTOBOY 1');
   
   const handleConfirm = () => {
     onConfirm(selectedDeliverer);
@@ -43,20 +43,20 @@ const DelivererSelectModal: React.FC<DelivererSelectModalProps> = ({
             className="space-y-3"
           >
             <div className="flex items-center space-x-2">
-              <RadioGroupItem id="andre" value="ANDRE" />
-              <Label htmlFor="andre" className="font-medium text-white">ANDRE</Label>
+              <RadioGroupItem id="motoboy1" value="MOTOBOY 1" />
+              <Label htmlFor="motoboy1" className="font-medium text-white">MOTOBOY 1</Label>
             </div>
             <div className="flex items-center space-x-2">
-              <RadioGroupItem id="ronan" value="RONAN" />
-              <Label htmlFor="ronan" className="font-medium text-white">RONAN</Label>
+              <RadioGroupItem id="motoboy2" value="MOTOBOY 2" />
+              <Label htmlFor="motoboy2" className="font-medium text-white">MOTOBOY 2</Label>
             </div>
             <div className="flex items-center space-x-2">
-              <RadioGroupItem id="leonardo" value="LEONARDO" />
-              <Label htmlFor="leonardo" className="font-medium text-white">LEONARDO</Label>
+              <RadioGroupItem id="motoboy3" value="MOTOBOY 3" />
+              <Label htmlFor="motoboy3" className="font-medium text-white">MOTOBOY 3</Label>
             </div>
             <div className="flex items-center space-x-2">
-              <RadioGroupItem id="freelancer" value="FREELANCER" />
-              <Label htmlFor="freelancer" className="font-medium text-white">FREELANCER</Label>
+              <RadioGroupItem id="motoboy4" value="MOTOBOY 4" />
+              <Label htmlFor="motoboy4" className="font-medium text-white">MOTOBOY 4</Label>
             </div>
           </RadioGroup>
         </div>

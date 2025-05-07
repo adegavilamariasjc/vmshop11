@@ -10,28 +10,13 @@ interface ProductListProps {
   cart: Product[];
   onAddProduct: (item: Product) => void;
   onUpdateQuantity: (item: Product, delta: number) => void;
-  isStoreOpen: boolean;
+  isStoreOpen: boolean; // Added this prop to match what's being passed in ProductSelectionView
 }
 
 const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct, onUpdateQuantity, isStoreOpen }) => {
   const [products, setProducts] = useState<{name: string; price: number; is_paused?: boolean; order_index?: number}[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Function to check if a product is customizable (copied from useCart)
-  const isCustomizableProduct = (product: Product): boolean => {
-    const isCopao = product.name.toLowerCase().includes('copão');
-    const isCombo = product.category === "Combos" || 
-                   (product.category && product.category.toLowerCase().includes('combo'));
-    
-    // Check if product's category requires flavor or alcohol selection
-    const requiresCustomization = 
-      ['drinks', 'batidas', 'licores', 'combos', 'especiais'].includes(product.category?.toLowerCase() || '') ||
-      isCopao || 
-      isCombo;
-      
-    return requiresCustomization;
-  };
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -118,27 +103,13 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
           return null;
         }
 
-        // For simple items, aggregate quantities, for customizable ones, check separately
-        let quantity = 0;
-        const isCustomizable = isCustomizableProduct({...item, category});
+        const cartItem = cart.find(p => 
+          p.name === item.name && 
+          p.category === category &&
+          !p.ice && !p.alcohol
+        );
         
-        if (isCustomizable) {
-          // For customizable items, only count identical items without customizations
-          quantity = cart.filter(p => 
-            p.name === item.name && 
-            p.category === category && 
-            !p.ice && !p.alcohol && !p.balyFlavor && !p.energyDrink && 
-            p.qty && p.qty > 0 // Only count items with qty > 0
-          ).reduce((sum, p) => sum + (p.qty || 0), 0);
-        } else {
-          // For simple products like beer, add up all quantities
-          // Only count products that match exactly in name and category
-          quantity = cart.filter(p => 
-            p.name === item.name && 
-            p.category === category && 
-            p.qty && p.qty > 0 // Only count items with qty > 0
-          ).reduce((sum, p) => sum + (p.qty || 0), 0);
-        }
+        const quantity = cartItem?.qty || 0;
         
         return (
           <div 
@@ -152,21 +123,7 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
             
             <div className="flex items-center">
               <button
-                onClick={() => {
-                  if (quantity > 0) {
-                    // Find the correct item to decrement
-                    const matchingItems = cart.filter(p => 
-                      p.name === item.name && 
-                      p.category === category &&
-                      (!isCustomizable || (!p.ice && !p.alcohol && !p.balyFlavor && !p.energyDrink)) &&
-                      p.qty && p.qty > 0 // Only consider items with qty > 0
-                    );
-                    
-                    if (matchingItems.length > 0) {
-                      onUpdateQuantity(matchingItems[0], -1);
-                    }
-                  }
-                }}
+                onClick={() => onUpdateQuantity({ ...item, category }, -1)}
                 className="w-8 h-8 flex items-center justify-center bg-gray-200 text-black rounded-full"
                 disabled={quantity === 0}
               >
@@ -184,7 +141,7 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
               <button
                 onClick={() => onAddProduct({ ...item, category })}
                 className="w-8 h-8 flex items-center justify-center bg-purple-dark text-white rounded-full"
-                disabled={!isStoreOpen}
+                disabled={!isStoreOpen} // Use the isStoreOpen prop to disable the button when store is closed
               >
                 <Plus size={16} />
               </button>

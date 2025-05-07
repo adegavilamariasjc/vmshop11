@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export async function trackPageVisit(pagina = window.location.pathname, acao = 'pageload') {
   try {
-    // Adicionar informações do cliente aos dados de rastreamento
+    // Add client information to the tracking data
     const clientInfo = {
       userAgent: navigator.userAgent,
       language: navigator.language,
@@ -11,8 +11,6 @@ export async function trackPageVisit(pagina = window.location.pathname, acao = '
       screenHeight: window.screen.height,
       timestamp: new Date().toISOString()
     };
-
-    console.log(`Tracking page visit: ${pagina}, action: ${acao}`);
 
     const { error } = await supabase
       .from('page_visits')
@@ -38,37 +36,15 @@ export async function trackPageVisit(pagina = window.location.pathname, acao = '
 
 export function setupGlobalTracking() {
   if (typeof window !== 'undefined') {
-    if ((window as any).__trackingSetup) {
-      console.log('Global tracking already setup, skipping');
-      return;
-    }
+    if ((window as any).__trackingSetup) return;
     
-    // Rastrear carregamento inicial da página
+    // Track initial page load
     trackPageVisit();
     
-    // Definir flag para evitar rastreamento duplicado
+    // Set flag to prevent duplicate tracking
     (window as any).__trackingSetup = true;
     
-    // Configurar ouvintes para mudanças de URL via History API
-    const originalPushState = history.pushState;
-    const originalReplaceState = history.replaceState;
-    
-    history.pushState = function(state, title, url) {
-      originalPushState.apply(this, [state, title, url]);
-      trackPageVisit(url?.toString() || window.location.pathname, 'navigation');
-    };
-    
-    history.replaceState = function(state, title, url) {
-      originalReplaceState.apply(this, [state, title, url]);
-      trackPageVisit(url?.toString() || window.location.pathname, 'navigation');
-    };
-    
-    // Registrar eventos de navegação
-    window.addEventListener('popstate', () => {
-      trackPageVisit(window.location.pathname, 'navigation');
-    });
-    
-    // Log de configuração bem-sucedida
+    // Log successful setup
     console.log('Global tracking setup complete');
   }
 }

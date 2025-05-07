@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { getFullProductName, groupCartItems } from '@/utils/formatWhatsApp';
 
 export const PedidoImprimir = ({
   pedido,
@@ -17,68 +16,51 @@ export const PedidoImprimir = ({
     if (!pedido) return;
     setIsPrinting(true);
 
-    // Garantir que itens é um array
-    const itens = Array.isArray(pedido.itens) ? pedido.itens : 
-                 (typeof pedido.itens === 'string' ? JSON.parse(pedido.itens) : []);
+    const itensFormatados = pedido.itens.map((item: any) => {
+      let texto = `${item.qty}x ${item.name}`;
+      
+      // Adicionar detalhes do álcool se presente
+      if (item.alcohol) {
+        texto += ` (${item.alcohol})`;
+      }
+      
+      // Adicionar detalhes do sabor Baly se presente
+      if (item.balyFlavor) {
+        texto += ` (Baly: ${item.balyFlavor})`;
+      }
 
-    // Use the improved groupCartItems function for consistent grouping
-    const groupedItems = groupCartItems(itens);
+      // Adicionar detalhes do gelo se presente
+      if (item.ice && Object.entries(item.ice).some(([_, qty]: [string, any]) => qty > 0)) {
+        const geloInfo = Object.entries(item.ice)
+          .filter(([_, qty]: [string, any]) => qty > 0)
+          .map(([flavor, qty]: [string, any]) => `${flavor} x${qty}`)
+          .join(", ");
 
-    // Format items to properly show quantities with grouped items
-    const itensFormatados = groupedItems
-      .map((item: any) => {
-        const fullName = getFullProductName(item.name, item.category);
-        let texto = `${item.qty}x ${fullName}`;
+        texto += `\n   Gelo: ${geloInfo}`;
+      }
+
+      // Adicionar detalhes dos energéticos se presente
+      if (item.energyDrinks && item.energyDrinks.length > 0) {
+        const energeticosInfo = item.energyDrinks
+          .map((ed: any) => 
+            `${ed.type}${ed.flavor !== 'Tradicional' ? ` - ${ed.flavor}` : ''}`
+          )
+          .join(", ");
         
-        // Adicionar detalhes do álcool se presente
-        if (item.alcohol) {
-          texto += ` (${item.alcohol})`;
-        }
-        
-        // Adicionar detalhes do sabor Baly se presente
-        if (item.balyFlavor) {
-          texto += ` (Baly: ${item.balyFlavor})`;
-        }
+        texto += `\n   Energéticos: ${energeticosInfo}`;
+      }
 
-        // Adicionar detalhes do gelo se presente
-        if (item.ice && Object.entries(item.ice).some(([_, qty]: [string, any]) => qty > 0)) {
-          const geloInfo = Object.entries(item.ice)
-            .filter(([_, qty]: [string, any]) => qty > 0)
-            .map(([flavor, qty]: [string, any]) => `${flavor} x${qty}`)
-            .join(", ");
-
-          texto += `\n   Gelo: ${geloInfo}`;
-        }
-
-        // Adicionar detalhes dos energéticos se presente
-        if (item.energyDrinks && item.energyDrinks.length > 0) {
-          const energeticosInfo = item.energyDrinks
-            .map((ed: any) => 
-              `${ed.type}${ed.flavor !== 'Tradicional' ? ` - ${ed.flavor}` : ''}`
-            )
-            .join(", ");
-          
-          texto += `\n   Energéticos: ${energeticosInfo}`;
-        } else if (item.energyDrink) {
-          texto += `\n   Energético: ${item.energyDrink}${item.energyDrinkFlavor !== 'Tradicional' ? ` - ${item.energyDrinkFlavor}` : ''}`;
-        }
-
-        // Add price for each item (price per unit × quantity)
-        texto += `\n   R$ ${((item.price || 0) * (item.qty || 1)).toFixed(2)}`;
-        return texto;
-      }).join('\n\n');
-
-    // Calcular subtotal corretamente
-    const subtotal = groupedItems.reduce(
-      (sum, item) => sum + ((item.price || 0) * (item.qty || 1)), 
-      0
-    );
+      texto += `\n   R$ ${(item.price * item.qty).toFixed(2)}`;
+      return texto;
+    }).join('\n\n');
 
     const trocoInfo = pedido.forma_pagamento === 'Dinheiro' && pedido.troco 
-      ? `\nTROCO PARA: R$${pedido.troco} (TROCO R$${parseFloat(pedido.troco) >= pedido.total ? (parseFloat(pedido.troco) - pedido.total).toFixed(2).replace('.', ',') : '0,00'})\n`
-      : "";
+      ? `\nTROCO PARA: R$ ${pedido.troco}` 
+      : '';
 
     const conteudoImpressao = `
+${deliverer}
+
 ADEGA VM
 PEDIDO #${pedido.codigo_pedido}
 ${new Date(pedido.data_criacao).toLocaleString('pt-BR')}
@@ -94,9 +76,9 @@ ${pedido.observacao ? `OBSERVAÇÃO: ${pedido.observacao}` : ''}
 ITENS DO PEDIDO:
 ${itensFormatados}
 
-SUBTOTAL: R$ ${subtotal.toFixed(2).replace('.', ',')}
-TAXA DE ENTREGA: R$ ${pedido.taxa_entrega.toFixed(2).replace('.', ',')}
-TOTAL: R$ ${pedido.total.toFixed(2).replace('.', ',')}
+SUBTOTAL: R$ ${(pedido.total - pedido.taxa_entrega).toFixed(2)}
+TAXA DE ENTREGA: R$ ${pedido.taxa_entrega.toFixed(2)}
+TOTAL: R$ ${pedido.total.toFixed(2)}
 
 FORMA DE PAGAMENTO: ${pedido.forma_pagamento}
 ${trocoInfo}
@@ -158,7 +140,7 @@ ADEGA VM
               }
               .deliverer {
                 font-weight: bold;
-                font-size: 20pt;
+                font-size: 16pt;
                 text-align: center;
                 margin-bottom: 10mm;
               }
@@ -195,3 +177,4 @@ ADEGA VM
 
   return null;
 };
+
