@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -28,7 +29,7 @@ export const useStoreStatus = () => {
       // If no localStorage value, check Supabase
       const { data, error } = await supabase
         .from('system_settings')
-        .select('value')
+        .select('*')
         .eq('key', 'store_manually_open')
         .maybeSingle();
         
