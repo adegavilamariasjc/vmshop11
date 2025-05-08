@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { ShoppingCart, Trash2, ArrowRight, X, AlertCircle } from 'lucide-react';
 import { Product } from '../types';
@@ -34,7 +33,9 @@ const CartPreviewModal: React.FC<CartPreviewModalProps> = ({
   isStoreOpen
 }) => {
   const { toast } = useToast();
-  const cartTotal = cart.reduce((sum, item) => sum + (item.price || 0) * (item.qty || 1), 0);
+  // Filtrar itens com quantidade zero ou menor antes de calcular o total
+  const filteredCart = cart.filter(item => (item.qty || 0) > 0);
+  const cartTotal = filteredCart.reduce((sum, item) => sum + (item.price || 0) * (item.qty || 1), 0);
 
   const handleProceed = () => {
     if (!isStoreOpen) {
@@ -101,7 +102,7 @@ const CartPreviewModal: React.FC<CartPreviewModalProps> = ({
         {/* Content area with scrolling */}
         <div className="flex-1 overflow-y-auto py-2" style={{ maxHeight: 'calc(70vh - 140px)' }}>
           <div className="pr-2">
-            <OrderSummary cart={cart} />
+            <OrderSummary cart={filteredCart} />
             <CartSummary 
               subtotal={cartTotal} 
               deliveryFee={0}
@@ -114,16 +115,16 @@ const CartPreviewModal: React.FC<CartPreviewModalProps> = ({
           <Button
             variant="destructive"
             className="w-full"
-            onClick={handleClearCart}
-            disabled={cart.length === 0}
+            onClick={onClearCart}
+            disabled={filteredCart.length === 0}
           >
             <Trash2 className="h-4 w-4 mr-2" />
             Limpar
           </Button>
           <Button
             className={`w-full ${isStoreOpen ? 'bg-purple-dark hover:bg-purple-600' : 'bg-gray-600 hover:bg-gray-700'}`}
-            onClick={handleProceed}
-            disabled={cart.length === 0}
+            onClick={onProceedToCheckout}
+            disabled={filteredCart.length === 0}
           >
             <ArrowRight className="h-4 w-4 mr-2" />
             Avançar
