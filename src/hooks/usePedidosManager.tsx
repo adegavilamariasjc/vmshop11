@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase/client';
@@ -187,6 +186,9 @@ export const usePedidosManager = () => {
         clearInterval(pollIntervalRef.current);
         pollIntervalRef.current = null;
       }
+      
+      // Ensure audio is stopped on cleanup
+      stopRingingAlert();
     };
   }, [toast, startPolling]);
 
@@ -252,10 +254,13 @@ export const usePedidosManager = () => {
     }
   };
 
-  // Improved audio alert system
+  // Improved audio alert system with definite stopping ability
   const startRingingAlert = () => {
     // Clear any existing interval first
     stopRingingAlert();
+    
+    // Create a new audio element each time to avoid stale references
+    audioRef.current = new Audio('https://adegavm.shop/ring.mp3');
     
     // Play immediately with better error handling
     playAlertSound();
@@ -264,20 +269,43 @@ export const usePedidosManager = () => {
     audioIntervalRef.current = setInterval(() => {
       playAlertSound();
     }, 3000); // Interval between rings
+    
+    console.log("Alert sound started");
   };
 
-  // Function to stop continuous ringing
+  // Function to stop continuous ringing with guaranteed stop
   const stopRingingAlert = () => {
+    console.log("Stopping alert sound...");
+    
+    // Clear the interval first
     if (audioIntervalRef.current) {
       clearInterval(audioIntervalRef.current);
       audioIntervalRef.current = null;
-      
-      // Stop audio if playing
-      if (audioRef.current) {
+    }
+    
+    // Stop all potentially playing audio elements
+    if (audioRef.current) {
+      try {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
+        audioRef.current = null; // Clear reference to ensure garbage collection
+      } catch (e) {
+        console.error("Error stopping audio:", e);
       }
     }
+    
+    // As a failsafe, try to stop any audio that might be playing
+    try {
+      const allAudio = document.querySelectorAll('audio');
+      allAudio.forEach(audio => {
+        audio.pause();
+        audio.currentTime = 0;
+      });
+    } catch (e) {
+      console.error("Error stopping all audio elements:", e);
+    }
+    
+    console.log("Alert sound stopped");
   };
 
   const fetchPedidosData = async () => {
@@ -330,7 +358,11 @@ export const usePedidosManager = () => {
 
   // Improved audio playback with multiple fallbacks
   const playAlertSound = () => {
-    if (audioRef.current) {
+    if (!audioRef.current) {
+      audioRef.current = new Audio('https://adegavm.shop/ring.mp3');
+    }
+    
+    try {
       // Reset audio to beginning
       audioRef.current.currentTime = 0;
       
@@ -347,32 +379,26 @@ export const usePedidosManager = () => {
             console.error("Erro ao tocar som após recriação:", e2);
             
             // Try alternative approach without new Audio object
-            const tempAudio = document.createElement('audio');
-            tempAudio.src = 'https://adegavm.shop/ring.mp3';
-            tempAudio.play().catch(e3 => {
-              console.error("Todas as tentativas de tocar som falharam:", e3);
-            });
+            try {
+              const tempAudio = document.createElement('audio');
+              tempAudio.src = 'https://adegavm.shop/ring.mp3';
+              tempAudio.play().catch(e3 => {
+                console.error("Todas as tentativas de tocar som falharam:", e3);
+              });
+            } catch (e4) {
+              console.error("Erro ao criar elemento de áudio:", e4);
+            }
           });
         });
       }
-    } else {
-      // Recreate if missing
-      audioRef.current = new Audio('https://adegavm.shop/ring.mp3');
-      audioRef.current.play().catch(e => {
-        console.error("Erro ao tocar som após recriação:", e);
-        
-        // Fallback to alternative method
-        const tempAudio = document.createElement('audio');
-        tempAudio.src = 'https://adegavm.shop/ring.mp3';
-        tempAudio.play().catch(e2 => {
-          console.error("Todas as tentativas de tocar som falharam:", e2);
-        });
-      });
+    } catch (e) {
+      console.error("Erro ao manipular áudio:", e);
     }
   };
 
   const handleAcknowledge = () => {
-    // Always stop the alert sound when acknowledging
+    console.log("Handling acknowledgment - stopping alert sound");
+    // Always stop the alert sound when acknowledging - now with guaranteed stop
     stopRingingAlert();
     setHasNewPedido(false);
   };

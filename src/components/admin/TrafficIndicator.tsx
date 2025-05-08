@@ -1,16 +1,21 @@
 
 import React, { useEffect } from 'react';
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useTrafficData } from '@/hooks/useTrafficData';
 import { setupGlobalTracking } from '@/utils/trackPageVisit';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { AlertCircle, Loader2, Users, Clock } from 'lucide-react';
 
 const TrafficIndicator = () => {
   const { metrics, isLoading, error } = useTrafficData();
   
   useEffect(() => {
-    // Ensure tracking is set up when this component loads
-    setupGlobalTracking();
+    // Garantir que o rastreamento esteja configurado quando este componente carregar
+    const setup = async () => {
+      console.log('Setting up global tracking from TrafficIndicator');
+      await setupGlobalTracking();
+    };
+    
+    setup();
   }, []);
 
   if (isLoading) {
@@ -41,6 +46,12 @@ const TrafficIndicator = () => {
 
   return (
     <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center gap-2">
+          <Users className="h-5 w-5" />
+          Atividade de Visitantes
+        </CardTitle>
+      </CardHeader>
       <CardContent className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 p-6">
         <div className="flex flex-col items-center justify-center space-y-2 bg-green-500/10 rounded-lg p-4">
           <div className="text-4xl font-bold text-green-500">
