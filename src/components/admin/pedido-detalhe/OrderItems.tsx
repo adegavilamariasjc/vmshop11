@@ -24,14 +24,11 @@ const OrderItems: React.FC<OrderItemsProps> = ({ items }) => {
     }
     return item.name;
   };
-  
-  // Filtrar itens com quantidade zero ou menor
-  const filteredItems = items.filter(item => (item.qty || 0) > 0);
 
   return (
     <div className="items">
       <h3><strong>ITENS DO PEDIDO</strong></h3>
-      {filteredItems.map((item, index) => (
+      {items.map((item, index) => (
         <div key={index} className="item">
           <div>
             {item.qty}x {getFullProductName(item)} 

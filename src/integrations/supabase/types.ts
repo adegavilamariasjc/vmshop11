@@ -221,24 +221,6 @@ export type Database = {
           },
         ]
       }
-      system_settings: {
-        Row: {
-          id: number
-          key: string
-          value: string
-        }
-        Insert: {
-          id?: number
-          key: string
-          value: string
-        }
-        Update: {
-          id?: number
-          key?: string
-          value?: string
-        }
-        Relationships: []
-      }
     }
     Views: {
       [_ in never]: never

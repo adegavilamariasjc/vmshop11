@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ShoppingBag, AlertCircle } from 'lucide-react';
@@ -29,9 +30,7 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
 }) => {
   const [isCartModalOpen, setIsCartModalOpen] = useState(false);
   const { toast } = useToast();
-  // Filtrar produtos com quantidade 0 ou menor antes de cálculos
-  const filteredCart = cart.filter(item => (item.qty || 0) > 0);
-  const cartTotal = filteredCart.reduce((sum, item) => sum + (item.price || 0) * (item.qty || 1), 0);
+  const cartTotal = cart.reduce((sum, item) => sum + (item.price || 0) * (item.qty || 1), 0);
 
   const handleClearCart = () => {
     // Create a deep copy of the cart to prevent manipulation during iteration
@@ -107,11 +106,11 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
         className={`fixed bottom-6 right-6 ${isStoreOpen ? 'bg-purple-dark hover:bg-purple-600' : 'bg-gray-600 hover:bg-gray-700'} text-white px-4 py-3 rounded-full shadow-lg flex items-center gap-2`}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        animate={filteredCart.length > 0 && isStoreOpen ? { y: [0, -5, 0], transition: { repeat: 2, duration: 0.6 } } : {}}
+        animate={cart.length > 0 && isStoreOpen ? { y: [0, -5, 0], transition: { repeat: 2, duration: 0.6 } } : {}}
       >
         <ShoppingBag size={20} />
         <span className="font-semibold">
-          {filteredCart.length > 0 ? `${filteredCart.reduce((sum, p) => sum + (p.qty || 1), 0)} itens - R$ ${cartTotal.toFixed(2)}` : "Cardápio"}
+          {cart.length > 0 ? `${cart.reduce((sum, p) => sum + (p.qty || 1), 0)} itens - R$ ${cartTotal.toFixed(2)}` : "Cardápio"}
         </span>
       </motion.button>
 
