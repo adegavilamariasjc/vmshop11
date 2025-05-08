@@ -80,10 +80,20 @@ export const useOrderSubmission = ({
     }
     
     try {
-      // Convert troco to number before storing in database
-      const trocoValue = form.troco ? parseFloat(form.troco) : 0;
+      // Convert cart to a JSON-compatible format by ensuring it's a plain object
+      const jsonCompatibleCart = cart.map(item => ({
+        name: item.name,
+        price: item.price,
+        category: item.category,
+        qty: item.qty,
+        ice: item.ice,
+        alcohol: item.alcohol,
+        balyFlavor: item.balyFlavor,
+        energyDrink: item.energyDrink,
+        energyDrinkFlavor: item.energyDrinkFlavor,
+        energyDrinks: item.energyDrinks
+      }));
       
-      // FIX: Pass a single object, not an array of objects with a single element
       const { data, error } = await supabase
         .from('pedidos')
         .insert({
@@ -99,7 +109,7 @@ export const useOrderSubmission = ({
           forma_pagamento: form.pagamento,
           troco: form.troco, // Keep as string to maintain compatibility
           observacao: form.observacao,
-          itens: cart,
+          itens: jsonCompatibleCart, // Use the JSON-compatible cart
           total: total,
           status: 'pendente'
         })
