@@ -83,9 +83,10 @@ export const useOrderSubmission = ({
       // Convert troco to number before storing in database
       const trocoValue = form.troco ? parseFloat(form.troco) : 0;
       
+      // FIX: Pass a single object, not an array of objects with a single element
       const { data, error } = await supabase
         .from('pedidos')
-        .insert([{
+        .insert({
           codigo_pedido: codigoPedido,
           cliente_nome: form.nome,
           cliente_endereco: form.endereco,
@@ -96,12 +97,12 @@ export const useOrderSubmission = ({
           taxa_entrega: form.bairro.taxa,
           cliente_whatsapp: form.whatsapp,
           forma_pagamento: form.pagamento,
-          troco: trocoValue, // Using the parsed number value
+          troco: form.troco, // Keep as string to maintain compatibility
           observacao: form.observacao,
           itens: cart,
           total: total,
           status: 'pendente'
-        }])
+        })
         .select();
       
       if (error) {
