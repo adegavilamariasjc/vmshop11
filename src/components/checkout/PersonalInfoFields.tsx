@@ -49,10 +49,9 @@ const PersonalInfoFields: React.FC<PersonalInfoFieldsProps> = ({
             type="text"
             value={nome}
             onChange={onChange}
-            className="w-full bg-gray-800 text-gray-200 text-shadow-dark border border-gray-700 rounded-md p-2 text-sm placeholder:text-gray-400"
+            className="w-full bg-gray-800 text-gray-200 text-shadow-dark border border-gray-700 rounded-md p-2 text-sm"
             placeholder="Seu nome completo"
             required
-            style={{color: '#D6BCFA'}} // Light purple text color
           />
         </FormField>
       </div>
@@ -65,11 +64,10 @@ const PersonalInfoFields: React.FC<PersonalInfoFieldsProps> = ({
             type="tel"
             value={whatsapp}
             onChange={handleWhatsAppChange}
-            className="w-full bg-gray-800 text-gray-200 text-shadow-dark border border-gray-700 rounded-md p-2 text-sm placeholder:text-gray-400"
+            className="w-full bg-gray-800 text-gray-200 text-shadow-dark border border-gray-700 rounded-md p-2 text-sm"
             placeholder="Ex: 12 999999999"
             required
             maxLength={13} // 2 digits + space + 9 digits = 12 chars
-            style={{color: '#D6BCFA'}} // Light purple text color
           />
         </FormField>
       </div>

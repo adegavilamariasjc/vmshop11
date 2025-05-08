@@ -30,8 +30,7 @@ export const formatWhatsAppMessage = (
   itemsText: string,
   total: number
 ): string => {
-  // Parse troco string to number or default to 0
-  const trocoValue = troco ? parseFloat(troco) : 0;
+  const trocoValue = Number(troco) || 0;
   const trocoFinal = trocoValue - total;
 
   const trocoMessage = pagamento === "Dinheiro"
