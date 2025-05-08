@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -9,6 +10,7 @@ import CategoryManager from '../components/admin/CategoryManager';
 import BairroManager from '../components/admin/BairroManager';
 import PedidosManager from '../components/admin/PedidosManager';
 import TrafficIndicator from '../components/admin/TrafficIndicator';
+import StoreStatusControl from '../components/admin/StoreStatusControl';
 import Logo from '../components/Logo';
 import BackgroundVideoPlayer from '../components/BackgroundVideoPlayer';
 import { getVideoUrls } from '@/utils/videoUrls';
@@ -73,8 +75,9 @@ const Admin = () => {
             <div className="mt-8">
               <h1 className="text-2xl font-bold text-white mb-6">Painel Administrativo</h1>
               
-              <div className="mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <TrafficIndicator />
+                <StoreStatusControl />
               </div>
               
               <Tabs defaultValue="pedidos" className="w-full">
