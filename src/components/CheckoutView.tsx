@@ -29,9 +29,15 @@ const CheckoutView: React.FC<CheckoutViewProps> = ({
   isSending = false,
   isStoreOpen
 }) => {
-  const subtotal = useMemo(() => 
-    cart.reduce((sum, item) => sum + (item.price || 0) * (item.qty || 1), 0),
+  // Filter cart items with zero quantity
+  const filteredCart = useMemo(() => 
+    cart.filter(item => (item.qty || 0) > 0),
     [cart]
+  );
+  
+  const subtotal = useMemo(() => 
+    filteredCart.reduce((sum, item) => sum + (item.price || 0) * (item.qty || 1), 0),
+    [filteredCart]
   );
   
   const total = useMemo(() => 
@@ -40,7 +46,7 @@ const CheckoutView: React.FC<CheckoutViewProps> = ({
   );
 
   // Check if the form is valid for submission
-  const isFormValid = cart.length > 0 && 
+  const isFormValid = filteredCart.length > 0 && 
     form.nome !== '' && 
     form.endereco !== '' && 
     form.numero !== '' && 
@@ -78,7 +84,7 @@ const CheckoutView: React.FC<CheckoutViewProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Order Summary */}
         <div>
-          <OrderSummary cart={cart} />
+          <OrderSummary cart={filteredCart} />
           <CartSummary 
             subtotal={subtotal} 
             deliveryFee={form.bairro.taxa} 

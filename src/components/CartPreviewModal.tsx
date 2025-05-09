@@ -34,7 +34,9 @@ const CartPreviewModal: React.FC<CartPreviewModalProps> = ({
   isStoreOpen
 }) => {
   const { toast } = useToast();
-  const cartTotal = cart.reduce((sum, item) => sum + (item.price || 0) * (item.qty || 1), 0);
+  // Filter cart items with zero quantity
+  const filteredCart = cart.filter(item => (item.qty || 0) > 0);
+  const cartTotal = filteredCart.reduce((sum, item) => sum + (item.price || 0) * (item.qty || 1), 0);
 
   const handleProceed = () => {
     if (!isStoreOpen) {
@@ -101,7 +103,7 @@ const CartPreviewModal: React.FC<CartPreviewModalProps> = ({
         {/* Content area with scrolling */}
         <div className="flex-1 overflow-y-auto py-2" style={{ maxHeight: 'calc(70vh - 140px)' }}>
           <div className="pr-2">
-            <OrderSummary cart={cart} />
+            <OrderSummary cart={filteredCart} />
             <CartSummary 
               subtotal={cartTotal} 
               deliveryFee={0}
@@ -115,7 +117,7 @@ const CartPreviewModal: React.FC<CartPreviewModalProps> = ({
             variant="destructive"
             className="w-full"
             onClick={handleClearCart}
-            disabled={cart.length === 0}
+            disabled={filteredCart.length === 0}
           >
             <Trash2 className="h-4 w-4 mr-2" />
             Limpar
@@ -123,7 +125,7 @@ const CartPreviewModal: React.FC<CartPreviewModalProps> = ({
           <Button
             className={`w-full ${isStoreOpen ? 'bg-purple-dark hover:bg-purple-600' : 'bg-gray-600 hover:bg-gray-700'}`}
             onClick={handleProceed}
-            disabled={cart.length === 0}
+            disabled={filteredCart.length === 0}
           >
             <ArrowRight className="h-4 w-4 mr-2" />
             Avançar
