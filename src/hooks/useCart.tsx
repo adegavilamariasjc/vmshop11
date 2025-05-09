@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -98,7 +99,8 @@ export const useCart = () => {
       );
       
       if (existingItem) {
-        return prevCart
+        // Update existing item quantity
+        const updatedCart = prevCart
           .map(p =>
             p.name === item.name &&
             p.category === item.category &&
@@ -108,12 +110,15 @@ export const useCart = () => {
             p.balyFlavor === item.balyFlavor &&
             p.energyDrink === item.energyDrink &&
             p.energyDrinkFlavor === item.energyDrinkFlavor
-              ? { ...p, qty: Math.max(0, (p.qty || 1) + delta) }
+              ? { ...p, qty: Math.max(0, (p.qty || 0) + delta) }
               : p
           )
-          .filter(p => (p.qty || 1) > 0);
+          .filter(p => (p.qty || 0) > 0);
+        
+        return updatedCart;
       }
       
+      // Add new item if delta is positive
       return delta > 0 ? [...prevCart, { ...item, qty: 1 }] : prevCart;
     });
   };
