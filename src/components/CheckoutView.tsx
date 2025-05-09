@@ -39,6 +39,14 @@ const CheckoutView: React.FC<CheckoutViewProps> = ({
     [subtotal, form.bairro.taxa]
   );
 
+  // Check if the form is valid for submission
+  const isFormValid = cart.length > 0 && 
+    form.nome !== '' && 
+    form.endereco !== '' && 
+    form.numero !== '' && 
+    form.bairro.nome !== 'Selecione Um Bairro' && 
+    form.pagamento !== '';
+
   return (
     <motion.div
       key="checkout"
@@ -88,7 +96,7 @@ const CheckoutView: React.FC<CheckoutViewProps> = ({
           
           <motion.button
             onClick={onSubmit}
-            disabled={!isStoreOpen || cart.length === 0 || form.nome === '' || form.endereco === '' || form.bairro.nome === 'Selecione Um Bairro' || form.pagamento === '' || isSending}
+            disabled={!isStoreOpen || !isFormValid || isSending}
             className="w-full bg-green-600 hover:bg-green-700 text-white rounded-md py-3 px-4 flex justify-center items-center gap-2 mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
