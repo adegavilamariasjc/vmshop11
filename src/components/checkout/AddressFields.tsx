@@ -66,9 +66,10 @@ const AddressFields: React.FC<AddressFieldsProps> = ({
             inputMode="numeric"
             value={numero}
             onChange={handleNumberChange}
-            className="w-full bg-gray-800 text-gray-200 text-shadow-dark border border-gray-700 rounded-md p-2 text-sm"
+            className="w-full bg-gray-800 text-gray-200 text-shadow-dark border border-gray-700 rounded-md p-2 text-sm placeholder:text-gray-400"
             placeholder="Apenas números"
             required
+            style={{color: '#D6BCFA'}} // Light purple text color
           />
         </FormField>
       </div>
@@ -81,8 +82,9 @@ const AddressFields: React.FC<AddressFieldsProps> = ({
             type="text"
             value={complemento}
             onChange={onChange}
-            className="w-full bg-gray-800 text-gray-200 text-shadow-dark border border-gray-700 rounded-md p-2 text-sm"
+            className="w-full bg-gray-800 text-gray-200 text-shadow-dark border border-gray-700 rounded-md p-2 text-sm placeholder:text-gray-400"
             placeholder="Apto, Bloco, etc."
+            style={{color: '#D6BCFA'}} // Light purple text color
           />
         </FormField>
       </div>
@@ -95,8 +97,9 @@ const AddressFields: React.FC<AddressFieldsProps> = ({
             type="text"
             value={referencia}
             onChange={onChange}
-            className="w-full bg-gray-800 text-gray-200 text-shadow-dark border border-gray-700 rounded-md p-2 text-sm"
+            className="w-full bg-gray-800 text-gray-200 text-shadow-dark border border-gray-700 rounded-md p-2 text-sm placeholder:text-gray-400"
             placeholder="Próximo a..."
+            style={{color: '#D6BCFA'}} // Light purple text color
           />
         </FormField>
       </div>
