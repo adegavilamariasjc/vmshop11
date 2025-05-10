@@ -5,8 +5,8 @@ export const usePedidoPrint = () => {
   const [isPrinting, setIsPrinting] = useState(false);
 
   const handlePrintRequest = useCallback(() => {
-    // Simply set a flag to show the deliverer selection modal
-    // The actual printing will be handled after deliverer selection
+    // We need to show the deliverer selection modal
+    // This returns true to indicate we should open the modal
     return true;
   }, []);
 

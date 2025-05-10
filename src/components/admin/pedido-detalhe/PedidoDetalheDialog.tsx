@@ -82,7 +82,12 @@ const PedidoDetalheDialog = ({
                     />
 
                     <OrderActions 
-                      onPrint={handlePrintRequest}
+                      onPrint={() => {
+                        // Call handlePrintRequest which will return true if we should show deliverer modal
+                        if (handlePrintRequest()) {
+                          setShowDelivererModal(true);
+                        }
+                      }}
                       onDelete={handleExcluirPedido}
                       isPrinting={isPrinting}
                       isDeleting={isDeleting}
