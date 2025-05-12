@@ -3,16 +3,22 @@ import { supabase } from '@/integrations/supabase/client';
 
 export async function trackPageVisit(pagina = window.location.pathname, acao = 'pageload') {
   try {
-    // Adicionar informações do cliente aos dados de rastreamento
+    // Add client information to tracking data
     const clientInfo = {
       userAgent: navigator.userAgent,
       language: navigator.language,
       screenWidth: window.screen.width,
       screenHeight: window.screen.height,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      url: window.location.href,
+      referrer: document.referrer || 'direct'
     };
 
     console.log(`Tracking page visit: ${pagina}, action: ${acao}`);
+
+    // Use timeout to ensure the request completes even if the page is being navigated away from
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
 
     const { error } = await supabase
       .from('page_visits')
@@ -21,7 +27,11 @@ export async function trackPageVisit(pagina = window.location.pathname, acao = '
         acao,
         data_hora: new Date().toISOString(),
         detalhes: clientInfo
-      }]);
+      }], { 
+        returning: 'minimal' // Improve performance by not returning the inserted row
+      });
+
+    clearTimeout(timeoutId);
 
     if (error) {
       console.error('Error tracking page visit:', error);
@@ -40,16 +50,37 @@ export function setupGlobalTracking() {
   if (typeof window !== 'undefined') {
     if ((window as any).__trackingSetup) {
       console.log('Global tracking already setup, skipping');
-      return;
+      return Promise.resolve(true);
     }
     
-    // Rastrear carregamento inicial da página
-    trackPageVisit();
+    // Track initial page load with retry logic
+    const trackInitialPageLoad = async (retries = 3) => {
+      try {
+        const success = await trackPageVisit();
+        if (success) {
+          console.log('Initial page tracking successful');
+          return true;
+        }
+        
+        if (retries > 0) {
+          console.log(`Initial page tracking failed, retrying... (${retries} attempts left)`);
+          setTimeout(() => trackInitialPageLoad(retries - 1), 1000);
+        }
+        
+        return false;
+      } catch (err) {
+        console.error('Error in initial page tracking:', err);
+        if (retries > 0) {
+          setTimeout(() => trackInitialPageLoad(retries - 1), 1000);
+        }
+        return false;
+      }
+    };
     
-    // Definir flag para evitar rastreamento duplicado
+    // Set flag to prevent duplicate tracking
     (window as any).__trackingSetup = true;
     
-    // Configurar ouvintes para mudanças de URL via History API
+    // Configure listeners for URL changes via History API
     const originalPushState = history.pushState;
     const originalReplaceState = history.replaceState;
     
@@ -63,12 +94,47 @@ export function setupGlobalTracking() {
       trackPageVisit(url?.toString() || window.location.pathname, 'navigation');
     };
     
-    // Registrar eventos de navegação
+    // Register navigation events
     window.addEventListener('popstate', () => {
       trackPageVisit(window.location.pathname, 'navigation');
     });
     
-    // Log de configuração bem-sucedida
+    // Log successful setup
     console.log('Global tracking setup complete');
+    
+    // Start initial tracking
+    return trackInitialPageLoad();
+  }
+  
+  return Promise.resolve(false);
+}
+
+// Helper function to check if tracking is working
+export async function checkTrackingStatus() {
+  try {
+    const { data, error } = await supabase
+      .from('page_visits')
+      .select('id')
+      .order('data_hora', { ascending: false })
+      .limit(1);
+    
+    if (error) {
+      console.error('Error checking tracking status:', error);
+      return {
+        working: false,
+        error: error.message
+      };
+    }
+    
+    return {
+      working: true,
+      lastEntry: data && data.length > 0 ? data[0].id : null
+    };
+  } catch (err) {
+    console.error('Exception checking tracking status:', err);
+    return {
+      working: false,
+      error: (err as Error).message
+    };
   }
 }
