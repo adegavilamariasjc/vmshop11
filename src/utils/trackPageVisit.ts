@@ -20,15 +20,14 @@ export async function trackPageVisit(pagina = window.location.pathname, acao = '
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
 
+    // Fixed: Don't wrap the object in an array and remove 'returning' option
     const { error } = await supabase
       .from('page_visits')
-      .insert([{
+      .insert({
         pagina,
         acao,
         data_hora: new Date().toISOString(),
         detalhes: clientInfo
-      }], { 
-        returning: 'minimal' // Improve performance by not returning the inserted row
       });
 
     clearTimeout(timeoutId);
