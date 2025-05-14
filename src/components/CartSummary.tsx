@@ -1,18 +1,33 @@
 
 import React from 'react';
+import { Product } from '../types';
+import { getProductDisplayPrice } from '../utils/discountUtils';
 
 interface CartSummaryProps {
   subtotal: number;
   deliveryFee: number;
   total: number;
+  cart?: Product[];
 }
 
-const CartSummary: React.FC<CartSummaryProps> = ({ subtotal, deliveryFee, total }) => {
+const CartSummary: React.FC<CartSummaryProps> = ({ 
+  subtotal, 
+  deliveryFee, 
+  total, 
+  cart = [] 
+}) => {
+  // If cart is provided, recalculate the total with discounts
+  const calculatedSubtotal = cart.length > 0
+    ? cart.reduce((sum, item) => sum + getProductDisplayPrice(item), 0)
+    : subtotal;
+  
+  const calculatedTotal = calculatedSubtotal + deliveryFee;
+
   return (
     <div className="border border-gray-600 rounded-lg p-4 bg-black/50 mt-4">
       <div className="flex justify-between mb-2">
         <span className="text-white">Subtotal:</span>
-        <span className="text-white">R$ {subtotal.toFixed(2)}</span>
+        <span className="text-white">R$ {calculatedSubtotal.toFixed(2)}</span>
       </div>
       <div className="flex justify-between mb-2">
         <span className="text-white">Taxa de entrega:</span>
@@ -20,7 +35,7 @@ const CartSummary: React.FC<CartSummaryProps> = ({ subtotal, deliveryFee, total 
       </div>
       <div className="flex justify-between font-bold text-lg">
         <span className="text-white">Total:</span>
-        <span className="text-purple-light">R$ {total.toFixed(2)}</span>
+        <span className="text-purple-light">R$ {calculatedTotal.toFixed(2)}</span>
       </div>
     </div>
   );

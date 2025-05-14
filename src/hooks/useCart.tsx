@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -315,6 +314,7 @@ export const useCart = () => {
     });
   };
 
+  // Export all the needed values and functions
   return {
     cart,
     activeCategory,

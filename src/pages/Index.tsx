@@ -18,6 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import AdminLink from '../components/AdminLink';
 import { savePedido, fetchPedidos } from '@/lib/supabase';
 import { useStoreStatus } from '@/hooks/useStoreStatus';
+import { getProductDisplayPrice } from '../utils/discountUtils';
 
 const Index = () => {
   const { isOpen } = useStoreStatus();
@@ -158,7 +159,8 @@ const Index = () => {
   const preparePedido = async () => {
     if (cart.length === 0 || !isOpen) return false;
     
-    const total = cart.reduce((sum, p) => sum + (p.price || 0) * (p.qty || 1), 0) + form.bairro.taxa;
+    // Calculate total with discounts applied
+    const total = cart.reduce((sum, p) => sum + getProductDisplayPrice(p), 0) + form.bairro.taxa;
     
     const isDuplicate = await checkDuplicateOrder(form.nome, form.whatsapp, total);
     setIsDuplicateOrder(isDuplicate);
@@ -198,7 +200,8 @@ const Index = () => {
       return "";
     }
     
-    const total = cart.reduce((sum, p) => sum + (p.price || 0) * (p.qty || 1), 0) + form.bairro.taxa;
+    // Calculate total with discounts applied
+    const total = cart.reduce((sum, p) => sum + getProductDisplayPrice(p), 0) + form.bairro.taxa;
     
     const itensPedido = cart
       .map(p => {
@@ -215,8 +218,16 @@ const Index = () => {
         const energyDrinkText = p.energyDrink 
           ? ` (Energético: ${p.energyDrink}${p.energyDrinkFlavor !== 'Tradicional' ? ' - ' + p.energyDrinkFlavor : ''})`
           : "";
+        
+        // Check if this beer product has a discount
+        const isBeer = p.category?.toLowerCase().includes('cerveja');
+        const hasDiscount = isBeer && (p.qty || 0) >= 12;
+        const discountText = hasDiscount ? " (-10%)" : "";
+        
+        // Calculate the price with any discounts applied
+        const displayPrice = getProductDisplayPrice(p);
           
-        return `${p.qty}x ${fullName}${alcoholText}${balyText}${energyDrinkText}${iceText} - R$${((p.price || 0) * (p.qty || 1)).toFixed(2)}`;
+        return `${p.qty}x ${fullName}${alcoholText}${balyText}${energyDrinkText}${discountText}${iceText} - R$${displayPrice.toFixed(2)}`;
       })
       .join("\n");
     

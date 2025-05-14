@@ -15,6 +15,7 @@ import { Button } from './ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { getProductDisplayPrice } from '../utils/discountUtils';
 
 interface CartPreviewModalProps {
   isOpen: boolean;
@@ -36,7 +37,9 @@ const CartPreviewModal: React.FC<CartPreviewModalProps> = ({
   const { toast } = useToast();
   // Filter cart items with zero quantity
   const filteredCart = cart.filter(item => (item.qty || 0) > 0);
-  const cartTotal = filteredCart.reduce((sum, item) => sum + (item.price || 0) * (item.qty || 1), 0);
+  
+  // Calculate cart total with discounts applied
+  const cartTotal = filteredCart.reduce((sum, item) => sum + getProductDisplayPrice(item), 0);
 
   const handleProceed = () => {
     if (!isStoreOpen) {
@@ -108,6 +111,7 @@ const CartPreviewModal: React.FC<CartPreviewModalProps> = ({
               subtotal={cartTotal} 
               deliveryFee={0}
               total={cartTotal}
+              cart={filteredCart}
             />
           </div>
         </div>

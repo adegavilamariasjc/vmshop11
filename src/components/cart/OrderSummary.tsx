@@ -2,6 +2,7 @@
 import React from 'react';
 import { Bairro, Product } from '../../types';
 import CartItem from './CartItem';
+import { getProductDisplayPrice } from '../../utils/discountUtils';
 
 interface OrderSummaryProps {
   cart: Product[];

@@ -8,6 +8,7 @@ import ProductList from './ProductList';
 import CartPreviewModal from './CartPreviewModal';
 import { Product } from '../types';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { getProductDisplayPrice } from '../utils/discountUtils';
 
 interface ProductSelectionViewProps {
   activeCategory: string | null;
@@ -33,7 +34,9 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
   
   // Filter cart items with zero quantity
   const filteredCart = cart.filter(item => (item.qty || 0) > 0);
-  const cartTotal = filteredCart.reduce((sum, item) => sum + (item.price || 0) * (item.qty || 1), 0);
+  
+  // Calculate cart total with discounts applied
+  const cartTotal = filteredCart.reduce((sum, item) => sum + getProductDisplayPrice(item), 0);
 
   const handleClearCart = () => {
     // Create a deep copy of the cart to prevent manipulation during iteration
