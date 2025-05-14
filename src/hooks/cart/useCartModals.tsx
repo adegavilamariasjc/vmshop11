@@ -9,7 +9,7 @@ export const useCartModals = (
   selectedProductForFlavor: Product | null,
   setSelectedProductForFlavor: (product: Product | null) => void,
   selectedIce: Record<string, number>,
-  setSelectedIce: (ice: Record<string, number>) => void,
+  setSelectedIce: React.Dispatch<React.SetStateAction<Record<string, number>>>,
   setPendingProductWithIce: (product: Product | null) => void,
   setCurrentProductType: (type: 'copao' | 'combo') => void,
   setIsFlavorModalOpen: (isOpen: boolean) => void,
@@ -31,7 +31,7 @@ export const useCartModals = (
 
   // Function to update ice quantities
   const updateIceQuantity = (flavor: string, delta: number) => {
-    setSelectedIce((prev: Record<string, number>) => {
+    setSelectedIce((prev) => {
       const currentTotal = Object.values(prev).reduce((sum, v) => sum + v, 0);
       const maxIce = getMaxIce(selectedProductForFlavor?.category || "");
       

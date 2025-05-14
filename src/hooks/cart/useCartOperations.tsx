@@ -6,7 +6,7 @@ import { isCopao, isCombo } from './useCartHelpers';
 
 export const useCartOperations = (
   cart: Product[],
-  setCart: (cart: Product[]) => void,
+  setCart: React.Dispatch<React.SetStateAction<Product[]>>,
   activeCategory: string | null,
   setActiveCategory: (category: string | null) => void,
   setSelectedProductForFlavor: (product: Product | null) => void,
@@ -44,7 +44,7 @@ export const useCartOperations = (
   };
 
   const handleUpdateQuantity = (item: Product, delta: number) => {
-    setCart((prevCart: Product[]) => {
+    setCart((prevCart) => {
       const existingItem = prevCart.find(
         (p) =>
           p.name === item.name &&
