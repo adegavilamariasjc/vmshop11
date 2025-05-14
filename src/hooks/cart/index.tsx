@@ -11,6 +11,7 @@ import {
   requiresFlavor, 
   requiresAlcoholChoice
 } from '../../data/products';
+import { AlcoholOption } from '../../types';
 
 export const useCart = () => {
   // Get all the state from our state hook
@@ -58,7 +59,7 @@ export const useCart = () => {
     setSelectedProductForFlavor,
     setIsFlavorModalOpen,
     setSelectedProductForAlcohol,
-    setSelectedAlcohol,
+    setSelectedAlcohol as (alcohol: AlcoholOption | null) => void,
     setIsAlcoholModalOpen,
     setSelectedProductForBaly,
     setIsBalyModalOpen,
@@ -87,7 +88,7 @@ export const useCart = () => {
   // Get alcohol selection functionality
   const { confirmAlcoholSelection } = useAlcoholSelection(
     selectedProductForAlcohol,
-    selectedAlcohol,
+    selectedAlcohol as AlcoholOption | null,
     setIsAlcoholModalOpen,
     setSelectedProductForBaly,
     setIsBalyModalOpen,
@@ -115,7 +116,7 @@ export const useCart = () => {
     setSelectedProductForFlavor,
     setIsFlavorModalOpen,
     setSelectedProductForAlcohol,
-    setSelectedAlcohol,
+    setSelectedAlcohol as (alcohol: AlcoholOption | null) => void,
     setIsAlcoholModalOpen,
     setSelectedProductForBaly,
     setIsBalyModalOpen,

@@ -44,7 +44,7 @@ export const useCartOperations = (
   };
 
   const handleUpdateQuantity = (item: Product, delta: number) => {
-    setCart(prevCart => {
+    setCart((prevCart: Product[]) => {
       const existingItem = prevCart.find(
         (p) =>
           p.name === item.name &&

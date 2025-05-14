@@ -1,7 +1,7 @@
 
 import { useEffect } from 'react';
 import { Product } from '../../types';
-import { iceFlavors, getMaxIce } from '../../data/products';
+import { iceFlavors, getMaxIce, containsBaly } from '../../data/products';
 import { useToast } from '@/hooks/use-toast';
 import { isCopao, isCombo } from './useCartHelpers';
 
@@ -31,7 +31,7 @@ export const useCartModals = (
 
   // Function to update ice quantities
   const updateIceQuantity = (flavor: string, delta: number) => {
-    setSelectedIce(prev => {
+    setSelectedIce((prev: Record<string, number>) => {
       const currentTotal = Object.values(prev).reduce((sum, v) => sum + v, 0);
       const maxIce = getMaxIce(selectedProductForFlavor?.category || "");
       

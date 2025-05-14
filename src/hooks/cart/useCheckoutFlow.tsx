@@ -1,6 +1,6 @@
 
 import { useEffect } from 'react';
-import { Product } from '../../types';
+import { Product, AlcoholOption } from '../../types';
 import { useToast } from '@/hooks/use-toast';
 import { requiresFlavor, requiresAlcoholChoice, containsBaly } from '../../data/products';
 import { isCopao, isCombo } from './useCartHelpers';
@@ -10,7 +10,7 @@ export const useCheckoutFlow = (
   setSelectedProductForFlavor: (product: Product | null) => void,
   setIsFlavorModalOpen: (isOpen: boolean) => void,
   setSelectedProductForAlcohol: (product: Product | null) => void,
-  setSelectedAlcohol: (alcohol: {name: string; extraCost?: number} | null) => void,
+  setSelectedAlcohol: (alcohol: AlcoholOption | null) => void,
   setIsAlcoholModalOpen: (isOpen: boolean) => void,
   setSelectedProductForBaly: (product: Product | null) => void,
   setIsBalyModalOpen: (isOpen: boolean) => void,

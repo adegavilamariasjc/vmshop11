@@ -16,7 +16,7 @@ export const useAlcoholSelection = (
   const confirmAlcoholSelection = () => {
     if (!selectedProductForAlcohol || !selectedAlcohol) return;
     
-    const extraCost = selectedAlcohol.extraCost || 0;
+    const extraCost = selectedAlcohol.extraCost;
     const itemWithAlcohol = {
       ...selectedProductForAlcohol,
       alcohol: selectedAlcohol.name,

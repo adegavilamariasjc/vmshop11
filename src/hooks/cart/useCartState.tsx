@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Product } from '../../types';
+import { Product, AlcoholOption } from '../../types';
 
 export const useCartState = () => {
   const [cart, setCart] = useState<Product[]>([]);
@@ -14,7 +14,7 @@ export const useCartState = () => {
   const [selectedProductForAlcohol, setSelectedProductForAlcohol] = useState<Product | null>(null);
   const [selectedProductForBaly, setSelectedProductForBaly] = useState<Product | null>(null);
   const [selectedIce, setSelectedIce] = useState<Record<string, number>>({});
-  const [selectedAlcohol, setSelectedAlcohol] = useState<{name: string; extraCost?: number} | null>(null);
+  const [selectedAlcohol, setSelectedAlcohol] = useState<AlcoholOption | null>(null);
   const [pendingProductWithIce, setPendingProductWithIce] = useState<Product | null>(null);
   const [currentProductType, setCurrentProductType] = useState<'copao' | 'combo'>('combo');
 
