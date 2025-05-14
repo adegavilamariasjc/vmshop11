@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useCart } from '../hooks/useCart';
+import { useCart } from '../hooks/cart';
 import { AnimatePresence } from 'framer-motion';
 import { gerarCodigoPedido } from '../data/products';
 import { formatWhatsAppMessage } from '../utils/formatWhatsApp';
