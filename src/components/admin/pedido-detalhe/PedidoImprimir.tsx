@@ -80,6 +80,24 @@ export const PedidoImprimir = ({
       }
     }, 0);
 
+    // Calcular o valor total de desconto
+    const totalDescontos = pedido.itens.reduce((sum: number, item: any) => {
+      const isBeer = item.category?.toLowerCase().includes('cerveja');
+      const hasDiscount = isBeer && item.qty >= 12;
+      
+      if (hasDiscount) {
+        const precoNormal = item.price * item.qty;
+        const discountInfo = calculateBeerDiscount(item);
+        return sum + (precoNormal - discountInfo.discountedPrice);
+      }
+      return sum;
+    }, 0);
+
+    // Adicionar informação de desconto no texto apenas se houver descontos
+    const descontoTexto = totalDescontos > 0 
+      ? `DESCONTOS APLICADOS: R$ ${totalDescontos.toFixed(2).replace('.', ',')}\n` 
+      : '';
+
     const trocoInfo = pedido.forma_pagamento === 'Dinheiro' && pedido.troco 
       ? `\nTROCO PARA: R$ ${pedido.troco}` 
       : '';
@@ -103,8 +121,8 @@ ITENS DO PEDIDO:
 ${itensFormatados}
 
 RESUMO DO PEDIDO:
-SUBTOTAL: R$ ${subtotal.toFixed(2).replace('.', ',')}
-TAXA DE ENTREGA: R$ ${pedido.taxa_entrega.toFixed(2).replace('.', ',')}
+SUBTOTAL: R$ ${(subtotal + totalDescontos).toFixed(2).replace('.', ',')}
+${descontoTexto}TAXA DE ENTREGA: R$ ${pedido.taxa_entrega.toFixed(2).replace('.', ',')}
 TOTAL: R$ ${pedido.total.toFixed(2).replace('.', ',')}
 
 FORMA DE PAGAMENTO: ${pedido.forma_pagamento}

@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { calculateBeerDiscount } from '@/utils/discountUtils';
 
 interface OrderItem {
   qty: number;
@@ -23,42 +24,6 @@ const OrderItems: React.FC<OrderItemsProps> = ({ items }) => {
       return `Batida de ${item.name}`;
     }
     return item.name;
-  };
-
-  // Function to calculate beer discount
-  const calculateBeerDiscount = (item: OrderItem) => {
-    if (!item.category?.toLowerCase().includes('cerveja') || !item.qty) {
-      return {
-        hasDiscount: false,
-        discountedPrice: item.price * item.qty,
-        discountPercentage: 0,
-      };
-    }
-
-    const qty = item.qty;
-    const discountedUnits = Math.floor(qty / 12) * 12;
-    
-    if (discountedUnits === 0) {
-      return {
-        hasDiscount: false,
-        discountedPrice: item.price * qty,
-        discountPercentage: 0,
-      };
-    }
-    
-    const regularUnits = qty % 12;
-    const discountPercentage = 10;
-    const discountedUnitPrice = item.price * (1 - discountPercentage / 100);
-    
-    const discountedPrice = 
-      (discountedUnits * discountedUnitPrice) + 
-      (regularUnits * item.price);
-    
-    return {
-      hasDiscount: true,
-      discountedPrice,
-      discountPercentage,
-    };
   };
 
   return (

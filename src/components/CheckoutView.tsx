@@ -7,6 +7,7 @@ import OrderSummary from './cart/OrderSummary';
 import CartSummary from './CartSummary';
 import CheckoutForm from './CheckoutForm';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { calculateBeerDiscount } from '../utils/discountUtils';
 
 interface CheckoutViewProps {
   cart: Product[];
@@ -35,14 +36,31 @@ const CheckoutView: React.FC<CheckoutViewProps> = ({
     [cart]
   );
   
-  const subtotal = useMemo(() => 
+  // Calculate subtotal without discounts
+  const subtotalWithoutDiscount = useMemo(() => 
     filteredCart.reduce((sum, item) => sum + (item.price || 0) * (item.qty || 1), 0),
     [filteredCart]
   );
   
+  // Calculate total discount amount
+  const totalDiscountAmount = useMemo(() => 
+    filteredCart.reduce((sum, item) => {
+      const discountInfo = calculateBeerDiscount(item);
+      if (discountInfo.hasDiscount) {
+        const regularPrice = (item.price || 0) * (item.qty || 1);
+        return sum + (regularPrice - discountInfo.discountedPrice);
+      }
+      return sum;
+    }, 0),
+    [filteredCart]
+  );
+  
+  // Calculate subtotal with discounts applied
+  const subtotalWithDiscount = subtotalWithoutDiscount - totalDiscountAmount;
+  
   const total = useMemo(() => 
-    subtotal + form.bairro.taxa,
-    [subtotal, form.bairro.taxa]
+    subtotalWithDiscount + form.bairro.taxa,
+    [subtotalWithDiscount, form.bairro.taxa]
   );
 
   // Check if the form is valid for submission
@@ -86,9 +104,10 @@ const CheckoutView: React.FC<CheckoutViewProps> = ({
         <div>
           <OrderSummary cart={filteredCart} />
           <CartSummary 
-            subtotal={subtotal} 
+            subtotal={subtotalWithDiscount} 
             deliveryFee={form.bairro.taxa} 
-            total={total} 
+            total={total}
+            cart={filteredCart}
           />
         </div>
         

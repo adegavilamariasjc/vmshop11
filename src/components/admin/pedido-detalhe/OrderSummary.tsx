@@ -7,6 +7,7 @@ interface OrderSummaryProps {
   total: number;
   paymentMethod: string;
   change?: string;
+  discountAmount?: number;
 }
 
 const OrderSummary: React.FC<OrderSummaryProps> = ({ 
@@ -14,14 +15,16 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
   deliveryFee, 
   total, 
   paymentMethod, 
-  change 
+  change,
+  discountAmount = 0
 }) => {
   // Ensure values are valid numbers
   const safeSubtotal = isNaN(subtotal) ? 0 : subtotal;
   const safeDeliveryFee = isNaN(deliveryFee) ? 0 : deliveryFee;
-  const calculatedTotal = safeSubtotal + safeDeliveryFee;
+  const safeDiscountAmount = isNaN(discountAmount) ? 0 : discountAmount;
   
-  // Use the calculated total if the provided total seems incorrect
+  // Use the provided total if it's correct, otherwise calculate
+  const calculatedTotal = safeSubtotal + safeDeliveryFee;
   const displayTotal = Math.abs(calculatedTotal - total) < 0.01 ? total : calculatedTotal;
 
   return (
@@ -30,6 +33,14 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
         <div className="text-gray-300">Subtotal:</div>
         <div className="font-medium">R$ {safeSubtotal.toFixed(2)}</div>
       </div>
+      
+      {safeDiscountAmount > 0 && (
+        <div className="flex justify-between items-center mb-2">
+          <div className="text-green-400">Descontos:</div>
+          <div className="font-medium text-green-400">- R$ {safeDiscountAmount.toFixed(2)}</div>
+        </div>
+      )}
+      
       <div className="flex justify-between items-center mb-2">
         <div className="text-gray-300">Taxa de entrega:</div>
         <div className="font-medium">R$ {safeDeliveryFee.toFixed(2)}</div>
