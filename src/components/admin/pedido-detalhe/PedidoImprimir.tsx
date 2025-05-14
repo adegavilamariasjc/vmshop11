@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { calculateBeerDiscount } from '@/utils/discountUtils';
 
 export const PedidoImprimir = ({
   pedido,
@@ -29,6 +30,16 @@ export const PedidoImprimir = ({
         texto += ` (Baly: ${item.balyFlavor})`;
       }
 
+      // Verificar se tem desconto de cerveja
+      const discountInfo = calculateBeerDiscount(item);
+      if (discountInfo.hasDiscount) {
+        texto += ` (-${discountInfo.discountPercentage}%)`;
+        texto += `\n   Valor normal: R$ ${(item.price * item.qty).toFixed(2)}`;
+        texto += `\n   Com desconto: R$ ${discountInfo.discountedPrice.toFixed(2)}`;
+      } else {
+        texto += `\n   R$ ${(item.price * item.qty).toFixed(2)}`;
+      }
+
       // Adicionar detalhes do gelo se presente
       if (item.ice && Object.entries(item.ice).some(([_, qty]: [string, any]) => qty > 0)) {
         const geloInfo = Object.entries(item.ice)
@@ -50,9 +61,14 @@ export const PedidoImprimir = ({
         texto += `\n   Energéticos: ${energeticosInfo}`;
       }
 
-      texto += `\n   R$ ${(item.price * item.qty).toFixed(2)}`;
       return texto;
     }).join('\n\n');
+
+    // Calcular o subtotal com descontos aplicados
+    const subtotal = pedido.itens.reduce((sum: number, item: any) => {
+      const discountInfo = calculateBeerDiscount(item);
+      return sum + (discountInfo.hasDiscount ? discountInfo.discountedPrice : (item.price * item.qty));
+    }, 0);
 
     const trocoInfo = pedido.forma_pagamento === 'Dinheiro' && pedido.troco 
       ? `\nTROCO PARA: R$ ${pedido.troco}` 
@@ -76,7 +92,8 @@ ${pedido.observacao ? `OBSERVAÇÃO: ${pedido.observacao}` : ''}
 ITENS DO PEDIDO:
 ${itensFormatados}
 
-SUBTOTAL: R$ ${(pedido.total - pedido.taxa_entrega).toFixed(2)}
+RESUMO DO PEDIDO:
+SUBTOTAL: R$ ${subtotal.toFixed(2)}
 TAXA DE ENTREGA: R$ ${pedido.taxa_entrega.toFixed(2)}
 TOTAL: R$ ${pedido.total.toFixed(2)}
 
@@ -177,3 +194,4 @@ ADEGA VM
 
   return null;
 };
+
