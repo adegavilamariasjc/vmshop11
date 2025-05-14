@@ -30,9 +30,12 @@ export const PedidoImprimir = ({
         texto += ` (Baly: ${item.balyFlavor})`;
       }
 
-      // Verificar se tem desconto de cerveja
-      const discountInfo = calculateBeerDiscount(item);
-      if (discountInfo.hasDiscount) {
+      // Verificar se tem desconto de cerveja com produto da categoria cerveja e quantidade >= 12
+      const isBeer = item.category?.toLowerCase().includes('cerveja');
+      const hasDiscount = isBeer && item.qty >= 12;
+      
+      if (hasDiscount) {
+        const discountInfo = calculateBeerDiscount(item);
         texto += ` (-${discountInfo.discountPercentage}%)`;
         texto += `\n   Valor normal: R$ ${(item.price * item.qty).toFixed(2).replace('.', ',')}`;
         texto += `\n   Com desconto: R$ ${discountInfo.discountedPrice.toFixed(2).replace('.', ',')}`;
@@ -66,8 +69,15 @@ export const PedidoImprimir = ({
 
     // Calcular o subtotal com descontos aplicados
     const subtotal = pedido.itens.reduce((sum: number, item: any) => {
-      const discountInfo = calculateBeerDiscount(item);
-      return sum + (discountInfo.hasDiscount ? discountInfo.discountedPrice : (item.price * item.qty));
+      const isBeer = item.category?.toLowerCase().includes('cerveja');
+      const hasDiscount = isBeer && item.qty >= 12;
+      
+      if (hasDiscount) {
+        const discountInfo = calculateBeerDiscount(item);
+        return sum + discountInfo.discountedPrice;
+      } else {
+        return sum + (item.price * item.qty);
+      }
     }, 0);
 
     const trocoInfo = pedido.forma_pagamento === 'Dinheiro' && pedido.troco 
@@ -194,4 +204,3 @@ ADEGA VM
 
   return null;
 };
-
