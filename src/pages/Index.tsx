@@ -163,6 +163,17 @@ const Index = () => {
     // Calculate total with discounts applied
     const total = cart.reduce((sum, p) => sum + getProductDisplayPrice(p), 0) + form.bairro.taxa;
     
+    // Calculate total discount amount for beer products
+    const totalDiscountAmount = cart.reduce((sum, item) => {
+      const discountInfo = calculateBeerDiscount(item);
+      if (discountInfo.hasDiscount) {
+        const regularPrice = item.price * (item.qty || 0);
+        const discountAmount = regularPrice - discountInfo.discountedPrice;
+        return sum + discountAmount;
+      }
+      return sum;
+    }, 0);
+    
     const isDuplicate = await checkDuplicateOrder(form.nome, form.whatsapp, total);
     setIsDuplicateOrder(isDuplicate);
 
@@ -186,7 +197,8 @@ const Index = () => {
         observacao: form.observacao,
         itens: cart,
         total: total,
-        status: 'pendente'
+        status: 'pendente',
+        discount_amount: totalDiscountAmount
       });
       
       return !!pedido;

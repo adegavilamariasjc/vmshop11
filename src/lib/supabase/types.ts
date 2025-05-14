@@ -1,3 +1,4 @@
+
 // Type definitions for Supabase tables
 
 // Product type
@@ -47,4 +48,5 @@ export type SupabasePedido = {
   status: string;
   data_criacao: string;
   observacao?: string;
+  discount_amount?: number;
 };

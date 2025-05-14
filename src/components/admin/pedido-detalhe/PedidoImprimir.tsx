@@ -83,10 +83,14 @@ export const PedidoImprimir = ({
 
     // Calcular o valor total de desconto
     const totalDescontos = subtotalSemDesconto - subtotalComDesconto;
+    // Usar o valor armazenado no pedido se disponível, caso contrário usar o calculado
+    const descontoExibir = pedido.discount_amount !== undefined && pedido.discount_amount > 0 
+      ? pedido.discount_amount 
+      : totalDescontos;
 
     // Adicionar informação de desconto no texto apenas se houver descontos
-    const descontoTexto = totalDescontos > 0 
-      ? `DESCONTOS APLICADOS: R$ ${totalDescontos.toFixed(2).replace('.', ',')}\n` 
+    const descontoTexto = descontoExibir > 0 
+      ? `DESCONTOS APLICADOS: R$ ${descontoExibir.toFixed(2).replace('.', ',')}\n` 
       : '';
 
     const trocoInfo = pedido.forma_pagamento === 'Dinheiro' && pedido.troco 

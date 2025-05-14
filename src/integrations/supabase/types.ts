@@ -137,6 +137,7 @@ export type Database = {
           cliente_whatsapp: string
           codigo_pedido: string
           data_criacao: string
+          discount_amount: number | null
           forma_pagamento: string
           id: string
           itens: Json
@@ -156,6 +157,7 @@ export type Database = {
           cliente_whatsapp: string
           codigo_pedido: string
           data_criacao?: string
+          discount_amount?: number | null
           forma_pagamento: string
           id?: string
           itens: Json
@@ -175,6 +177,7 @@ export type Database = {
           cliente_whatsapp?: string
           codigo_pedido?: string
           data_criacao?: string
+          discount_amount?: number | null
           forma_pagamento?: string
           id?: string
           itens?: Json

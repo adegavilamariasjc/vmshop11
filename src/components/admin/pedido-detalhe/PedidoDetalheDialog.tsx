@@ -72,6 +72,7 @@ const PedidoDetalheDialog = ({
                       total={pedido.total}
                       paymentMethod={pedido.forma_pagamento}
                       change={pedido.troco}
+                      discountAmount={pedido.discount_amount}
                     />
                   </div>
 
