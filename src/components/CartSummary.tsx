@@ -8,13 +8,15 @@ interface CartSummaryProps {
   deliveryFee: number;
   total: number;
   cart?: Product[];
+  discountAmount?: number;
 }
 
 const CartSummary: React.FC<CartSummaryProps> = ({ 
   subtotal, 
   deliveryFee, 
   total, 
-  cart = [] 
+  cart = [],
+  discountAmount
 }) => {
   // If cart is provided, recalculate the total with discounts applied
   const calculatedSubtotal = cart.length > 0
@@ -23,8 +25,8 @@ const CartSummary: React.FC<CartSummaryProps> = ({
   
   const calculatedTotal = calculatedSubtotal + deliveryFee;
 
-  // Calculate total discount amount for beer products
-  const totalDiscountAmount = cart.reduce((sum, item) => {
+  // Calculate total discount amount for beer products if not provided
+  const totalDiscountAmount = discountAmount !== undefined ? discountAmount : cart.reduce((sum, item) => {
     const discountInfo = calculateBeerDiscount(item);
     if (discountInfo.hasDiscount) {
       const regularPrice = item.price * (item.qty || 0);
@@ -41,7 +43,7 @@ const CartSummary: React.FC<CartSummaryProps> = ({
     <div className="border border-gray-600 rounded-lg p-4 bg-black/50 mt-4">
       <div className="flex justify-between mb-2">
         <span className="text-white">Subtotal:</span>
-        <span className="text-white">R$ {calculatedSubtotal.toFixed(2)}</span>
+        <span className="text-white">R$ {(calculatedSubtotal + totalDiscountAmount).toFixed(2)}</span>
       </div>
       
       {hasDiscounts && (

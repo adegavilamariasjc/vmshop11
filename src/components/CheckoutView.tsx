@@ -108,6 +108,7 @@ const CheckoutView: React.FC<CheckoutViewProps> = ({
             deliveryFee={form.bairro.taxa} 
             total={total}
             cart={filteredCart}
+            discountAmount={totalDiscountAmount}
           />
         </div>
         

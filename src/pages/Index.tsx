@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../hooks/cart';
 import { AnimatePresence } from 'framer-motion';
@@ -18,7 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import AdminLink from '../components/AdminLink';
 import { savePedido, fetchPedidos } from '@/lib/supabase';
 import { useStoreStatus } from '@/hooks/useStoreStatus';
-import { getProductDisplayPrice } from '../utils/discountUtils';
+import { getProductDisplayPrice, calculateBeerDiscount } from '../utils/discountUtils';
 
 const Index = () => {
   const { isOpen } = useStoreStatus();
@@ -200,6 +201,19 @@ const Index = () => {
       return "";
     }
     
+    // Calculate subtotal without discounts
+    const subtotalWithoutDiscount = cart.reduce((sum, p) => sum + p.price * (p.qty || 1), 0);
+    
+    // Calculate total discount amount
+    const totalDiscountAmount = cart.reduce((sum, p) => {
+      const discountInfo = calculateBeerDiscount(p);
+      if (discountInfo.hasDiscount) {
+        const regularPrice = p.price * (p.qty || 1);
+        return sum + (regularPrice - discountInfo.discountedPrice);
+      }
+      return sum;
+    }, 0);
+    
     // Calculate total with discounts applied
     const total = cart.reduce((sum, p) => sum + getProductDisplayPrice(p), 0) + form.bairro.taxa;
     
@@ -220,9 +234,8 @@ const Index = () => {
           : "";
         
         // Check if this beer product has a discount
-        const isBeer = p.category?.toLowerCase().includes('cerveja');
-        const hasDiscount = isBeer && (p.qty || 0) >= 12;
-        const discountText = hasDiscount ? " (-10%)" : "";
+        const discountInfo = calculateBeerDiscount(p);
+        const discountText = discountInfo.hasDiscount ? ` (-${discountInfo.discountPercentage}%)` : "";
         
         // Calculate the price with any discounts applied
         const displayPrice = getProductDisplayPrice(p);
@@ -244,7 +257,8 @@ const Index = () => {
       form.pagamento,
       form.troco,
       itensPedido,
-      total
+      total,
+      totalDiscountAmount
     );
 
     const mensagemEncoded = mensagem.replace(/\n/g, "%0A");

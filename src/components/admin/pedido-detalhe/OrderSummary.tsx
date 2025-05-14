@@ -24,7 +24,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
   const safeDiscountAmount = isNaN(discountAmount) ? 0 : discountAmount;
   
   // Use the provided total if it's correct, otherwise calculate
-  const calculatedTotal = safeSubtotal + safeDeliveryFee;
+  const calculatedTotal = safeSubtotal - safeDiscountAmount + safeDeliveryFee;
   const displayTotal = Math.abs(calculatedTotal - total) < 0.01 ? total : calculatedTotal;
 
   return (

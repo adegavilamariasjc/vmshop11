@@ -17,7 +17,7 @@ export const PedidoImprimir = ({
     if (!pedido) return;
     setIsPrinting(true);
 
-    const itensFormatados = pedido.itens.map((item: any) => {
+    const formatarItem = (item: any) => {
       let texto = `${item.qty}x ${item.name}`;
       
       // Adicionar detalhes do álcool se presente
@@ -31,11 +31,8 @@ export const PedidoImprimir = ({
       }
 
       // Verificar se tem desconto de cerveja com produto da categoria cerveja e quantidade >= 12
-      const isBeer = item.category?.toLowerCase().includes('cerveja');
-      const hasDiscount = isBeer && item.qty >= 12;
-      
-      if (hasDiscount) {
-        const discountInfo = calculateBeerDiscount(item);
+      const discountInfo = calculateBeerDiscount(item);
+      if (discountInfo.hasDiscount) {
         texto += ` (-${discountInfo.discountPercentage}%)`;
         texto += `\n   Valor normal: R$ ${(item.price * item.qty).toFixed(2).replace('.', ',')}`;
         texto += `\n   Com desconto: R$ ${discountInfo.discountedPrice.toFixed(2).replace('.', ',')}`;
@@ -65,15 +62,19 @@ export const PedidoImprimir = ({
       }
 
       return texto;
-    }).join('\n\n');
+    };
+
+    const itensFormatados = pedido.itens.map(formatarItem).join('\n\n');
+
+    // Calcular o subtotal sem descontos aplicados
+    const subtotalSemDesconto = pedido.itens.reduce((sum: number, item: any) => {
+      return sum + (item.price * item.qty);
+    }, 0);
 
     // Calcular o subtotal com descontos aplicados
-    const subtotal = pedido.itens.reduce((sum: number, item: any) => {
-      const isBeer = item.category?.toLowerCase().includes('cerveja');
-      const hasDiscount = isBeer && item.qty >= 12;
-      
-      if (hasDiscount) {
-        const discountInfo = calculateBeerDiscount(item);
+    const subtotalComDesconto = pedido.itens.reduce((sum: number, item: any) => {
+      const discountInfo = calculateBeerDiscount(item);
+      if (discountInfo.hasDiscount) {
         return sum + discountInfo.discountedPrice;
       } else {
         return sum + (item.price * item.qty);
@@ -81,17 +82,7 @@ export const PedidoImprimir = ({
     }, 0);
 
     // Calcular o valor total de desconto
-    const totalDescontos = pedido.itens.reduce((sum: number, item: any) => {
-      const isBeer = item.category?.toLowerCase().includes('cerveja');
-      const hasDiscount = isBeer && item.qty >= 12;
-      
-      if (hasDiscount) {
-        const precoNormal = item.price * item.qty;
-        const discountInfo = calculateBeerDiscount(item);
-        return sum + (precoNormal - discountInfo.discountedPrice);
-      }
-      return sum;
-    }, 0);
+    const totalDescontos = subtotalSemDesconto - subtotalComDesconto;
 
     // Adicionar informação de desconto no texto apenas se houver descontos
     const descontoTexto = totalDescontos > 0 
@@ -121,7 +112,7 @@ ITENS DO PEDIDO:
 ${itensFormatados}
 
 RESUMO DO PEDIDO:
-SUBTOTAL: R$ ${(subtotal + totalDescontos).toFixed(2).replace('.', ',')}
+SUBTOTAL: R$ ${subtotalSemDesconto.toFixed(2).replace('.', ',')}
 ${descontoTexto}TAXA DE ENTREGA: R$ ${pedido.taxa_entrega.toFixed(2).replace('.', ',')}
 TOTAL: R$ ${pedido.total.toFixed(2).replace('.', ',')}
 

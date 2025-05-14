@@ -28,13 +28,18 @@ export const formatWhatsAppMessage = (
   pagamento: string,
   troco: string,
   itemsText: string,
-  total: number
+  total: number,
+  discountAmount?: number
 ): string => {
   const trocoValue = Number(troco) || 0;
   const trocoFinal = trocoValue - total;
 
   const trocoMessage = pagamento === "Dinheiro"
     ? `\uD83D\uDCB0 Troco para: R$${trocoValue.toFixed(2).replace('.', ',')} (TROCO R$${trocoFinal >= 0 ? trocoFinal.toFixed(2).replace('.', ',') : '0,00'})\n`
+    : "";
+
+  const discountText = discountAmount && discountAmount > 0 
+    ? `\uD83C\uDF81 Desconto aplicado: R$${discountAmount.toFixed(2).replace('.', ',')}\n`
     : "";
 
   return (
@@ -45,6 +50,7 @@ export const formatWhatsAppMessage = (
     `\uD83D\uDCCD Bairro: ${bairroNome} (Taxa: R$${bairroTaxa.toFixed(2).replace('.', ',')})\n` +
     `\uD83D\uDCF1 WhatsApp: ${whatsapp}\n\n` +
     `\uD83D\uDED2 Pedido:\n${itemsText}\n\n` +
+    (discountText ? discountText : "") +
     `\uD83D\uDCB3 Forma de Pagamento: ${pagamento}\n` +
     (pagamento === "Dinheiro" ? trocoMessage : "") +
     `\u2728 Total: R$${total.toFixed(2).replace('.', ',')} \u2728`
