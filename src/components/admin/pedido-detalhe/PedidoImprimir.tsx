@@ -34,10 +34,10 @@ export const PedidoImprimir = ({
       const discountInfo = calculateBeerDiscount(item);
       if (discountInfo.hasDiscount) {
         texto += ` (-${discountInfo.discountPercentage}%)`;
-        texto += `\n   Valor normal: R$ ${(item.price * item.qty).toFixed(2)}`;
-        texto += `\n   Com desconto: R$ ${discountInfo.discountedPrice.toFixed(2)}`;
+        texto += `\n   Valor normal: R$ ${(item.price * item.qty).toFixed(2).replace('.', ',')}`;
+        texto += `\n   Com desconto: R$ ${discountInfo.discountedPrice.toFixed(2).replace('.', ',')}`;
       } else {
-        texto += `\n   R$ ${(item.price * item.qty).toFixed(2)}`;
+        texto += `\n   R$ ${(item.price * item.qty).toFixed(2).replace('.', ',')}`;
       }
 
       // Adicionar detalhes do gelo se presente
@@ -93,9 +93,9 @@ ITENS DO PEDIDO:
 ${itensFormatados}
 
 RESUMO DO PEDIDO:
-SUBTOTAL: R$ ${subtotal.toFixed(2)}
-TAXA DE ENTREGA: R$ ${pedido.taxa_entrega.toFixed(2)}
-TOTAL: R$ ${pedido.total.toFixed(2)}
+SUBTOTAL: R$ ${subtotal.toFixed(2).replace('.', ',')}
+TAXA DE ENTREGA: R$ ${pedido.taxa_entrega.toFixed(2).replace('.', ',')}
+TOTAL: R$ ${pedido.total.toFixed(2).replace('.', ',')}
 
 FORMA DE PAGAMENTO: ${pedido.forma_pagamento}
 ${trocoInfo}

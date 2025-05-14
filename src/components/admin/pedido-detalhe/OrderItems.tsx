@@ -67,7 +67,7 @@ const OrderItems: React.FC<OrderItemsProps> = ({ items }) => {
       {items.map((item, index) => {
         const discountInfo = calculateBeerDiscount(item);
         return (
-          <div key={index} className="item">
+          <div key={index} className="item mb-4">
             <div>
               {item.qty}x {getFullProductName(item)} 
               {item.alcohol ? ` (${item.alcohol})` : ""}
@@ -92,10 +92,21 @@ const OrderItems: React.FC<OrderItemsProps> = ({ items }) => {
               </div>
             )}
             
-            <div style={{ textAlign: 'right' }}>
-              R$ {discountInfo.hasDiscount
-                ? discountInfo.discountedPrice.toFixed(2)
-                : (item.price * item.qty).toFixed(2)}
+            <div className="flex flex-col items-end">
+              {discountInfo.hasDiscount ? (
+                <>
+                  <div className="line-through text-gray-400">
+                    Valor normal: R$ {(item.price * item.qty).toFixed(2)}
+                  </div>
+                  <div className="font-semibold text-green-400">
+                    Com desconto: R$ {discountInfo.discountedPrice.toFixed(2)}
+                  </div>
+                </>
+              ) : (
+                <div>
+                  R$ {(item.price * item.qty).toFixed(2)}
+                </div>
+              )}
             </div>
           </div>
         );
