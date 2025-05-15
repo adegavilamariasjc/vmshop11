@@ -11,6 +11,7 @@ import LoadingIndicator from '../components/LoadingIndicator';
 import IndexModals from '../components/IndexModals';
 import { useFormData } from '../hooks/useFormData';
 import { useOrderHandling } from '../hooks/useOrderHandling';
+import { AlcoholOption } from '@/types';
 
 const Index = () => {
   const { isOpen } = useStoreStatus();

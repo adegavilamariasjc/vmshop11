@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Product } from '../types';
+import { Product, AlcoholOption } from '../types';
 import FlavorSelectionModal from './FlavorSelectionModal';
 import AlcoholSelectionModal from './AlcoholSelectionModal';
 import BalyFlavorSelectionModal from './BalyFlavorSelectionModal';
@@ -17,8 +17,8 @@ interface IndexModalsProps {
   selectedProductForAlcohol: Product | null;
   selectedProductForBaly: Product | null;
   selectedIce: Record<string, number>;
-  selectedAlcohol: string;
-  currentProductType: string;
+  selectedAlcohol: AlcoholOption | null;
+  currentProductType: 'copao' | 'combo';
   codigoPedido: string;
   isDuplicateOrder: boolean;
   setIsFlavorModalOpen: (isOpen: boolean) => void;
@@ -26,12 +26,15 @@ interface IndexModalsProps {
   setIsBalyModalOpen: (isOpen: boolean) => void;
   setIsEnergyDrinkModalOpen: (isOpen: boolean) => void;
   setShowSuccessModal: (show: boolean) => void;
-  setSelectedAlcohol: (alcohol: string) => void;
+  setSelectedAlcohol: (alcohol: AlcoholOption) => void;
   updateIceQuantity: (flavor: string, quantity: number) => void;
   confirmFlavorSelection: () => void;
   confirmAlcoholSelection: () => void;
   confirmBalySelection: () => void;
-  handleEnergyDrinkSelection: (energyDrink: string, flavor: string) => void;
+  handleEnergyDrinkSelection: (energyDrink: { 
+    selections: Array<{ type: string; flavor: string }>;
+    totalExtraCost: number;
+  }) => void;
   handleOrderConfirmation: () => void;
   setPendingProductWithIce: (product: Product | null) => void;
 }
