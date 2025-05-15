@@ -30,7 +30,7 @@ interface IndexModalsProps {
   updateIceQuantity: (flavor: string, quantity: number) => void;
   confirmFlavorSelection: () => void;
   confirmAlcoholSelection: () => void;
-  confirmBalySelection: () => void;
+  confirmBalySelection: (flavor: string) => void;
   handleEnergyDrinkSelection: (energyDrink: { 
     selections: Array<{ type: string; flavor: string }>;
     totalExtraCost: number;
