@@ -5,6 +5,7 @@ import { fetchCategories, fetchProducts, updateProductOrder } from '@/lib/supaba
 import { CategorySelector } from './products/CategorySelector';
 import { AddProductForm } from './products/AddProductForm';
 import { ProductList } from './products/ProductList';
+import ProductExport from './ProductExport';
 import type { SupabaseCategory, SupabaseProduct } from '@/lib/supabase/types';
 
 const ProductManager: React.FC = () => {
@@ -160,6 +161,8 @@ const ProductManager: React.FC = () => {
         selectedCategoryId={selectedCategoryId}
         onProductAdded={handleProductAdded}
       />
+      
+      <ProductExport />
       
       <div className="space-y-2">
         <h3 className="text-lg font-semibold text-white">Lista de Produtos</h3>
