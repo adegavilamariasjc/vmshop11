@@ -73,6 +73,9 @@ const ProductManager: React.FC = () => {
   };
 
   const handleProductsReorder = async (result: any) => {
+    // Prevent multiple simultaneous reorders
+    if (isSaving) return;
+    
     // If dropped outside the list
     if (!result.destination) return;
     

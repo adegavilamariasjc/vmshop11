@@ -99,6 +99,8 @@ Data de exportação: ${new Date().toLocaleString('pt-BR')}
   };
 
   const handleExport = async () => {
+    if (isExporting) return; // Prevent multiple simultaneous exports
+    
     setIsExporting(true);
     
     try {
@@ -107,11 +109,16 @@ Data de exportação: ${new Date().toLocaleString('pt-BR')}
         description: "Coletando informações dos produtos...",
       });
 
-      // Fetch all products and categories
-      const [products, categories] = await Promise.all([
-        fetchAllProducts(),
-        fetchCategories()
-      ]);
+      // Fetch all products and categories with timeout protection
+      const [products, categories] = await Promise.race([
+        Promise.all([
+          fetchAllProducts(),
+          fetchCategories()
+        ]),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout na exportação')), 30000)
+        )
+      ]) as [any[], any[]];
 
       if (products.length === 0) {
         toast({

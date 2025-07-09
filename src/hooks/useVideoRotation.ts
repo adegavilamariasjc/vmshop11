@@ -74,7 +74,12 @@ export const useVideoRotation = (videoUrls: string[], transitionDuration = 2000,
       const playVideo = () => {
         if (nextVideoRef.current) {
           nextVideoRef.current.play()
-            .catch(err => console.error("Error playing video:", err));
+            .catch(err => {
+              // Silently handle video errors to prevent crashes
+              if (err.name !== 'AbortError') {
+                console.warn("Video playback issue:", err.message);
+              }
+            });
         }
         nextVideoRef.current?.removeEventListener('canplaythrough', playVideo);
       };
@@ -105,7 +110,12 @@ export const useVideoRotation = (videoUrls: string[], transitionDuration = 2000,
       videoRef1.current.src = videoUrls[0];
       videoRef1.current.load();
       videoRef1.current.play()
-        .catch(err => console.error("Error playing initial video:", err));
+        .catch(err => {
+          // Silently handle video errors to prevent crashes
+          if (err.name !== 'AbortError') {
+            console.warn("Initial video playback issue:", err.message);
+          }
+        });
     }
     
     // Preload the second video
