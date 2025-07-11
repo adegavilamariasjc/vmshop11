@@ -1,8 +1,7 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { useAudioAlerts } from './pedidos/useAudioAlerts';
-import { useNotifications } from './pedidos/useNotifications';
+import { useOrderAlerts } from './pedidos/useOrderAlerts';
 import { usePedidoState } from './pedidos/usePedidoState';
 import { useProductionTimer } from './pedidos/useProductionTimer';
 import { usePedidosUtils } from './pedidos/usePedidosUtils';
@@ -20,11 +19,10 @@ export interface Pedido {
 }
 
 export const usePedidosManager = () => {
-  const [hasNewPedido, setHasNewPedido] = useState(false);
   const { toast } = useToast();
   
   // Initialize hooks
-  const { startRingingAlert, stopRingingAlert } = useAudioAlerts();
+  const { setupRealtimeMonitoring } = useOrderAlerts();
   const { 
     pedidos, 
     setPedidos,
@@ -43,30 +41,29 @@ export const usePedidosManager = () => {
   const { startProductionTimer, stopProductionTimer } = useProductionTimer(setPedidos);
   const { formatDateTime } = usePedidosUtils();
 
-  // Setup notification system with a callback for new orders
-  const handleNewOrder = useCallback(() => {
-    startRingingAlert();
-    setHasNewPedido(true);
-  }, [startRingingAlert]);
+  // Handle order changes from realtime
+  const handleOrderChange = useCallback((orders: any[]) => {
+    const processedPedidos = orders.map(pedido => {
+      if (pedido.status === 'preparando') {
+        const orderDate = new Date(pedido.data_criacao);
+        const now = new Date();
+        const elapsedMinutes = Math.floor((now.getTime() - orderDate.getTime()) / (1000 * 60));
+        return { ...pedido, timeInProduction: elapsedMinutes };
+      }
+      return pedido;
+    });
+    setPedidos(processedPedidos);
+  }, [setPedidos]);
 
-  const { setupNotificationSystem } = useNotifications(handleNewOrder, fetchPedidosData);
-
-  // Initialize notification system and production timer on mount
+  // Initialize realtime monitoring and production timer on mount
   useEffect(() => {
-    console.log('Setting up notification system and initial data fetch');
+    console.log('Setting up realtime monitoring and initial data fetch');
     
-    // Initialize notification system
-    const cleanup = setupNotificationSystem();
+    // Setup realtime monitoring
+    const cleanup = setupRealtimeMonitoring(handleOrderChange);
     
     // Fetch initial orders
-    fetchPedidosData().then(() => {
-      // Check for pending orders after initial fetch
-      const pendingOrders = pedidos.filter(p => p.status === 'pendente');
-      if (pendingOrders.length > 0) {
-        setHasNewPedido(true);
-        startRingingAlert();
-      }
-    });
+    fetchPedidosData();
     
     // Start production timer
     startProductionTimer();
@@ -74,33 +71,22 @@ export const usePedidosManager = () => {
     // Cleanup function
     return () => {
       cleanup();
-      stopRingingAlert();
       stopProductionTimer();
     };
-  }, [setupNotificationSystem, fetchPedidosData, pedidos, startRingingAlert, stopRingingAlert, startProductionTimer, stopProductionTimer]);
-
-  const handleAcknowledge = useCallback(() => {
-    console.log("Handling acknowledgment - stopping alert sound");
-    // Always stop the alert sound when acknowledging - now with guaranteed stop
-    stopRingingAlert();
-    setHasNewPedido(false);
-  }, [stopRingingAlert]);
+  }, [setupRealtimeMonitoring, handleOrderChange, fetchPedidosData, startProductionTimer, stopProductionTimer]);
 
   return {
     pedidos,
     isLoading,
-    hasNewPedido,
     refreshing,
     isDeleting,
     selectedPedido,
     showDetalhe,
     handleRefresh,
-    handleAcknowledge,
     handleVisualizarPedido,
     handleExcluirPedido,
     handleAtualizarStatus,
     setShowDetalhe,
-    formatDateTime,
-    setupNotificationSystem
+    formatDateTime
   };
 };
