@@ -51,7 +51,7 @@ const CategoryManager: React.FC = () => {
     setIsSaving(true);
 
     try {
-      const categoryToAdd: Omit<SupabaseCategory, 'id' | 'created_at'> = {
+      const categoryToAdd: Omit<SupabaseCategory, 'id'> = {
         name: newCategory,
         order_index: categories.length
       };

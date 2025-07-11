@@ -18,7 +18,7 @@ export const fetchBairros = async (): Promise<SupabaseBairro[]> => {
 };
 
 // Add a new bairro
-export const addBairro = async (bairro: Omit<SupabaseBairro, 'id' | 'created_at'>): Promise<SupabaseBairro | null> => {
+export const addBairro = async (bairro: Omit<SupabaseBairro, 'id'>): Promise<SupabaseBairro | null> => {
   const { data, error } = await supabase
     .from('bairros')
     .insert([bairro])
@@ -34,7 +34,7 @@ export const addBairro = async (bairro: Omit<SupabaseBairro, 'id' | 'created_at'
 };
 
 // Update an existing bairro
-export const updateBairro = async (id: number, updates: Partial<Omit<SupabaseBairro, 'id' | 'created_at'>>): Promise<boolean> => {
+export const updateBairro = async (id: number, updates: Partial<Omit<SupabaseBairro, 'id'>>): Promise<boolean> => {
   const { error } = await supabase
     .from('bairros')
     .update(updates)

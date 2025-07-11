@@ -41,7 +41,7 @@ export const fetchAllProducts = async (): Promise<SupabaseProduct[]> => {
 };
 
 // Add a new product
-export const addProduct = async (product: Omit<SupabaseProduct, 'id' | 'created_at' | 'order_index'>): Promise<SupabaseProduct | null> => {
+export const addProduct = async (product: Omit<SupabaseProduct, 'id' | 'order_index'>): Promise<SupabaseProduct | null> => {
   // Get max order_index for the category
   const { data: existingProducts, error: fetchError } = await supabase
     .from('products')
@@ -71,7 +71,7 @@ export const addProduct = async (product: Omit<SupabaseProduct, 'id' | 'created_
 };
 
 // Update an existing product
-export const updateProduct = async (id: number, updates: Partial<Omit<SupabaseProduct, 'id' | 'created_at' | 'order_index'>>): Promise<boolean> => {
+export const updateProduct = async (id: number, updates: Partial<Omit<SupabaseProduct, 'id' | 'order_index'>>): Promise<boolean> => {
   const { error } = await supabase
     .from('products')
     .update(updates)

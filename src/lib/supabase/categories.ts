@@ -18,7 +18,7 @@ export const fetchCategories = async (): Promise<SupabaseCategory[]> => {
 };
 
 // Add a new category
-export const addCategory = async (category: Omit<SupabaseCategory, 'id' | 'created_at'>): Promise<SupabaseCategory | null> => {
+export const addCategory = async (category: Omit<SupabaseCategory, 'id'>): Promise<SupabaseCategory | null> => {
   const { data, error } = await supabase
     .from('categories')
     .insert([category])
@@ -34,7 +34,7 @@ export const addCategory = async (category: Omit<SupabaseCategory, 'id' | 'creat
 };
 
 // Update an existing category
-export const updateCategory = async (id: number, updates: Partial<Omit<SupabaseCategory, 'id' | 'created_at'>>): Promise<boolean> => {
+export const updateCategory = async (id: number, updates: Partial<Omit<SupabaseCategory, 'id'>>): Promise<boolean> => {
   const { error } = await supabase
     .from('categories')
     .update(updates)

@@ -97,7 +97,7 @@ export const useOrderHandling = () => {
         forma_pagamento: form.pagamento,
         troco: form.troco,
         observacao: form.observacao,
-        itens: cart,
+        itens: cart as any,
         total: total,
         status: 'pendente',
         discount_amount: totalDiscountAmount

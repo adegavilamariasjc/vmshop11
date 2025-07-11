@@ -1,52 +1,35 @@
 
-// Type definitions for Supabase tables
+// Re-export types from the auto-generated Supabase types file
+export type {
+  Tables,
+  Database
+} from '@/integrations/supabase/types';
 
-// Product type
-export type SupabaseProduct = {
+// Type aliases for convenience - using the auto-generated types
+import type { Tables } from '@/integrations/supabase/types';
+
+export type SupabaseProduct = Tables<'products'>;
+export type SupabaseCategory = Tables<'categories'>;
+export type SupabaseBairro = Tables<'bairros'>;
+export type SupabasePedido = Tables<'pedidos'>;
+
+// Additional types for cart items and pedido items
+export interface CartItem {
   id: number;
   name: string;
   price: number;
-  category_id: number;
-  created_at?: string;
-  is_paused: boolean;
-  order_index: number;
-};
+  qty: number;
+  ice?: string;
+  alcohol?: string;
+  observation?: string;
+}
 
-// Category type
-export type SupabaseCategory = {
+export interface PedidoItem {
   id: number;
   name: string;
-  order_index: number;
-  created_at?: string;
-};
-
-// Bairro type (neighborhood)
-export type SupabaseBairro = {
-  id: number;
-  nome: string;
-  taxa: number;
-  created_at?: string;
-  order_index: number;
-};
-
-// Pedido type (order)
-export type SupabasePedido = {
-  id: string;
-  codigo_pedido: string;
-  cliente_nome: string;
-  cliente_endereco: string;
-  cliente_numero?: string;
-  cliente_complemento?: string;
-  cliente_referencia?: string;
-  cliente_bairro: string;
-  taxa_entrega: number;
-  cliente_whatsapp: string;
-  forma_pagamento: string;
-  troco?: string;
-  itens: any;
-  total: number;
-  status: string;
-  data_criacao: string;
-  observacao?: string;
-  discount_amount?: number;
-};
+  price: number;
+  qty: number;
+  ice?: string;
+  alcohol?: string;
+  observation?: string;
+}

@@ -33,7 +33,7 @@ export const usePedidoDetalhe = (pedidoId: string, onClose: () => void, onDelete
       if (pedidoData) {
         // Make sure items array exists and has valid qty values
         if (pedidoData.itens && Array.isArray(pedidoData.itens)) {
-          pedidoData.itens = pedidoData.itens.filter(item => item && item.qty > 0);
+          pedidoData.itens = (pedidoData.itens as any[]).filter((item: any) => item && typeof item.qty === 'number' && item.qty > 0);
         } else {
           pedidoData.itens = [];
         }
@@ -63,7 +63,7 @@ export const usePedidoDetalhe = (pedidoId: string, onClose: () => void, onDelete
     if (!pedido || !pedido.itens || !Array.isArray(pedido.itens)) return 0;
     
     // Calculate by summing individual items with appropriate quantities
-    return pedido.itens.reduce((soma, item) => {
+    return (pedido.itens as any[]).reduce((soma: number, item: any) => {
       // Ensure item and qty are valid
       if (!item || typeof item.qty !== 'number' || item.qty <= 0) {
         return soma;
