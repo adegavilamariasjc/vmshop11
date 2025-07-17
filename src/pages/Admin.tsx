@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -15,14 +15,16 @@ import { getVideoUrls } from '@/utils/videoUrls';
 
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [activeTab, setActiveTab] = useState("pedidos");
   const { toast } = useToast();
   const navigate = useNavigate();
   
-  const videoUrls = getVideoUrls();
+  const videoUrls = useMemo(() => getVideoUrls(), []);
 
-  const handleLogin = (password: string) => {
+  const handleLogin = useCallback((password: string) => {
     if (password === "adega123") {
       setIsAuthenticated(true);
+      setActiveTab("pedidos"); // Reset to default tab
       toast({
         title: "Login realizado com sucesso",
         description: "Bem-vindo ao painel administrativo",
@@ -34,15 +36,20 @@ const Admin = () => {
         variant: "destructive",
       });
     }
-  };
+  }, [toast]);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     setIsAuthenticated(false);
+    setActiveTab("pedidos"); // Reset tab state
     toast({
       title: "Logout realizado",
       description: "Você saiu do painel administrativo",
     });
-  };
+  }, [toast]);
+
+  const handleTabChange = useCallback((value: string) => {
+    setActiveTab(value);
+  }, []);
 
   return (
     <div className="min-h-screen w-full relative overflow-x-hidden">
@@ -77,7 +84,7 @@ const Admin = () => {
                 <TrafficIndicator />
               </div>
               
-              <Tabs defaultValue="pedidos" className="w-full">
+              <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
                 <TabsList className="grid grid-cols-4 mb-8 max-w-full overflow-x-auto">
                   <TabsTrigger value="pedidos" className="text-black font-medium">Pedidos</TabsTrigger>
                   <TabsTrigger value="produtos" className="text-black font-medium">Produtos</TabsTrigger>
@@ -86,19 +93,19 @@ const Admin = () => {
                 </TabsList>
                 
                 <TabsContent value="pedidos" className="bg-black/50 p-4 rounded-md">
-                  <PedidosManager />
+                  {activeTab === "pedidos" && <PedidosManager />}
                 </TabsContent>
                 
                 <TabsContent value="produtos" className="bg-black/50 p-4 rounded-md">
-                  <ProductManager />
+                  {activeTab === "produtos" && <ProductManager />}
                 </TabsContent>
                 
                 <TabsContent value="categorias" className="bg-black/50 p-4 rounded-md">
-                  <CategoryManager />
+                  {activeTab === "categorias" && <CategoryManager />}
                 </TabsContent>
                 
                 <TabsContent value="bairros" className="bg-black/50 p-4 rounded-md">
-                  <BairroManager />
+                  {activeTab === "bairros" && <BairroManager />}
                 </TabsContent>
               </Tabs>
             </div>

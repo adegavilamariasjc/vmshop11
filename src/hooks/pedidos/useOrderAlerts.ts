@@ -1,5 +1,5 @@
 import { useRef, useCallback, useEffect } from 'react';
-import { supabase } from '@/lib/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useOrderAlerts = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -45,47 +45,66 @@ export const useOrderAlerts = () => {
       supabase.removeChannel(channelRef.current);
     }
 
-    // Create new channel for pedidos
+    // Create new channel for pedidos with optimized settings
     const channel = supabase
-      .channel('pedidos-alerts')
+      .channel('pedidos-realtime', {
+        config: {
+          presence: { key: 'admin-dashboard' },
+          broadcast: { self: true }
+        }
+      })
       .on('postgres_changes', 
         { 
           event: '*', 
           schema: 'public', 
           table: 'pedidos' 
         }, 
-        (payload) => {
+        async (payload) => {
           console.log('Pedido change detected:', payload);
           
-          // Fetch latest orders to check status
-          supabase
-            .from('pedidos')
-            .select('*')
-            .order('data_criacao', { ascending: false })
-            .then(({ data }) => {
-              if (data) {
-                onOrderChange(data);
-                
-                // Check if there are pending orders
-                const pendingOrders = data.filter(order => order.status === 'pendente');
-                
-                if (pendingOrders.length > 0) {
-                  startAlert();
-                } else {
-                  stopAlert();
-                }
+          // Optimistic update: immediately process the change
+          try {
+            // Fetch latest orders with improved error handling
+            const { data, error } = await supabase
+              .from('pedidos')
+              .select('*')
+              .order('data_criacao', { ascending: false });
+              
+            if (error) {
+              console.error('Error fetching pedidos:', error);
+              return;
+            }
+            
+            if (data) {
+              // Update UI immediately
+              onOrderChange(data);
+              
+              // Check if there are pending orders
+              const pendingOrders = data.filter(order => order.status === 'pendente');
+              
+              if (pendingOrders.length > 0) {
+                startAlert();
+              } else {
+                stopAlert();
               }
-            });
+            }
+          } catch (error) {
+            console.error('Error processing realtime update:', error);
+          }
         }
       )
       .subscribe((status) => {
         console.log('Realtime subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          console.log('Successfully subscribed to pedidos updates');
+        }
       });
 
     channelRef.current = channel;
 
     return () => {
       if (channelRef.current) {
+        console.log('Cleaning up realtime subscription');
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
       }

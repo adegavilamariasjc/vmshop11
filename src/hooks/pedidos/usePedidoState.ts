@@ -19,13 +19,13 @@ export const usePedidoState = () => {
     try {
       const pedidosData = await fetchPedidos();
       
-      // Calculate time in production for each order
+      // Calculate time in production for each order with optimistic processing
       const now = new Date();
       const processedPedidos = pedidosData.map(pedido => {
         if (pedido.status === 'preparando') {
           const orderDate = new Date(pedido.data_criacao);
           const elapsedMinutes = Math.floor((now.getTime() - orderDate.getTime()) / (1000 * 60));
-          return { ...pedido, timeInProduction: elapsedMinutes };
+          return { ...pedido, timeInProduction: Math.max(0, elapsedMinutes) };
         }
         return pedido;
       });
@@ -94,6 +94,11 @@ export const usePedidoState = () => {
   }, [toast]);
 
   const handleAtualizarStatus = useCallback(async (id: string, novoStatus: string) => {
+    // Optimistic UI update
+    setPedidos(prevPedidos => prevPedidos.map(p => 
+      p.id === id ? { ...p, status: novoStatus, timeInProduction: novoStatus === 'preparando' ? 0 : undefined } : p
+    ));
+
     try {
       const success = await updatePedidoStatus(id, novoStatus);
       
@@ -101,24 +106,23 @@ export const usePedidoState = () => {
         throw new Error('Falha ao atualizar status');
       }
       
-      // Reset timeInProduction when status changes
-      setPedidos(prevPedidos => prevPedidos.map(p => 
-        p.id === id ? { ...p, status: novoStatus, timeInProduction: novoStatus === 'preparando' ? 0 : undefined } : p
-      ));
-      
       toast({
         title: 'Status atualizado',
         description: `Pedido marcado como ${novoStatus}.`,
       });
     } catch (error) {
       console.error('Erro ao atualizar status:', error);
+      
+      // Revert optimistic update on error
+      await fetchPedidosData();
+      
       toast({
         title: 'Erro',
         description: 'Não foi possível atualizar o status do pedido.',
         variant: 'destructive',
       });
     }
-  }, [toast]);
+  }, [toast, fetchPedidosData]);
 
   return {
     pedidos,
