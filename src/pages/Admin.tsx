@@ -1,17 +1,19 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import AdminLogin from '../components/admin/AdminLogin';
-import ProductManager from '../components/admin/ProductManager';
-import CategoryManager from '../components/admin/CategoryManager';
-import BairroManager from '../components/admin/BairroManager';
-import PedidosManager from '../components/admin/PedidosManager';
 import TrafficIndicator from '../components/admin/TrafficIndicator';
 import Logo from '../components/Logo';
 import BackgroundVideoPlayer from '../components/BackgroundVideoPlayer';
 import { getVideoUrls } from '@/utils/videoUrls';
+
+// Lazy load components to prevent crashes
+const PedidosManager = React.lazy(() => import('../components/admin/PedidosManager'));
+const ProductManager = React.lazy(() => import('../components/admin/ProductManager'));
+const CategoryManager = React.lazy(() => import('../components/admin/CategoryManager'));
+const BairroManager = React.lazy(() => import('../components/admin/BairroManager'));
 
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -92,21 +94,23 @@ const Admin = () => {
                   <TabsTrigger value="bairros" className="text-black font-medium">Bairros</TabsTrigger>
                 </TabsList>
                 
-                <TabsContent value="pedidos" className="bg-black/50 p-4 rounded-md">
-                  {activeTab === "pedidos" && <PedidosManager />}
-                </TabsContent>
-                
-                <TabsContent value="produtos" className="bg-black/50 p-4 rounded-md">
-                  {activeTab === "produtos" && <ProductManager />}
-                </TabsContent>
-                
-                <TabsContent value="categorias" className="bg-black/50 p-4 rounded-md">
-                  {activeTab === "categorias" && <CategoryManager />}
-                </TabsContent>
-                
-                <TabsContent value="bairros" className="bg-black/50 p-4 rounded-md">
-                  {activeTab === "bairros" && <BairroManager />}
-                </TabsContent>
+                <Suspense fallback={<div className="flex items-center justify-center p-8 text-white">Carregando...</div>}>
+                  <TabsContent value="pedidos" className="bg-black/50 p-4 rounded-md">
+                    {activeTab === "pedidos" && <PedidosManager key="pedidos" />}
+                  </TabsContent>
+                  
+                  <TabsContent value="produtos" className="bg-black/50 p-4 rounded-md">
+                    {activeTab === "produtos" && <ProductManager key="produtos" />}
+                  </TabsContent>
+                  
+                  <TabsContent value="categorias" className="bg-black/50 p-4 rounded-md">
+                    {activeTab === "categorias" && <CategoryManager key="categorias" />}
+                  </TabsContent>
+                  
+                  <TabsContent value="bairros" className="bg-black/50 p-4 rounded-md">
+                    {activeTab === "bairros" && <BairroManager key="bairros" />}
+                  </TabsContent>
+                </Suspense>
               </Tabs>
             </div>
           </>
