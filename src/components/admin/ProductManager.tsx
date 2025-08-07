@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { fetchCategories, fetchProducts, updateProductOrder } from '@/lib/supabase';
