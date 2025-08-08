@@ -14,6 +14,7 @@ import PedidosManager from '../components/admin/PedidosManager';
 import ProductManager from '../components/admin/ProductManager';
 import CategoryManager from '../components/admin/CategoryManager';
 import BairroManager from '../components/admin/BairroManager';
+import DatabaseExport from '../components/admin/DatabaseExport';
 
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -85,7 +86,9 @@ const Admin = () => {
               <div className="mb-8">
                 <TrafficIndicator />
               </div>
-              
+              <div className="mb-8">
+                <DatabaseExport />
+              </div>
               <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
                 <TabsList className="grid grid-cols-4 mb-8 max-w-full overflow-x-auto">
                   <TabsTrigger value="pedidos" className="text-black font-medium">Pedidos</TabsTrigger>
