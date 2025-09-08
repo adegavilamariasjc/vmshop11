@@ -63,6 +63,26 @@ export const updatePedidoStatus = async (id: string, status: string): Promise<bo
   }
 };
 
+// Update deliverer assignment for a pedido
+export const updatePedidoDeliverer = async (id: string, entregador: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('pedidos')
+      .update({ entregador })
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Erro ao atualizar entregador do pedido:', error);
+      return false;
+    }
+    
+    return true;
+  } catch (err) {
+    console.error('Erro ao atualizar entregador do pedido:', err);
+    return false;
+  }
+};
+
 // Delete a pedido
 export const deletePedido = async (id: string): Promise<boolean> => {
   try {

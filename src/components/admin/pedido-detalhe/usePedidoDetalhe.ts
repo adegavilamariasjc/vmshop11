@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { fetchPedidoById, updatePedidoStatus, deletePedido } from '@/lib/supabase';
+import { fetchPedidoById, updatePedidoStatus, deletePedido, updatePedidoDeliverer } from '@/lib/supabase';
 import { SupabasePedido } from '@/lib/supabase/types';
 import { usePedidosUtils } from '@/hooks/pedidos/usePedidosUtils';
 import { usePedidoPrint } from './hooks/usePedidoPrint';
@@ -54,8 +54,25 @@ export const usePedidoDetalhe = (pedidoId: string, onClose: () => void, onDelete
     }
   };
 
-  const handleDelivererSelect = (deliverer: string, imprimir: (deliverer: string) => void) => {
+  const handleDelivererSelect = async (deliverer: string, imprimir: (deliverer: string) => void) => {
     setSelectedDeliverer(deliverer);
+    
+    // Update the pedido with the selected deliverer
+    if (pedido?.id) {
+      try {
+        await updatePedidoDeliverer(pedido.id, deliverer);
+        // Update local state
+        setPedido(prev => prev ? { ...prev, entregador: deliverer } : prev);
+      } catch (error) {
+        console.error('Erro ao atualizar entregador:', error);
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível atualizar o entregador do pedido.',
+          variant: 'destructive',
+        });
+      }
+    }
+    
     imprimir(deliverer);
   };
 

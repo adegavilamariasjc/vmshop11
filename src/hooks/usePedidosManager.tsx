@@ -15,6 +15,7 @@ export interface Pedido {
   total: number;
   status: string;
   data_criacao: string;
+  entregador?: string; // Nome do motoboy atribuído
   timeInProduction?: number; // Time in minutes the order has been in production
 }
 

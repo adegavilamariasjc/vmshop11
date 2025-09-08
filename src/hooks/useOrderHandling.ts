@@ -100,7 +100,8 @@ export const useOrderHandling = () => {
         itens: cart as any,
         total: total,
         status: 'pendente',
-        discount_amount: totalDiscountAmount
+        discount_amount: totalDiscountAmount,
+        entregador: null // Initially no deliverer assigned
       });
       
       return !!pedido;

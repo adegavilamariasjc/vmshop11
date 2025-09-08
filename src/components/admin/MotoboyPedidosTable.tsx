@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Package, Clock, CheckCircle } from 'lucide-react';
+import { Package, Clock, CheckCircle, User } from 'lucide-react';
 import { Pedido } from '@/hooks/usePedidosManager';
 
 interface MotoboyPedidosTableProps {
@@ -85,33 +85,53 @@ const MotoboyPedidosTable: React.FC<MotoboyPedidosTableProps> = ({
           <Card key={pedido.id} className="bg-gray-800 border-gray-700 text-white">
             <CardHeader className="pb-2">
               <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="text-lg">#{pedido.codigo_pedido}</CardTitle>
-                  <p className="text-sm text-gray-300">{pedido.cliente_nome}</p>
+                <div className="flex-1 min-w-0">
+                  <CardTitle className="text-lg truncate">#{pedido.codigo_pedido}</CardTitle>
+                  <p className="text-sm text-gray-300 truncate">{pedido.cliente_nome}</p>
+                  {pedido.entregador && (
+                    <div className="flex items-center gap-1 mt-1">
+                      <User size={12} className="text-purple-400" />
+                      <span className="text-xs text-purple-400">{pedido.entregador}</span>
+                    </div>
+                  )}
                 </div>
-                {getStatusBadge(pedido.status)}
+                <div className="flex flex-col items-end gap-1">
+                  {getStatusBadge(pedido.status)}
+                  {renderProductionTime(pedido)}
+                </div>
               </div>
-              {renderProductionTime(pedido)}
             </CardHeader>
             <CardContent className="pt-2">
-              <div className="space-y-2 text-sm">
-                <p><strong>Bairro:</strong> {pedido.cliente_bairro}</p>
-                <p><strong>Pagamento:</strong> {pedido.forma_pagamento}</p>
-                <p><strong>Total:</strong> R$ {pedido.total?.toFixed(2) || '0.00'}</p>
-                <p><strong>Data:</strong> {formatDateTime(pedido.data_criacao)}</p>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div>
+                  <p className="text-gray-400">Bairro:</p>
+                  <p className="truncate">{pedido.cliente_bairro}</p>
+                </div>
+                <div>
+                  <p className="text-gray-400">Total:</p>
+                  <p className="font-medium">R$ {pedido.total?.toFixed(2) || '0.00'}</p>
+                </div>
+                <div>
+                  <p className="text-gray-400">Pagamento:</p>
+                  <p className="truncate">{pedido.forma_pagamento}</p>
+                </div>
+                <div>
+                  <p className="text-gray-400">Data:</p>
+                  <p className="text-xs">{formatDateTime(pedido.data_criacao)}</p>
+                </div>
               </div>
-              <div className="mt-4 flex justify-end">
-                {pedido.status === 'pronto' && (
+              {pedido.status === 'pronto' && (
+                <div className="mt-4">
                   <Button
                     onClick={() => onAtualizarStatus(pedido.id, 'entregue')}
-                    className="bg-green-600 hover:bg-green-700 text-white"
+                    className="w-full bg-green-600 hover:bg-green-700 text-white"
                     size="sm"
                   >
                     <CheckCircle className="mr-1 h-4 w-4" />
-                    Entregue
+                    Marcar como Entregue
                   </Button>
-                )}
-              </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         ))}
@@ -123,17 +143,19 @@ const MotoboyPedidosTable: React.FC<MotoboyPedidosTableProps> = ({
             disabled={currentPage === 1}
             variant="outline"
             className="text-black"
+            size="sm"
           >
             Anterior
           </Button>
-          <span className="text-white">
-            Página {currentPage} de {Math.ceil(pedidos.length / itemsPerPage)}
+          <span className="text-white text-sm">
+            {currentPage}/{Math.ceil(pedidos.length / itemsPerPage)}
           </span>
           <Button 
             onClick={handleNextPage} 
             disabled={currentPage >= Math.ceil(pedidos.length / itemsPerPage)}
             variant="outline"
             className="text-black"
+            size="sm"
           >
             Próximo
           </Button>
@@ -144,18 +166,19 @@ const MotoboyPedidosTable: React.FC<MotoboyPedidosTableProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="bg-gray-800 rounded-lg overflow-hidden">
+      <div className="bg-gray-800 rounded-lg overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow className="border-gray-700">
-              <TableHead className="text-gray-300">Código</TableHead>
-              <TableHead className="text-gray-300">Cliente</TableHead>
-              <TableHead className="text-gray-300">Bairro</TableHead>
-              <TableHead className="text-gray-300">Status</TableHead>
-              <TableHead className="text-gray-300">Pagamento</TableHead>
-              <TableHead className="text-gray-300">Total</TableHead>
-              <TableHead className="text-gray-300">Data</TableHead>
-              <TableHead className="text-gray-300">Ações</TableHead>
+              <TableHead className="text-gray-300 min-w-[80px]">Código</TableHead>
+              <TableHead className="text-gray-300 min-w-[120px]">Cliente</TableHead>
+              <TableHead className="text-gray-300 min-w-[100px]">Bairro</TableHead>
+              <TableHead className="text-gray-300 min-w-[120px]">Status</TableHead>
+              <TableHead className="text-gray-300 min-w-[100px]">Entregador</TableHead>
+              <TableHead className="text-gray-300 min-w-[100px]">Pagamento</TableHead>
+              <TableHead className="text-gray-300 min-w-[80px]">Total</TableHead>
+              <TableHead className="text-gray-300 min-w-[120px]">Data</TableHead>
+              <TableHead className="text-gray-300 min-w-[100px]">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -164,30 +187,38 @@ const MotoboyPedidosTable: React.FC<MotoboyPedidosTableProps> = ({
                 <TableCell className="text-white font-medium">
                   #{pedido.codigo_pedido}
                 </TableCell>
-                <TableCell className="text-white">{pedido.cliente_nome}</TableCell>
-                <TableCell className="text-white">{pedido.cliente_bairro}</TableCell>
+                <TableCell className="text-white max-w-[120px] truncate">{pedido.cliente_nome}</TableCell>
+                <TableCell className="text-white max-w-[100px] truncate">{pedido.cliente_bairro}</TableCell>
                 <TableCell>
                   <div className="flex flex-col gap-1">
                     {getStatusBadge(pedido.status)}
                     {renderProductionTime(pedido)}
                   </div>
                 </TableCell>
-                <TableCell className="text-white">{pedido.forma_pagamento}</TableCell>
+                <TableCell className="text-white">
+                  {pedido.entregador ? (
+                    <div className="flex items-center gap-1">
+                      <User size={12} className="text-purple-400" />
+                      <span className="text-xs text-purple-400 max-w-[80px] truncate">{pedido.entregador}</span>
+                    </div>
+                  ) : (
+                    <span className="text-gray-500 text-xs">Não atribuído</span>
+                  )}
+                </TableCell>
+                <TableCell className="text-white max-w-[100px] truncate">{pedido.forma_pagamento}</TableCell>
                 <TableCell className="text-white">R$ {pedido.total?.toFixed(2) || '0.00'}</TableCell>
-                <TableCell className="text-white">{formatDateTime(pedido.data_criacao)}</TableCell>
+                <TableCell className="text-white text-xs">{formatDateTime(pedido.data_criacao)}</TableCell>
                 <TableCell>
-                  <div className="flex gap-2">
-                    {pedido.status === 'pronto' && (
-                      <Button
-                        onClick={() => onAtualizarStatus(pedido.id, 'entregue')}
-                        className="bg-green-600 hover:bg-green-700 text-white"
-                        size="sm"
-                      >
-                        <CheckCircle className="mr-1 h-4 w-4" />
-                        Entregue
-                      </Button>
-                    )}
-                  </div>
+                  {pedido.status === 'pronto' && (
+                    <Button
+                      onClick={() => onAtualizarStatus(pedido.id, 'entregue')}
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                      size="sm"
+                    >
+                      <CheckCircle className="mr-1 h-4 w-4" />
+                      Entregue
+                    </Button>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
@@ -196,7 +227,7 @@ const MotoboyPedidosTable: React.FC<MotoboyPedidosTableProps> = ({
       </div>
 
       {/* Paginação Desktop */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-2">
         <span className="text-white text-sm">
           Mostrando {startIndex + 1}-{Math.min(endIndex, pedidos.length)} de {pedidos.length} pedidos
         </span>
@@ -206,6 +237,7 @@ const MotoboyPedidosTable: React.FC<MotoboyPedidosTableProps> = ({
             disabled={currentPage === 1}
             variant="outline"
             className="text-black"
+            size="sm"
           >
             Anterior
           </Button>
@@ -214,6 +246,7 @@ const MotoboyPedidosTable: React.FC<MotoboyPedidosTableProps> = ({
             disabled={currentPage >= Math.ceil(pedidos.length / itemsPerPage)}
             variant="outline"
             className="text-black"
+            size="sm"
           >
             Próximo
           </Button>
