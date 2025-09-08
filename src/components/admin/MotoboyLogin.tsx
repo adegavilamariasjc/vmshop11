@@ -1,17 +1,16 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { LockKeyhole, ArrowLeft } from 'lucide-react';
+import { Bike, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-interface AdminLoginProps {
+interface MotoboyLoginProps {
   onLogin: (password: string) => void;
-  onMotoboyClick: () => void;
+  onBackToAdmin: () => void;
 }
 
-const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onMotoboyClick }) => {
+const MotoboyLogin: React.FC<MotoboyLoginProps> = ({ onLogin, onBackToAdmin }) => {
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
@@ -25,11 +24,11 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onMotoboyClick }) => {
       <Card className="w-full max-w-md bg-black/80 border-purple-dark text-white">
         <CardHeader className="text-center">
           <div className="mx-auto bg-purple-dark p-3 rounded-full w-16 h-16 flex items-center justify-center mb-4">
-            <LockKeyhole size={32} />
+            <Bike size={32} />
           </div>
-          <CardTitle className="text-2xl">Login Administrativo</CardTitle>
+          <CardTitle className="text-2xl">Login Motoboys</CardTitle>
           <CardDescription className="text-gray-300">
-            Digite a senha para acessar o painel
+            Digite a senha para acessar o painel de entregas
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
@@ -44,30 +43,20 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onMotoboyClick }) => {
               />
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col gap-4">
-            <div className="flex justify-between w-full">
-              <Button 
-                type="button"
-                variant="outline"
-                onClick={() => navigate('/')}
-                className="flex items-center justify-center gap-2 text-black font-bold border-white hover:bg-white/10"
-              >
-                <ArrowLeft size={16} /> Voltar
-              </Button>
-              <Button 
-                type="submit" 
-                className="bg-purple-dark hover:bg-purple-600"
-              >
-                Entrar
-              </Button>
-            </div>
+          <CardFooter className="flex justify-between">
             <Button 
               type="button"
-              variant="secondary"
-              onClick={onMotoboyClick}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              variant="outline"
+              onClick={onBackToAdmin}
+              className="flex items-center justify-center gap-2 text-black font-bold border-white hover:bg-white/10"
             >
-              Motoboys
+              <ArrowLeft size={16} /> Voltar
+            </Button>
+            <Button 
+              type="submit" 
+              className="bg-purple-dark hover:bg-purple-600"
+            >
+              Entrar
             </Button>
           </CardFooter>
         </form>
@@ -76,4 +65,4 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onMotoboyClick }) => {
   );
 };
 
-export default AdminLogin;
+export default MotoboyLogin;
