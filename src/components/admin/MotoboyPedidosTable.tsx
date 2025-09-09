@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Package, Clock, CheckCircle, User } from 'lucide-react';
+import { Package, Clock, CheckCircle } from 'lucide-react';
 import { Pedido } from '@/hooks/usePedidosManager';
 
 interface MotoboyPedidosTableProps {
@@ -88,12 +88,6 @@ const MotoboyPedidosTable: React.FC<MotoboyPedidosTableProps> = ({
                 <div className="flex-1 min-w-0">
                   <CardTitle className="text-lg truncate">#{pedido.codigo_pedido}</CardTitle>
                   <p className="text-sm text-gray-300 truncate">{pedido.cliente_nome}</p>
-                  {pedido.entregador && (
-                    <div className="flex items-center gap-1 mt-1">
-                      <User size={12} className="text-purple-400" />
-                      <span className="text-xs text-purple-400">{pedido.entregador}</span>
-                    </div>
-                  )}
                 </div>
                 <div className="flex flex-col items-end gap-1">
                   {getStatusBadge(pedido.status)}
@@ -174,7 +168,6 @@ const MotoboyPedidosTable: React.FC<MotoboyPedidosTableProps> = ({
               <TableHead className="text-gray-300 min-w-[120px]">Cliente</TableHead>
               <TableHead className="text-gray-300 min-w-[100px]">Bairro</TableHead>
               <TableHead className="text-gray-300 min-w-[120px]">Status</TableHead>
-              <TableHead className="text-gray-300 min-w-[100px]">Entregador</TableHead>
               <TableHead className="text-gray-300 min-w-[100px]">Pagamento</TableHead>
               <TableHead className="text-gray-300 min-w-[80px]">Total</TableHead>
               <TableHead className="text-gray-300 min-w-[120px]">Data</TableHead>
@@ -194,16 +187,6 @@ const MotoboyPedidosTable: React.FC<MotoboyPedidosTableProps> = ({
                     {getStatusBadge(pedido.status)}
                     {renderProductionTime(pedido)}
                   </div>
-                </TableCell>
-                <TableCell className="text-white">
-                  {pedido.entregador ? (
-                    <div className="flex items-center gap-1">
-                      <User size={12} className="text-purple-400" />
-                      <span className="text-xs text-purple-400 max-w-[80px] truncate">{pedido.entregador}</span>
-                    </div>
-                  ) : (
-                    <span className="text-gray-500 text-xs">Não atribuído</span>
-                  )}
                 </TableCell>
                 <TableCell className="text-white max-w-[100px] truncate">{pedido.forma_pagamento}</TableCell>
                 <TableCell className="text-white">R$ {pedido.total?.toFixed(2) || '0.00'}</TableCell>
