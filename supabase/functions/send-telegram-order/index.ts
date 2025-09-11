@@ -100,6 +100,38 @@ ${observacao ? `📝 **OBSERVAÇÃO:** ${observacao}` : ''}
 
 ⏰ ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`;
 
+    // Create inline keyboard with action buttons
+    const inlineKeyboard = {
+      inline_keyboard: [
+        [
+          { 
+            text: "🔄 Produzindo", 
+            callback_data: `status_preparando_${codigoPedido}` 
+          },
+          { 
+            text: "🚚 Despachado", 
+            callback_data: `status_em_deslocamento_${codigoPedido}` 
+          }
+        ],
+        [
+          { 
+            text: "✅ Entregue", 
+            callback_data: `status_entregue_${codigoPedido}` 
+          },
+          { 
+            text: "📞 Ligar Cliente", 
+            callback_data: `call_${codigoPedido}_${clienteWhatsapp}` 
+          }
+        ],
+        [
+          { 
+            text: "💬 WhatsApp", 
+            url: `https://wa.me/${clienteWhatsapp.replace(/\D/g, '')}` 
+          }
+        ]
+      ]
+    };
+
     // Send to Telegram
     const telegramUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
     
@@ -111,7 +143,8 @@ ${observacao ? `📝 **OBSERVAÇÃO:** ${observacao}` : ''}
       body: JSON.stringify({
         chat_id: TELEGRAM_CHAT_ID,
         text: message,
-        parse_mode: 'Markdown'
+        parse_mode: 'Markdown',
+        reply_markup: inlineKeyboard
       }),
     });
 
