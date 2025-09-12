@@ -34,7 +34,8 @@ serve(async (req) => {
       observacao,
       itens,
       total,
-      discountAmount
+      discountAmount,
+      entregador
     } = await req.json();
 
     console.log('Preparing Telegram message for order:', codigoPedido);
@@ -72,7 +73,7 @@ serve(async (req) => {
     // Format complete message
     const message = `🎯 **NOVO PEDIDO** 🎯
 
-📋 **CÓDIGO:** ${codigoPedido}
+📋 **CÓDIGO:** ${codigoPedido}${entregador ? `\n🏍️ **ENTREGADOR:** ${entregador}` : ''}
 
 👤 **CLIENTE:**
 ${clienteNome}

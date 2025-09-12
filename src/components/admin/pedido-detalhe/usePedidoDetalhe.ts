@@ -63,6 +63,36 @@ export const usePedidoDetalhe = (pedidoId: string, onClose: () => void, onDelete
         await updatePedidoDeliverer(pedido.id, deliverer);
         // Update local state
         setPedido(prev => prev ? { ...prev, entregador: deliverer } : prev);
+        
+        // Send order to Telegram when deliverer is selected
+        try {
+          const { supabase } = await import('@/lib/supabase');
+          await supabase.functions.invoke('send-telegram-order', {
+            body: {
+              codigoPedido: pedido.codigo_pedido,
+              clienteNome: pedido.cliente_nome,
+              clienteEndereco: pedido.cliente_endereco,
+              clienteNumero: pedido.cliente_numero,
+              clienteComplemento: pedido.cliente_complemento,
+              clienteReferencia: pedido.cliente_referencia,
+              clienteBairro: pedido.cliente_bairro,
+              taxaEntrega: pedido.taxa_entrega,
+              clienteWhatsapp: pedido.cliente_whatsapp,
+              formaPagamento: pedido.forma_pagamento,
+              troco: pedido.troco,
+              observacao: pedido.observacao,
+              itens: pedido.itens,
+              total: pedido.total,
+              discountAmount: pedido.discount_amount,
+              entregador: deliverer
+            }
+          });
+          console.log('Order sent to Telegram with deliverer:', deliverer);
+        } catch (telegramError) {
+          console.error('Failed to send order to Telegram:', telegramError);
+          // Don't fail the process if Telegram fails
+        }
+        
       } catch (error) {
         console.error('Erro ao atualizar entregador:', error);
         toast({

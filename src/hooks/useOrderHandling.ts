@@ -104,34 +104,7 @@ export const useOrderHandling = () => {
         entregador: null
       });
       
-      if (pedido) {
-        // Send order to Telegram group
-        try {
-          await supabase.functions.invoke('send-telegram-order', {
-            body: {
-              codigoPedido,
-              clienteNome: form.nome,
-              clienteEndereco: form.endereco,
-              clienteNumero: form.numero,
-              clienteComplemento: form.complemento,
-              clienteReferencia: form.referencia,
-              clienteBairro: form.bairro.nome,
-              taxaEntrega: form.bairro.taxa,
-              clienteWhatsapp: form.whatsapp,
-              formaPagamento: form.pagamento,
-              troco: form.troco,
-              observacao: form.observacao,
-              itens: cart,
-              total: total,
-              discountAmount: totalDiscountAmount
-            }
-          });
-          console.log('Order sent to Telegram successfully');
-        } catch (telegramError) {
-          console.error('Failed to send order to Telegram:', telegramError);
-          // Don't fail the order if Telegram fails
-        }
-      }
+      // Pedido saved successfully - Telegram will be sent when deliverer is selected
       
       return !!pedido;
     } catch (err) {
