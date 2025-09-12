@@ -40,10 +40,13 @@ const PedidoDetalhe: React.FC<PedidoDetalheProps> = ({
     setIsPrinting,
   } = usePedidoDetalhe(pedidoId, onClose, onDelete, onStatusChange);
 
-  const handleDelivererSelection = (deliverer: string) => {
-    printDeliverer.current = deliverer;
-    setShouldPrint(true);
-    setShowDelivererModal(false);
+  const handleDelivererSelection = async (deliverer: string) => {
+    // Use the hook's logic to update entregador, send Telegram, then print
+    await handleDelivererSelect(deliverer, (d: string) => {
+      printDeliverer.current = d;
+      setShouldPrint(true);
+      setShowDelivererModal(false);
+    });
   };
 
   // After setting shouldPrint, run the print logic
