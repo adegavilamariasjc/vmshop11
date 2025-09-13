@@ -82,53 +82,125 @@ bot.on('message', (msg) => {
   console.log('📍 Chat ID:', msg.chat.id);
   console.log('👤 User:', msg.from.first_name || msg.from.username);
   
-  // Detecta pedidos do iFood pela palavra-chave
-  if (msg.text && msg.text.toLowerCase().includes('ifood')) {
+// Detecta pedidos do iFood por múltiplas palavras-chave e padrões
+  const text = msg.text?.toLowerCase() || '';
+  const ifoodKeywords = ['ifood', 'pedido #', 'delivery', 'entrega', 'cliente:', 'total: r$', 'pagamento:', 'endereço:'];
+  
+  // Verifica se é um pedido do iFood baseado em múltiplos indicadores
+  const hasIfoodKeywords = ifoodKeywords.some(keyword => text.includes(keyword));
+  const hasOrderPattern = /pedido\s*#?\d+/i.test(text) || /código\s*:?\s*\w+/i.test(text);
+  const hasMoneyPattern = /r\$\s*\d+/i.test(text);
+  
+  if (hasIfoodKeywords || (hasOrderPattern && hasMoneyPattern)) {
+    console.log('🍔 Possível pedido detectado - analisando...');
     handleIfoodOrder(msg);
   }
 });
 
+// Função para extrair informações de um pedido
+function extractOrderInfo(text) {
+  const info = {
+    orderNumber: null,
+    client: null,
+    phone: null,
+    total: null,
+    address: null,
+    items: []
+  };
+  
+  // Extrai número do pedido
+  const orderMatch = text.match(/(?:pedido\s*#?|código\s*:?\s*)(\w+)/i);
+  if (orderMatch) info.orderNumber = orderMatch[1];
+  
+  // Extrai nome do cliente
+  const clientMatch = text.match(/(?:cliente\s*:?\s*)([^\n\r]+)/i);
+  if (clientMatch) info.client = clientMatch[1].trim();
+  
+  // Extrai telefone
+  const phoneMatch = text.match(/(?:telefone|fone|cel)\s*:?\s*([^\n\r]+)/i);
+  if (phoneMatch) info.phone = phoneMatch[1].trim();
+  
+  // Extrai total
+  const totalMatch = text.match(/(?:total|valor)\s*:?\s*r?\$?\s*(\d+[,.]?\d*)/i);
+  if (totalMatch) info.total = totalMatch[1];
+  
+  // Extrai endereço
+  const addressMatch = text.match(/(?:endereço|endereco)\s*:?\s*([^\n\r]+)/i);
+  if (addressMatch) info.address = addressMatch[1].trim();
+  
+  return info;
+}
+
 // Função para processar pedidos do iFood
 async function handleIfoodOrder(msg) {
   try {
-    console.log('🍔 Pedido iFood detectado');
+    console.log('🍔 Processando pedido detectado');
     
-    // Extrai informações do pedido (você pode ajustar conforme o formato do iFood)
     const orderText = msg.text;
+    const orderInfo = extractOrderInfo(orderText);
     
-    // Cria botões de controle para o pedido iFood
+    // Gera um ID único se não conseguir extrair número do pedido
+    const orderId = orderInfo.orderNumber || `AUTO_${Date.now()}`;
+    
+    console.log('📋 Informações extraídas:', orderInfo);
+    
+    // Cria botões de controle para o pedido
     const inlineKeyboard = {
       inline_keyboard: [
         [
           { 
             text: "🔄 Produzindo", 
-            callback_data: `ifood_preparando_${Date.now()}` 
+            callback_data: `ifood_preparando_${orderId}` 
           },
           { 
             text: "🚚 Despachado", 
-            callback_data: `ifood_despachado_${Date.now()}` 
+            callback_data: `ifood_despachado_${orderId}` 
           }
         ],
         [
           { 
             text: "✅ Entregue", 
-            callback_data: `ifood_entregue_${Date.now()}` 
+            callback_data: `ifood_entregue_${orderId}` 
+          },
+          { 
+            text: "📞 Ligar", 
+            callback_data: `ifood_call_${orderId}` 
           }
         ]
       ]
     };
     
+    // Formata a mensagem de forma mais organizada
+    let formattedMessage = '🍔 **PEDIDO DETECTADO**\n\n';
+    
+    if (orderInfo.orderNumber) {
+      formattedMessage += `📋 **Pedido:** ${orderInfo.orderNumber}\n`;
+    }
+    if (orderInfo.client) {
+      formattedMessage += `👤 **Cliente:** ${orderInfo.client}\n`;
+    }
+    if (orderInfo.phone) {
+      formattedMessage += `📱 **Telefone:** ${orderInfo.phone}\n`;
+    }
+    if (orderInfo.total) {
+      formattedMessage += `💰 **Total:** R$ ${orderInfo.total}\n`;
+    }
+    if (orderInfo.address) {
+      formattedMessage += `📍 **Endereço:** ${orderInfo.address}\n`;
+    }
+    
+    formattedMessage += `\n📄 **PEDIDO COMPLETO:**\n${orderText}\n\n⬇️ **CONTROLES:**`;
+    
     // Reenvia a mensagem com botões de controle
-    await bot.sendMessage(msg.chat.id, 
-      `🍔 **PEDIDO iFOOD RECEBIDO**\n\n${orderText}\n\n⬇️ **CONTROLES:**`, 
-      {
-        parse_mode: 'Markdown',
-        reply_markup: inlineKeyboard
-      }
-    );
+    await bot.sendMessage(msg.chat.id, formattedMessage, {
+      parse_mode: 'Markdown',
+      reply_markup: inlineKeyboard
+    });
+    
+    console.log(`✅ Pedido ${orderId} processado com sucesso`);
     
   } catch (error) {
-    console.error('❌ Erro ao processar pedido iFood:', error);
+    console.error('❌ Erro ao processar pedido:', error);
   }
 }
 
@@ -190,7 +262,9 @@ bot.on('callback_query', async (callbackQuery) => {
 
 // Função para processar callbacks do iFood
 async function handleIfoodCallback(callbackQuery) {
-  const [, action, orderId] = callbackQuery.data.split('_');
+  const dataParts = callbackQuery.data.split('_');
+  const action = dataParts[1];
+  const orderId = dataParts.slice(2).join('_'); // Reconstrói o ID caso tenha underscores
   const userName = callbackQuery.from.first_name || callbackQuery.from.username || 'Staff';
   
   let statusText = '';
@@ -209,6 +283,19 @@ async function handleIfoodCallback(callbackQuery) {
       statusText = 'ENTREGUE';
       emoji = '✅';
       break;
+    case 'call':
+      // Tenta extrair o telefone da mensagem original
+      const originalText = callbackQuery.message.text;
+      const phoneMatch = originalText.match(/(?:telefone|fone)\s*:?\s*([^\n\r]+)/i);
+      const phone = phoneMatch ? phoneMatch[1].trim() : 'não informado';
+      
+      await bot.answerCallbackQuery(callbackQuery.id, {
+        text: `📞 Telefone: ${phone}`,
+        show_alert: true
+      });
+      
+      console.log(`📞 Solicitação de ligação para: ${phone} por ${userName}`);
+      return; // Não envia mensagem de status para ligações
   }
   
   // Responde ao usuário
@@ -219,13 +306,13 @@ async function handleIfoodCallback(callbackQuery) {
   
   // Envia mensagem de status no grupo
   await bot.sendMessage(callbackQuery.message.chat.id, 
-    `${emoji} **IFOOD - ${statusText}**\n\n` +
+    `${emoji} **PEDIDO ${orderId} - ${statusText}**\n\n` +
     `👤 Atualizado por: ${userName}\n` +
     `⏰ ${new Date().toLocaleString('pt-BR')}`,
     { parse_mode: 'Markdown' }
   );
   
-  console.log(`✅ Status iFood atualizado: ${statusText} por ${userName}`);
+  console.log(`✅ Status do pedido ${orderId} atualizado: ${statusText} por ${userName}`);
 }
 
 // Tratamento de erros do bot
