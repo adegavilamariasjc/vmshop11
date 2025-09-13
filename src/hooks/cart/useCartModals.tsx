@@ -49,11 +49,22 @@ export const useCartModals = (
     if (!selectedProductForFlavor) return;
     
     const totalIce = Object.values(selectedIce).reduce((sum, v) => sum + v, 0);
+    const maxIce = getMaxIce(selectedProductForFlavor?.category || "");
     
     if (totalIce === 0) {
       toast({
         title: "Seleção incompleta",
         description: "Por favor, selecione ao menos 1 unidade de gelo.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Validação específica para combos (devem ter exatamente 5 gelos)
+    if (selectedProductForFlavor?.category?.includes('Combo') && totalIce !== 5) {
+      toast({
+        title: "Seleção incompleta",
+        description: "Combos devem ter exatamente 5 unidades de gelo.",
         variant: "destructive",
       });
       return;
