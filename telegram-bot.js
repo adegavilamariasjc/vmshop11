@@ -86,19 +86,23 @@ bot.onText(/\/test/, (msg) => {
     inline_keyboard: [
       [
         { 
-          text: "🔄 Produzindo", 
+          text: "🔄 INICIAR PRODUÇÃO", 
           callback_data: "status_preparando_TEST123" 
-        },
+        }
+      ],
+      [
         { 
-          text: "🚚 Despachado", 
+          text: "🚚 DESPACHAR PEDIDO", 
           callback_data: "status_em_deslocamento_TEST123" 
         }
       ],
       [
         { 
-          text: "✅ Entregue", 
+          text: "✅ MARCAR ENTREGUE", 
           callback_data: "status_entregue_TEST123" 
-        },
+        }
+      ],
+      [
         { 
           text: "📞 Ligar Cliente", 
           callback_data: "call_TEST123_5511999999999" 

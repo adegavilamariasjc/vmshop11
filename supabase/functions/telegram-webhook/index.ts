@@ -66,28 +66,34 @@ serve(async (req) => {
 
         console.log('Order status updated successfully:', data[0]);
 
+        console.log('Order updated successfully. Sending confirmation to Telegram...');
+
         // Send confirmation back to Telegram
         const statusMessages = {
           'preparando': '🔄 Em Produção',
-          'em_deslocamento': '🚚 Despachado',
-          'entregue': '✅ Entregue'
+          'em_deslocamento': '🚚 Despachado para Entrega',
+          'entregue': '✅ Entregue com Sucesso'
         };
 
-        const confirmationMessage = `✅ *Status Atualizado por ${userName}*\n\n📋 Pedido: *${codigoPedido}*\n👤 Cliente: ${data[0].cliente_nome}\n📊 Status: *${statusMessages[status] || status}*\n⏰ ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`;
+        const confirmationMessage = `✅ *Status Atualizado por ${userName}*\n\n📋 Pedido: *${codigoPedido}*\n👤 Cliente: ${data[0].cliente_nome}\n📊 Novo Status: *${statusMessages[status] || status}*\n⏰ ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}\n\n🔄 *Sistema sincronizado automaticamente*`;
 
-        // Answer callback query
-        await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/answerCallbackQuery`, {
+        // Answer callback query first
+        const callbackResponse = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/answerCallbackQuery`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             callback_query_id: callbackQuery.id,
-            text: `Status atualizado para: ${statusMessages[status] || status}`,
+            text: `✅ ${statusMessages[status] || status}`,
             show_alert: false
           })
         });
 
+        if (!callbackResponse.ok) {
+          console.error('Failed to answer callback query:', await callbackResponse.text());
+        }
+
         // Send confirmation message
-        await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        const messageResponse = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -97,6 +103,12 @@ serve(async (req) => {
             reply_to_message_id: messageId
           })
         });
+
+        if (!messageResponse.ok) {
+          console.error('Failed to send confirmation message:', await messageResponse.text());
+        } else {
+          console.log('✅ Confirmation message sent successfully');
+        }
 
       } else if (callbackData.startsWith('call_')) {
         // Format: call_A1234_5511999999999

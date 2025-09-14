@@ -101,30 +101,32 @@ ${observacao ? `📝 **OBSERVAÇÃO:** ${observacao}` : ''}
 
 ⏰ ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`;
 
-    // Create inline keyboard with action buttons
+    // Create inline keyboard with action buttons - organized by workflow
     const inlineKeyboard = {
       inline_keyboard: [
         [
           { 
-            text: "🔄 Produzindo", 
+            text: "🔄 INICIAR PRODUÇÃO", 
             callback_data: `status_preparando_${codigoPedido}` 
-          },
+          }
+        ],
+        [
           { 
-            text: "🚚 Despachado", 
+            text: "🚚 DESPACHAR PEDIDO", 
             callback_data: `status_em_deslocamento_${codigoPedido}` 
           }
         ],
         [
           { 
-            text: "✅ Entregue", 
+            text: "✅ MARCAR ENTREGUE", 
             callback_data: `status_entregue_${codigoPedido}` 
-          },
-          { 
-            text: "📞 Ligar Cliente", 
-            callback_data: `call_${codigoPedido}_${clienteWhatsapp}` 
           }
         ],
         [
+          { 
+            text: "📞 Ligar Cliente", 
+            callback_data: `call_${codigoPedido}_${clienteWhatsapp}` 
+          },
           { 
             text: "💬 WhatsApp", 
             url: `https://wa.me/${clienteWhatsapp.replace(/\D/g, '')}` 
