@@ -104,6 +104,73 @@ export type Database = {
         }
         Relationships: []
       }
+      motoboy_chat_messages: {
+        Row: {
+          created_at: string
+          id: string
+          message_text: string
+          pedido_id: string
+          sender_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_text: string
+          pedido_id: string
+          sender_type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_text?: string
+          pedido_id?: string
+          sender_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "motoboy_chat_messages_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      motoboy_payments: {
+        Row: {
+          created_at: string
+          delivery_fee: number
+          id: string
+          motoboy_name: string
+          payment_status: string
+          pedido_id: string
+        }
+        Insert: {
+          created_at?: string
+          delivery_fee?: number
+          id?: string
+          motoboy_name: string
+          payment_status?: string
+          pedido_id: string
+        }
+        Update: {
+          created_at?: string
+          delivery_fee?: number
+          id?: string
+          motoboy_name?: string
+          payment_status?: string
+          pedido_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "motoboy_payments_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       page_visits: {
         Row: {
           acao: string
@@ -130,6 +197,44 @@ export type Database = {
           usuario_id?: string | null
         }
         Relationships: []
+      }
+      pedido_comprovantes: {
+        Row: {
+          id: string
+          image_analysis: Json | null
+          image_url: string
+          pedido_id: string
+          uploaded_at: string
+          verified: boolean | null
+          verified_at: string | null
+        }
+        Insert: {
+          id?: string
+          image_analysis?: Json | null
+          image_url: string
+          pedido_id: string
+          uploaded_at?: string
+          verified?: boolean | null
+          verified_at?: string | null
+        }
+        Update: {
+          id?: string
+          image_analysis?: Json | null
+          image_url?: string
+          pedido_id?: string
+          uploaded_at?: string
+          verified?: boolean | null
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pedido_comprovantes_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pedidos: {
         Row: {

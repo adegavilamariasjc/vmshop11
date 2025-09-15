@@ -5,14 +5,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import AdminLogin from '../components/admin/AdminLogin';
 import MotoboyLogin from '../components/admin/MotoboyLogin';
-import MotoboyDashboard from '../components/admin/MotoboyDashboard';
+import NewMotoboyDashboard from '../components/admin/NewMotoboyDashboard';
 import TrafficIndicator from '../components/admin/TrafficIndicator';
 import Logo from '../components/Logo';
 import BackgroundVideoPlayer from '../components/BackgroundVideoPlayer';
 import { getVideoUrls } from '@/utils/videoUrls';
 
 // Import components directly to avoid lazy loading issues in production
-import PedidosManager from '../components/admin/PedidosManager';
+import SimplifiedAdminPedidos from '../components/admin/SimplifiedAdminPedidos';
 import ProductManager from '../components/admin/ProductManager';
 import CategoryManager from '../components/admin/CategoryManager';
 import BairroManager from '../components/admin/BairroManager';
@@ -47,7 +47,7 @@ const Admin = () => {
   }, [toast]);
 
   const handleMotoboyLogin = useCallback((password: string) => {
-    if (password === "mococa11") {
+    if (password === "motocas11") {
       setIsAuthenticated(true);
       setIsMotoboy(true);
       toast({
@@ -97,7 +97,7 @@ const Admin = () => {
       <div className="relative z-10 w-full lg:max-w-6xl mx-auto min-h-screen bg-black/70 p-4 content-overlay">
         {isAuthenticated ? (
           isMotoboy ? (
-            <MotoboyDashboard onLogout={handleLogout} />
+            <NewMotoboyDashboard onLogout={handleLogout} />
           ) : (
             <>
               <div className="flex justify-between items-center mb-4">
@@ -133,7 +133,7 @@ const Admin = () => {
                   </TabsList>
                   
                   <TabsContent value="pedidos" className="bg-black/50 p-4 rounded-md">
-                    {activeTab === "pedidos" && <PedidosManager key="pedidos" />}
+                    {activeTab === "pedidos" && <SimplifiedAdminPedidos key="pedidos" />}
                   </TabsContent>
                   
                   <TabsContent value="produtos" className="bg-black/50 p-4 rounded-md">
