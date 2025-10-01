@@ -7,6 +7,7 @@ import { RefreshCw, Eye, Check, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import PedidoDetalhe from './PedidoDetalhe';
+import { useOrderAlerts } from '@/hooks/pedidos/useOrderAlerts';
 
 interface PedidoSimplificado {
   id: string;
@@ -27,11 +28,19 @@ const SimplifiedAdminPedidos: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const { toast } = useToast();
+  const { setupRealtimeMonitoring, stopAlert } = useOrderAlerts();
 
   useEffect(() => {
     loadPedidos();
-    subscribeToRealtime();
-  }, []);
+    
+    // Setup realtime with audio alerts
+    const cleanup = setupRealtimeMonitoring((updatedPedidos) => {
+      console.log('📥 Pedidos updated via realtime:', updatedPedidos.length);
+      setPedidos(updatedPedidos);
+    });
+
+    return cleanup;
+  }, [setupRealtimeMonitoring]);
 
   const loadPedidos = async () => {
     setIsLoading(true);
@@ -55,22 +64,6 @@ const SimplifiedAdminPedidos: React.FC = () => {
     }
   };
 
-  const subscribeToRealtime = () => {
-    const channel = supabase
-      .channel('admin-pedidos')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'pedidos'
-        },
-        () => loadPedidos()
-      )
-      .subscribe();
-
-    return () => supabase.removeChannel(channel);
-  };
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -80,6 +73,8 @@ const SimplifiedAdminPedidos: React.FC = () => {
 
   const handleAcceptOrder = async (pedidoId: string) => {
     try {
+      console.log('🎯 Accepting order:', pedidoId);
+      
       const { error } = await supabase
         .from('pedidos')
         .update({ status: 'aceito' })
@@ -87,9 +82,19 @@ const SimplifiedAdminPedidos: React.FC = () => {
 
       if (error) throw error;
 
+      // Update local state
       setPedidos(prev => prev.map(p => 
         p.id === pedidoId ? { ...p, status: 'aceito' } : p
       ));
+
+      // Check if there are still pending orders
+      const stillHasPending = pedidos.some(p => p.id !== pedidoId && p.status === 'pendente');
+      
+      // Stop alert if no more pending orders
+      if (!stillHasPending) {
+        console.log('✅ No more pending orders, stopping alert');
+        stopAlert();
+      }
 
       toast({
         title: "Pedido aceito",
