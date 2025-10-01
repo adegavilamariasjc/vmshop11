@@ -1,9 +1,7 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import DelivererSelectModal from '../DelivererSelectModal';
 import OrderHeader from './OrderHeader';
 import CustomerInfo from './CustomerInfo';
 import OrderItems from './OrderItems';
@@ -16,18 +14,12 @@ const PedidoDetalheDialog = ({
   isLoading,
   isPrinting,
   isDeleting,
-  showDelivererModal,
-  setShowDelivererModal,
   onClose,
   calcularSubtotal,
   formatDateTime,
   handlePrintRequest,
   handleExcluirPedido,
   handleAtualizarStatus,
-  handleDelivererSelect,
-  selectedDeliverer,
-  setSelectedDeliverer,
-  DelivererSelectModalComponent
 }: any) => {
   return (
     <Dialog open={true} onOpenChange={onClose}>
@@ -83,12 +75,7 @@ const PedidoDetalheDialog = ({
                     />
 
                     <OrderActions 
-                      onPrint={() => {
-                        // Call handlePrintRequest which will return true if we should show deliverer modal
-                        if (handlePrintRequest()) {
-                          setShowDelivererModal(true);
-                        }
-                      }}
+                      onPrint={handlePrintRequest}
                       onDelete={handleExcluirPedido}
                       isPrinting={isPrinting}
                       isDeleting={isDeleting}
@@ -114,7 +101,6 @@ const PedidoDetalheDialog = ({
           </Button>
         </DialogFooter>
       </DialogContent>
-      {DelivererSelectModalComponent}
     </Dialog>
   );
 };

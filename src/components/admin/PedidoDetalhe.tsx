@@ -1,8 +1,6 @@
-
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { usePedidoDetalhe } from './pedido-detalhe/usePedidoDetalhe';
 import PedidoDetalheDialog from './pedido-detalhe/PedidoDetalheDialog';
-import DelivererSelectModal from './DelivererSelectModal';
 import { PedidoImprimir } from './pedido-detalhe/PedidoImprimir';
 
 interface PedidoDetalheProps {
@@ -18,7 +16,6 @@ const PedidoDetalhe: React.FC<PedidoDetalheProps> = ({
   onDelete, 
   onStatusChange 
 }) => {
-  const printDeliverer = useRef<string | null>(null);
   const [shouldPrint, setShouldPrint] = useState(false);
 
   const {
@@ -26,13 +23,7 @@ const PedidoDetalhe: React.FC<PedidoDetalheProps> = ({
     isLoading,
     isPrinting,
     isDeleting,
-    showDelivererModal,
-    setShowDelivererModal,
-    selectedDeliverer,
-    setSelectedDeliverer,
     fetchPedido,
-    handlePrintRequest,
-    handleDelivererSelect,
     handleExcluirPedido,
     handleAtualizarStatus,
     formatDateTime,
@@ -40,18 +31,13 @@ const PedidoDetalhe: React.FC<PedidoDetalheProps> = ({
     setIsPrinting,
   } = usePedidoDetalhe(pedidoId, onClose, onDelete, onStatusChange);
 
-  const handleDelivererSelection = async (deliverer: string) => {
-    // Use the hook's logic to update entregador, send Telegram, then print
-    await handleDelivererSelect(deliverer, (d: string) => {
-      printDeliverer.current = d;
-      setShouldPrint(true);
-      setShowDelivererModal(false);
-    });
+  const handlePrintRequest = () => {
+    setShouldPrint(true);
   };
 
   // After setting shouldPrint, run the print logic
   React.useEffect(() => {
-    if (shouldPrint && printDeliverer.current && pedido) {
+    if (shouldPrint && pedido) {
       // print component will print on mount
       setShouldPrint(false);
     }
@@ -65,29 +51,16 @@ const PedidoDetalhe: React.FC<PedidoDetalheProps> = ({
         isLoading={isLoading}
         isPrinting={isPrinting}
         isDeleting={isDeleting}
-        showDelivererModal={showDelivererModal}
-        setShowDelivererModal={setShowDelivererModal}
         onClose={onClose}
         calcularSubtotal={calcularSubtotal}
         formatDateTime={formatDateTime}
         handlePrintRequest={handlePrintRequest}
         handleExcluirPedido={handleExcluirPedido}
         handleAtualizarStatus={handleAtualizarStatus}
-        handleDelivererSelect={handleDelivererSelection}
-        selectedDeliverer={selectedDeliverer}
-        setSelectedDeliverer={setSelectedDeliverer}
-        DelivererSelectModalComponent={
-          <DelivererSelectModal 
-            open={showDelivererModal}
-            onOpenChange={setShowDelivererModal}
-            onConfirm={handleDelivererSelection}
-          />
-        }
       />
-      {shouldPrint && pedido && printDeliverer.current && (
+      {shouldPrint && pedido && (
         <PedidoImprimir
           pedido={pedido}
-          deliverer={printDeliverer.current}
           setIsPrinting={setIsPrinting}
         />
       )}

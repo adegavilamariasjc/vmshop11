@@ -1,7 +1,6 @@
-
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { fetchPedidoById, updatePedidoStatus, deletePedido, updatePedidoDeliverer } from '@/lib/supabase';
+import { fetchPedidoById } from '@/lib/supabase';
 import { SupabasePedido } from '@/lib/supabase/types';
 import { usePedidosUtils } from '@/hooks/pedidos/usePedidosUtils';
 import { usePedidoPrint } from './hooks/usePedidoPrint';
@@ -11,8 +10,6 @@ import { usePedidoActions } from './hooks/usePedidoActions';
 export const usePedidoDetalhe = (pedidoId: string, onClose: () => void, onDelete?: () => void, onStatusChange?: (id: string, status: string) => void) => {
   const [pedido, setPedido] = useState<SupabasePedido | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [showDelivererModal, setShowDelivererModal] = useState(false);
-  const [selectedDeliverer, setSelectedDeliverer] = useState<string | null>(null);
   const { toast } = useToast();
   const { formatDateTime } = usePedidosUtils();
   
@@ -54,58 +51,6 @@ export const usePedidoDetalhe = (pedidoId: string, onClose: () => void, onDelete
     }
   };
 
-  const handleDelivererSelect = async (deliverer: string, imprimir: (deliverer: string) => void) => {
-    setSelectedDeliverer(deliverer);
-    
-    // Update the pedido with the selected deliverer
-    if (pedido?.id) {
-      try {
-        await updatePedidoDeliverer(pedido.id, deliverer);
-        // Update local state
-        setPedido(prev => prev ? { ...prev, entregador: deliverer } : prev);
-        
-        // Send order to Telegram when deliverer is selected
-        try {
-          const { supabase } = await import('@/lib/supabase');
-          await supabase.functions.invoke('send-telegram-order', {
-            body: {
-              codigoPedido: pedido.codigo_pedido,
-              clienteNome: pedido.cliente_nome,
-              clienteEndereco: pedido.cliente_endereco,
-              clienteNumero: pedido.cliente_numero,
-              clienteComplemento: pedido.cliente_complemento,
-              clienteReferencia: pedido.cliente_referencia,
-              clienteBairro: pedido.cliente_bairro,
-              taxaEntrega: pedido.taxa_entrega,
-              clienteWhatsapp: pedido.cliente_whatsapp,
-              formaPagamento: pedido.forma_pagamento,
-              troco: pedido.troco,
-              observacao: pedido.observacao,
-              itens: pedido.itens,
-              total: pedido.total,
-              discountAmount: pedido.discount_amount,
-              entregador: deliverer
-            }
-          });
-          console.log('Order sent to Telegram with deliverer:', deliverer);
-        } catch (telegramError) {
-          console.error('Failed to send order to Telegram:', telegramError);
-          // Don't fail the process if Telegram fails
-        }
-        
-      } catch (error) {
-        console.error('Erro ao atualizar entregador:', error);
-        toast({
-          title: 'Erro',
-          description: 'Não foi possível atualizar o entregador do pedido.',
-          variant: 'destructive',
-        });
-      }
-    }
-    
-    imprimir(deliverer);
-  };
-
   const calcularSubtotal = useCallback(() => {
     if (!pedido || !pedido.itens || !Array.isArray(pedido.itens)) return 0;
     
@@ -125,13 +70,8 @@ export const usePedidoDetalhe = (pedidoId: string, onClose: () => void, onDelete
     isLoading,
     isPrinting,
     isDeleting,
-    showDelivererModal,
-    setShowDelivererModal,
-    selectedDeliverer,
-    setSelectedDeliverer,
     fetchPedido,
     handlePrintRequest,
-    handleDelivererSelect,
     handleExcluirPedido,
     handleAtualizarStatus,
     formatDateTime,

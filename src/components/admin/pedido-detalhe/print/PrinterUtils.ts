@@ -113,7 +113,7 @@ export const calculateOrderTotals = (pedido: PrintablePedido) => {
   };
 };
 
-export const formatPedidoForPrint = (pedido: PrintablePedido, deliverer: string): string => {
+export const formatPedidoForPrint = (pedido: PrintablePedido): string => {
   const itensFormatados = pedido.itens.map(formatItemForPrint).join('\n\n');
   const { subtotalSemDesconto, descontoExibir } = calculateOrderTotals(pedido);
 
@@ -127,8 +127,6 @@ export const formatPedidoForPrint = (pedido: PrintablePedido, deliverer: string)
     : '';
 
   return `
-${deliverer}
-
 ADEGA VM
 PEDIDO #${pedido.codigo_pedido}
 ${new Date(pedido.data_criacao).toLocaleString('pt-BR')}

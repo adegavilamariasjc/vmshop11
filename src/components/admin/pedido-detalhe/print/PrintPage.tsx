@@ -4,14 +4,12 @@ import { PrintablePedido } from './PrinterUtils';
 
 interface PrintPageProps {
   pedido: PrintablePedido;
-  deliverer: string;
   formattedContent: string;
   onPrint: () => void;
 }
 
 const PrintPage: React.FC<PrintPageProps> = ({ 
   formattedContent,
-  deliverer,
   onPrint
 }) => {
   const contentRef = React.useRef<HTMLDivElement>(null);
@@ -73,12 +71,6 @@ const PrintPage: React.FC<PrintPageProps> = ({
                   max-height: 85vh;
                   overflow-y: auto;
                 }
-                .deliverer {
-                  font-weight: bold;
-                  font-size: 16pt;
-                  text-align: center;
-                  margin-bottom: 10mm;
-                }
                 .change-amount {
                   font-weight: bold;
                   font-size: 14pt;
@@ -88,7 +80,6 @@ const PrintPage: React.FC<PrintPageProps> = ({
             </head>
             <body>
               <div class="scroll-container">
-                <div class="deliverer">${deliverer}</div>
                 ${formattedContent}
               </div>
               <script>

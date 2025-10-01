@@ -5,11 +5,9 @@ import { PrintablePedido } from './print/PrinterUtils';
 
 export const PedidoImprimir = ({
   pedido,
-  deliverer,
   setIsPrinting,
 }: {
   pedido: any;
-  deliverer: string;
   setIsPrinting: (v: boolean) => void;
 }) => {
   const { openPrintWindow } = usePrintWindow();
@@ -40,7 +38,7 @@ export const PedidoImprimir = ({
       discount_amount: pedido.discount_amount
     };
     
-    openPrintWindow(printablePedido, deliverer);
+    openPrintWindow(printablePedido);
     
     setIsPrinting(false);
     // Only run once per mount

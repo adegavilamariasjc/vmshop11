@@ -9,7 +9,7 @@ export const useOrderAlerts = () => {
   // Initialize audio with better error handling
   const initializeAudio = useCallback(() => {
     if (!audioRef.current) {
-      audioRef.current = new Audio('https://adegavm.shop/ring.mp3');
+      audioRef.current = new Audio('/order.mp3');
       audioRef.current.loop = true;
       audioRef.current.volume = 0.8;
       audioRef.current.preload = 'auto';
