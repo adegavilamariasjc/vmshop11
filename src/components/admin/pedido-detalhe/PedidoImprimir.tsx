@@ -15,41 +15,38 @@ export const PedidoImprimir = ({
   const { openPrintWindow } = usePrintWindow();
   const { toast } = useToast();
 
-  // Print function and send to Telegram
+  // Send to Telegram first, then print
   useEffect(() => {
     if (!pedido) return;
     
-    setIsPrinting(true);
-    
-    // Convert pedido to PrintablePedido type for more type safety
-    const printablePedido: PrintablePedido = {
-      codigo_pedido: pedido.codigo_pedido,
-      cliente_nome: pedido.cliente_nome,
-      cliente_endereco: pedido.cliente_endereco,
-      cliente_numero: pedido.cliente_numero,
-      cliente_complemento: pedido.cliente_complemento,
-      cliente_referencia: pedido.cliente_referencia,
-      cliente_bairro: pedido.cliente_bairro,
-      cliente_whatsapp: pedido.cliente_whatsapp,
-      taxa_entrega: pedido.taxa_entrega,
-      forma_pagamento: pedido.forma_pagamento,
-      troco: pedido.troco,
-      itens: pedido.itens,
-      total: pedido.total,
-      data_criacao: pedido.data_criacao,
-      observacao: pedido.observacao,
-      discount_amount: pedido.discount_amount
-    };
-    
-    // Open print window
-    openPrintWindow(printablePedido);
-    
-    // Send to Telegram
-    const sendToTelegram = async () => {
+    const processOrder = async () => {
+      setIsPrinting(true);
+      
+      // Convert pedido to PrintablePedido type
+      const printablePedido: PrintablePedido = {
+        codigo_pedido: pedido.codigo_pedido,
+        cliente_nome: pedido.cliente_nome,
+        cliente_endereco: pedido.cliente_endereco,
+        cliente_numero: pedido.cliente_numero,
+        cliente_complemento: pedido.cliente_complemento,
+        cliente_referencia: pedido.cliente_referencia,
+        cliente_bairro: pedido.cliente_bairro,
+        cliente_whatsapp: pedido.cliente_whatsapp,
+        taxa_entrega: pedido.taxa_entrega,
+        forma_pagamento: pedido.forma_pagamento,
+        troco: pedido.troco,
+        itens: pedido.itens,
+        total: pedido.total,
+        data_criacao: pedido.data_criacao,
+        observacao: pedido.observacao,
+        discount_amount: pedido.discount_amount
+      };
+      
+      // Send to Telegram FIRST
       try {
         console.log('📤 Sending order to Telegram:', pedido.codigo_pedido);
         
-        const { error } = await supabase.functions.invoke('send-telegram-order', {
+        const { data, error } = await supabase.functions.invoke('send-telegram-order', {
           body: {
             codigoPedido: pedido.codigo_pedido,
             clienteNome: pedido.cliente_nome,
@@ -71,28 +68,35 @@ export const PedidoImprimir = ({
 
         if (error) {
           console.error('Error sending to Telegram:', error);
-          throw error;
+          toast({
+            title: "Aviso",
+            description: "Não foi possível enviar para o Telegram. Verifique a configuração.",
+            variant: "destructive",
+          });
+        } else {
+          console.log('✅ Order sent to Telegram successfully:', data);
+          toast({
+            title: "Pedido enviado",
+            description: "Pedido enviado para o Telegram com sucesso!",
+          });
         }
-
-        console.log('✅ Order sent to Telegram successfully');
-        
-        toast({
-          title: "Pedido enviado",
-          description: "Pedido impresso e enviado para o Telegram com sucesso!",
-        });
       } catch (error) {
         console.error('Failed to send to Telegram:', error);
         toast({
           title: "Aviso",
-          description: "Pedido impresso, mas não foi possível enviar para o Telegram.",
+          description: "Erro ao enviar para o Telegram.",
           variant: "destructive",
         });
       }
+      
+      // Then open print window (with small delay to ensure Telegram request completes)
+      setTimeout(() => {
+        openPrintWindow(printablePedido);
+        setIsPrinting(false);
+      }, 500);
     };
-
-    sendToTelegram();
     
-    setIsPrinting(false);
+    processOrder();
     // Only run once per mount
     // eslint-disable-next-line
   }, []);
