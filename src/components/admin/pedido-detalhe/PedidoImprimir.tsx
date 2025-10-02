@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { usePrintWindow } from './print/usePrintWindow';
 import { PrintablePedido } from './print/PrinterUtils';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,10 +14,12 @@ export const PedidoImprimir = ({
 }) => {
   const { openPrintWindow } = usePrintWindow();
   const { toast } = useToast();
+  const hasExecuted = useRef(false);
 
   // Send to Telegram first, then print
   useEffect(() => {
-    if (!pedido) return;
+    if (!pedido || hasExecuted.current) return;
+    hasExecuted.current = true;
     
     const processOrder = async () => {
       setIsPrinting(true);
