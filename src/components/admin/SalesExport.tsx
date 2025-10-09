@@ -3,12 +3,13 @@ import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import JSZip from 'jszip';
 
 export const SalesExport = () => {
   const [isExporting, setIsExporting] = useState(false);
   const { toast } = useToast();
 
-  const convertToCSV = (salesData: any[]): string => {
+  const convertSalesToCSV = (salesData: any[]): string => {
     const headers = ['Produto', 'Quantidade Total Vendida', 'Valor Unitário Médio', 'Faturamento Total'];
     const rows = salesData.map(item => [
       item.nome,
@@ -16,6 +17,63 @@ export const SalesExport = () => {
       `R$ ${item.precoMedio.toFixed(2).replace('.', ',')}`,
       `R$ ${item.faturamentoTotal.toFixed(2).replace('.', ',')}`
     ]);
+
+    const csvContent = [
+      headers.join(';'),
+      ...rows.map(row => row.join(';'))
+    ].join('\n');
+
+    return csvContent;
+  };
+
+  const convertPedidosToCSV = (pedidos: any[]): string => {
+    const headers = [
+      'Código',
+      'Data/Hora',
+      'Cliente',
+      'WhatsApp',
+      'Endereço',
+      'Número',
+      'Complemento',
+      'Bairro',
+      'Referência',
+      'Forma Pagamento',
+      'Troco',
+      'Status',
+      'Entregador',
+      'Taxa Entrega',
+      'Desconto',
+      'Total',
+      'Observação',
+      'Itens'
+    ];
+
+    const rows = pedidos.map(pedido => {
+      const itens = Array.isArray(pedido.itens) 
+        ? pedido.itens.map((item: any) => `${item.name} (${item.qty}x)`).join('; ')
+        : '';
+
+      return [
+        pedido.codigo_pedido || '',
+        new Date(pedido.data_criacao).toLocaleString('pt-BR'),
+        pedido.cliente_nome || '',
+        pedido.cliente_whatsapp || '',
+        pedido.cliente_endereco || '',
+        pedido.cliente_numero || '',
+        pedido.cliente_complemento || '',
+        pedido.cliente_bairro || '',
+        pedido.cliente_referencia || '',
+        pedido.forma_pagamento || '',
+        pedido.troco || '',
+        pedido.status || '',
+        pedido.entregador || '',
+        `R$ ${(pedido.taxa_entrega || 0).toFixed(2).replace('.', ',')}`,
+        `R$ ${(pedido.discount_amount || 0).toFixed(2).replace('.', ',')}`,
+        `R$ ${(pedido.total || 0).toFixed(2).replace('.', ',')}`,
+        pedido.observacao || '',
+        itens
+      ];
+    });
 
     const csvContent = [
       headers.join(';'),
@@ -34,7 +92,7 @@ export const SalesExport = () => {
       // Fetch all pedidos
       const { data: pedidos, error } = await supabase
         .from('pedidos')
-        .select('itens, data_criacao')
+        .select('*')
         .order('data_criacao', { ascending: true });
 
       if (error) throw error;
@@ -76,17 +134,27 @@ export const SalesExport = () => {
         }))
         .sort((a, b) => b.quantidadeTotal - a.quantidadeTotal);
 
-      // Generate CSV
-      const csvContent = convertToCSV(salesData);
-      const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+      // Generate CSVs
+      const salesCSV = convertSalesToCSV(salesData);
+      const pedidosCSV = convertPedidosToCSV(pedidos);
+
+      // Create ZIP file
+      const zip = new JSZip();
+      zip.file('produtos_vendidos.csv', '\ufeff' + salesCSV);
+      zip.file('todos_pedidos.csv', '\ufeff' + pedidosCSV);
+
+      // Generate ZIP blob
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      
+      // Download ZIP
       const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
+      const url = URL.createObjectURL(zipBlob);
       
       const firstOrderDate = new Date(pedidos[0].data_criacao).toLocaleDateString('pt-BR');
       const today = new Date().toLocaleDateString('pt-BR');
       
       link.setAttribute('href', url);
-      link.setAttribute('download', `vendas_produtos_${firstOrderDate.replace(/\//g, '-')}_ate_${today.replace(/\//g, '-')}.csv`);
+      link.setAttribute('download', `exportacao_completa_${firstOrderDate.replace(/\//g, '-')}_ate_${today.replace(/\//g, '-')}.zip`);
       link.style.visibility = 'hidden';
       document.body.appendChild(link);
       link.click();
@@ -94,7 +162,7 @@ export const SalesExport = () => {
 
       toast({
         title: "Exportação concluída",
-        description: `${salesData.length} produtos exportados com sucesso!`
+        description: `${salesData.length} produtos e ${pedidos.length} pedidos exportados em ZIP!`
       });
 
     } catch (error) {
@@ -117,7 +185,7 @@ export const SalesExport = () => {
       variant="outline"
     >
       <Download className="mr-2 h-4 w-4" />
-      {isExporting ? 'Exportando...' : 'Exportar Vendas de Produtos'}
+      {isExporting ? 'Exportando...' : 'Exportar Tudo (ZIP)'}
     </Button>
   );
 };
