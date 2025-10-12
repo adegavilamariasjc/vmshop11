@@ -1,72 +1,76 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Minus, Loader2 } from 'lucide-react';
 import { Product } from '../types';
 import { supabase } from '@/integrations/supabase/client';
 
-interface ProductListProps {
-  category: string;
+interface SearchProductListProps {
+  searchQuery: string;
   cart: Product[];
   onAddProduct: (item: Product) => void;
   onUpdateQuantity: (item: Product, delta: number) => void;
-  isStoreOpen: boolean; // Added this prop to match what's being passed in ProductSelectionView
 }
 
-const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct, onUpdateQuantity, isStoreOpen }) => {
-  const [products, setProducts] = useState<{name: string; price: number; is_paused?: boolean; order_index?: number}[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+const SearchProductList: React.FC<SearchProductListProps> = ({ 
+  searchQuery, 
+  cart, 
+  onAddProduct, 
+  onUpdateQuantity 
+}) => {
+  const [products, setProducts] = useState<{name: string; price: number; category_id: number; is_paused?: boolean}[]>([]);
+  const [categories, setCategories] = useState<{[key: number]: string}>({});
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchProducts = async () => {
+      if (!searchQuery || searchQuery.trim().length === 0) {
+        setProducts([]);
+        return;
+      }
+
       setIsLoading(true);
-      setError(null);
 
       try {
-        // First get category id by name
-        const { data: categoryData, error: categoryError } = await supabase
+        // Fetch categories first
+        const { data: categoriesData } = await supabase
           .from('categories')
-          .select('id')
-          .eq('name', category)
-          .single();
+          .select('id, name');
 
-        if (categoryError) {
-          console.error('Error fetching category:', categoryError);
-          setError('Erro ao carregar categoria');
-          setIsLoading(false);
-          return;
-        }
+        const categoryMap: {[key: number]: string} = {};
+        categoriesData?.forEach(cat => {
+          categoryMap[cat.id] = cat.name;
+        });
+        setCategories(categoryMap);
 
-        // Then fetch products for that category with ordering
+        // Fetch products matching search query
         const { data: productsData, error: productsError } = await supabase
           .from('products')
-          .select('*')  // Select all fields including order_index
-          .eq('category_id', categoryData.id)
-          .order('order_index', { ascending: true })
+          .select('*')
+          .ilike('name', `%${searchQuery}%`)
+          .eq('is_paused', false)
           .order('name');
 
         if (productsError) {
           console.error('Error fetching products:', productsError);
-          setError('Erro ao carregar produtos');
-          setIsLoading(false);
+          setProducts([]);
           return;
         }
 
-        console.log('Fetched products with order:', productsData);
         setProducts(productsData || []);
       } catch (err) {
         console.error('Unexpected error:', err);
-        setError('Erro inesperado ao carregar produtos');
+        setProducts([]);
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (category) {
-      fetchProducts();
-    }
-  }, [category]);
+    fetchProducts();
+  }, [searchQuery]);
+
+  if (!searchQuery || searchQuery.trim().length === 0) {
+    return null;
+  }
 
   if (isLoading) {
     return (
@@ -76,33 +80,23 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
     );
   }
 
-  if (error) {
-    return (
-      <div className="text-center text-white py-10">
-        <p>{error}</p>
-        <p className="text-sm opacity-70">Verifique sua conexão e tente novamente</p>
-      </div>
-    );
-  }
-
   if (products.length === 0) {
     return (
       <div className="text-center text-white py-10">
-        <p>Nenhum produto encontrado nesta categoria</p>
+        <p>Nenhum produto encontrado para "{searchQuery}"</p>
       </div>
     );
   }
 
   return (
     <div className="mb-4 pb-20">
-      <h2 className="text-lg font-semibold mb-3 text-white">{category}</h2>
+      <h2 className="text-lg font-semibold mb-3 text-white">
+        Resultados da busca ({products.length})
+      </h2>
       
       {products.map((item) => {
-        // Skip rendering if product is paused
-        if (item.is_paused) {
-          return null;
-        }
-
+        const category = categories[item.category_id] || '';
+        
         const cartItem = cart.find(p => 
           p.name === item.name && 
           p.category === category &&
@@ -113,11 +107,12 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
         
         return (
           <div 
-            key={item.name} 
+            key={`${item.name}-${item.category_id}`} 
             className="flex justify-between items-center border-b border-gray-600 py-3"
           >
             <div className="text-white">
               <p className="font-medium">{item.name}</p>
+              <p className="text-sm opacity-70">{category}</p>
               <p className="text-sm opacity-90">R$ {item.price.toFixed(2)}</p>
             </div>
             
@@ -152,4 +147,4 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
   );
 };
 
-export default ProductList;
+export default SearchProductList;

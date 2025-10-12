@@ -4,6 +4,8 @@ import { ShoppingBag, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import CategorySelector from './CategorySelector';
 import ProductList from './ProductList';
+import ProductSearchBar from './ProductSearchBar';
+import SearchProductList from './SearchProductList';
 import CartPreviewModal from './CartPreviewModal';
 import { Product } from '../types';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -29,6 +31,7 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
   isStoreOpen
 }) => {
   const [isCartModalOpen, setIsCartModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
   
   // Filter cart items with zero quantity
@@ -62,14 +65,6 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
   };
 
   const handleAddToCart = (item: Product) => {
-    if (!isStoreOpen) {
-      toast({
-        title: "Loja Fechada",
-        description: "A loja está fechada no momento. Você pode navegar pelo cardápio, mas não é possível adicionar itens ao carrinho.",
-        variant: "destructive",
-      });
-      return;
-    }
     onAddProduct(item);
   };
 
@@ -86,24 +81,40 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
           <AlertCircle className="h-5 w-5 text-red-400" />
           <AlertTitle className="text-red-400">Loja Fechada</AlertTitle>
           <AlertDescription className="text-red-300">
-            Você pode navegar pelo cardápio, mas não é possível realizar pedidos no momento. Retorne entre 18h e 5h.
+            Você pode navegar pelo cardápio e adicionar itens ao carrinho, mas não é possível finalizar pedidos no momento. Retorne entre 18h e 5h.
           </AlertDescription>
         </Alert>
       )}
       
-      <CategorySelector 
-        activeCategory={activeCategory} 
-        onSelectCategory={onSelectCategory} 
+      <ProductSearchBar 
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
       />
       
-      {activeCategory && (
-        <ProductList
-          category={activeCategory}
+      {searchQuery ? (
+        <SearchProductList
+          searchQuery={searchQuery}
           cart={cart}
           onAddProduct={handleAddToCart}
           onUpdateQuantity={onUpdateQuantity}
-          isStoreOpen={isStoreOpen}
         />
+      ) : (
+        <>
+          <CategorySelector 
+            activeCategory={activeCategory} 
+            onSelectCategory={onSelectCategory} 
+          />
+          
+          {activeCategory && (
+            <ProductList
+              category={activeCategory}
+              cart={cart}
+              onAddProduct={handleAddToCart}
+              onUpdateQuantity={onUpdateQuantity}
+              isStoreOpen={isStoreOpen}
+            />
+          )}
+        </>
       )}
       
       <motion.button
