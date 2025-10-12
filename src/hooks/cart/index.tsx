@@ -13,7 +13,7 @@ import {
 } from '../../data/products';
 import { AlcoholOption } from '../../types';
 
-export const useCart = () => {
+export const useCart = (isStoreOpen: boolean = true) => {
   // Get all the state from our state hook
   const {
     cart,
@@ -123,7 +123,8 @@ export const useCart = () => {
     setPendingProductWithIce,
     setCurrentProductType,
     setIsEnergyDrinkModalOpen,
-    setShowSummary
+    setShowSummary,
+    isStoreOpen
   );
 
   // Debug logs for modals

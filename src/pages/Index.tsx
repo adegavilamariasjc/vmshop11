@@ -46,7 +46,7 @@ const Index = () => {
     setIsEnergyDrinkModalOpen,
     setPendingProductWithIce,
     handleEnergyDrinkSelection
-  } = useCart();
+  } = useCart(isOpen);
 
   const {
     form,

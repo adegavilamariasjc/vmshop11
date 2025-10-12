@@ -17,7 +17,8 @@ export const useCheckoutFlow = (
   setPendingProductWithIce: (product: Product | null) => void,
   setCurrentProductType: (type: 'copao' | 'combo') => void,
   setIsEnergyDrinkModalOpen: (isOpen: boolean) => void,
-  setShowSummary: (show: boolean) => void
+  setShowSummary: (show: boolean) => void,
+  isStoreOpen: boolean
 ) => {
   const { toast } = useToast();
 
@@ -31,6 +32,16 @@ export const useCheckoutFlow = (
       toast({
         title: "Carrinho vazio",
         description: "Por favor, adicione itens ao seu pedido antes de continuar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if store is open
+    if (!isStoreOpen) {
+      toast({
+        title: "Loja Fechada",
+        description: "Não é possível finalizar pedidos fora do horário de funcionamento. Por favor, retorne entre 18h e 5h.",
         variant: "destructive",
       });
       return;
