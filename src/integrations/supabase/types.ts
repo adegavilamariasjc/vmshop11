@@ -388,6 +388,18 @@ export type Database = {
         Args: { "": string }
         Returns: string
       }
+      search_products: {
+        Args: { search_term: string }
+        Returns: {
+          category_id: number
+          category_name: string
+          id: number
+          is_paused: boolean
+          name: string
+          price: number
+          relevance: number
+        }[]
+      }
       set_limit: {
         Args: { "": number }
         Returns: number
