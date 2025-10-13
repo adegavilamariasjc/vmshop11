@@ -31,9 +31,24 @@ const SearchProductList: React.FC<SearchProductListProps> = ({
       setIsLoading(true);
 
       try {
-        // Usar a função de busca inteligente do banco de dados
+        // Fetch categories first
+        const { data: categoriesData } = await supabase
+          .from('categories')
+          .select('id, name');
+
+        const categoryMap: {[key: number]: string} = {};
+        categoriesData?.forEach(cat => {
+          categoryMap[cat.id] = cat.name;
+        });
+        setCategories(categoryMap);
+
+        // Fetch products matching search query (ignoring accents)
         const { data: productsData, error: productsError } = await supabase
-          .rpc('search_products', { search_term: searchQuery });
+          .from('products')
+          .select('*')
+          .or(`name.ilike.%${searchQuery}%`)
+          .eq('is_paused', false)
+          .order('name');
 
         if (productsError) {
           console.error('Error fetching products:', productsError);
@@ -41,14 +56,14 @@ const SearchProductList: React.FC<SearchProductListProps> = ({
           return;
         }
 
-        // Criar mapa de categorias a partir dos resultados
-        const categoryMap: {[key: number]: string} = {};
-        productsData?.forEach(p => {
-          categoryMap[p.category_id] = p.category_name;
-        });
-        setCategories(categoryMap);
+        // Filter results using the normalize_text function for better accent-insensitive matching
+        const normalizedQuery = searchQuery.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const filteredProducts = productsData?.filter(p => {
+          const normalizedName = p.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+          return normalizedName.includes(normalizedQuery);
+        }) || [];
 
-        setProducts(productsData || []);
+        setProducts(filteredProducts);
       } catch (err) {
         console.error('Unexpected error:', err);
         setProducts([]);
