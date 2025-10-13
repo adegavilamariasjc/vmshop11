@@ -26,12 +26,13 @@ export const useCartOperations = (
   };
 
   const handleAddProduct = (item: Product) => {
-    const productWithCategory = { ...item, category: activeCategory || '' };
+    const productWithCategory = { ...item, category: item.category || activeCategory || '' };
+    const categoryToCheck = item.category || activeCategory || '';
     
-    if (requiresFlavor(activeCategory || '')) {
+    if (requiresFlavor(categoryToCheck)) {
       setSelectedProductForFlavor(productWithCategory);
       setIsFlavorModalOpen(true);
-    } else if (requiresAlcoholChoice(activeCategory || '')) {
+    } else if (requiresAlcoholChoice(categoryToCheck)) {
       setSelectedProductForAlcohol(productWithCategory);
       setSelectedAlcohol(null);
       setIsAlcoholModalOpen(true);
