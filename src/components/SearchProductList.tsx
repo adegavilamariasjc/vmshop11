@@ -42,11 +42,11 @@ const SearchProductList: React.FC<SearchProductListProps> = ({
         });
         setCategories(categoryMap);
 
-        // Fetch products matching search query
+        // Fetch products matching search query (ignoring accents)
         const { data: productsData, error: productsError } = await supabase
           .from('products')
           .select('*')
-          .ilike('name', `%${searchQuery}%`)
+          .or(`name.ilike.%${searchQuery}%`)
           .eq('is_paused', false)
           .order('name');
 
@@ -56,7 +56,14 @@ const SearchProductList: React.FC<SearchProductListProps> = ({
           return;
         }
 
-        setProducts(productsData || []);
+        // Filter results using the normalize_text function for better accent-insensitive matching
+        const normalizedQuery = searchQuery.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const filteredProducts = productsData?.filter(p => {
+          const normalizedName = p.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+          return normalizedName.includes(normalizedQuery);
+        }) || [];
+
+        setProducts(filteredProducts);
       } catch (err) {
         console.error('Unexpected error:', err);
         setProducts([]);

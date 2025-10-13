@@ -686,17 +686,20 @@ export const alcoholOptions = [
 export const gerarCodigoPedido = () => `A${Math.floor(1000 + Math.random() * 9000)}`;
 
 export const requiresFlavor = (category: string) => {
-  return [
-    "Copão Whisky", "Copão Vodka", "Copão Gin",
-    "Combos Whisky", "Combos Vodka", "Combos Gin"
-  ].includes(category);
+  const lowerCategory = category.toLowerCase();
+  return lowerCategory.includes('copão') || 
+         lowerCategory.includes('combo') || 
+         lowerCategory.includes('copao');
 };
 
-export const requiresAlcoholChoice = (category: string) => category === "Caipirinhas";
+export const requiresAlcoholChoice = (category: string) => {
+  return category.toLowerCase().includes('caipirinha');
+};
 
 export const getMaxIce = (category: string) => {
-  if (["Copão Whisky", "Copão Vodka", "Copão Gin"].includes(category)) return 1;
-  if (["Combos Whisky", "Combos Vodka", "Combos Gin"].includes(category)) return 5;
+  const lowerCategory = category.toLowerCase();
+  if (lowerCategory.includes('copão') || lowerCategory.includes('copao')) return 1;
+  if (lowerCategory.includes('combo')) return 5;
   return 0;
 };
 
