@@ -6,6 +6,7 @@ import PageLayout from '../components/PageLayout';
 import ProductSelectionView from '../components/ProductSelectionView';
 import CheckoutView from '../components/CheckoutView';
 import AdminLink from '../components/AdminLink';
+import BalcaoLink from '../components/BalcaoLink';
 import { useStoreStatus } from '@/hooks/useStoreStatus';
 import LoadingIndicator from '../components/LoadingIndicator';
 import IndexModals from '../components/IndexModals';
@@ -138,6 +139,7 @@ const Index = () => {
         setPendingProductWithIce={setPendingProductWithIce}
       />
       
+      <BalcaoLink />
       <AdminLink />
     </PageLayout>
   );

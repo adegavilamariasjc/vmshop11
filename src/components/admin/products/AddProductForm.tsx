@@ -46,7 +46,8 @@ export const AddProductForm: React.FC<AddProductFormProps> = ({ selectedCategory
         name: newProduct.name,
         price: newProduct.price,
         category_id: selectedCategoryId,
-        is_paused: false
+        is_paused: false,
+        updated_at: new Date().toISOString()
       });
 
       if (addedProduct) {
