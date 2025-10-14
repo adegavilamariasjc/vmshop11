@@ -310,6 +310,7 @@ export type Database = {
           name: string
           order_index: number | null
           price: number
+          updated_at: string | null
         }
         Insert: {
           category_id?: number | null
@@ -318,6 +319,7 @@ export type Database = {
           name: string
           order_index?: number | null
           price: number
+          updated_at?: string | null
         }
         Update: {
           category_id?: number | null
@@ -326,6 +328,7 @@ export type Database = {
           name?: string
           order_index?: number | null
           price?: number
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -387,6 +390,18 @@ export type Database = {
       normalize_text: {
         Args: { "": string }
         Returns: string
+      }
+      search_products: {
+        Args: { search_term: string }
+        Returns: {
+          category_id: number
+          category_name: string
+          id: number
+          is_paused: boolean
+          name: string
+          price: number
+          relevance: number
+        }[]
       }
       set_limit: {
         Args: { "": number }
