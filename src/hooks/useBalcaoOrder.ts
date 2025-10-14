@@ -63,16 +63,7 @@ export const useBalcaoOrder = () => {
     return cart.reduce((sum, p) => sum + getProductDisplayPrice(p), 0);
   };
 
-  const processOrder = async (senha: string, funcionarioNome: string) => {
-    if (senha !== SENHA_BALCAO) {
-      toast({
-        title: 'Senha incorreta',
-        description: 'A senha informada está incorreta.',
-        variant: 'destructive'
-      });
-      return false;
-    }
-
+  const processOrder = async (funcionarioNome: string) => {
     if (cart.length === 0) {
       toast({
         title: 'Carrinho vazio',

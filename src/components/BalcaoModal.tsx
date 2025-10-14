@@ -4,9 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { X, ShoppingCart } from 'lucide-react';
-import ProductList from './ProductList';
-import CartItem from './cart/CartItem';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { X, ShoppingCart, Package } from 'lucide-react';
 import { useBalcaoOrder } from '@/hooks/useBalcaoOrder';
 import { supabase } from '@/lib/supabase';
 import { Product } from '@/types';
@@ -31,9 +30,8 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [senha, setSenha] = useState('');
   const [funcionarioNome, setFuncionarioNome] = useState('');
+  const [activeTab, setActiveTab] = useState('products');
 
   useEffect(() => {
     if (isOpen) {
@@ -82,9 +80,8 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
   };
 
   const handleConfirmOrder = async () => {
-    const success = await processOrder(senha, funcionarioNome || 'Funcionário');
+    const success = await processOrder(funcionarioNome || 'Funcionário');
     if (success) {
-      setSenha('');
       setFuncionarioNome('');
       onClose();
     }
@@ -92,20 +89,16 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
 
   const handleClose = () => {
     clearCart();
-    setSenha('');
     setFuncionarioNome('');
     setShowPasswordDialog(false);
+    setActiveTab('products');
     onClose();
   };
-
-  const filteredProducts = selectedCategory
-    ? products.filter(p => p.category === selectedCategory)
-    : products;
 
   return (
     <>
       <Dialog open={isOpen && !showPasswordDialog} onOpenChange={handleClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] bg-black/95 border-purple-dark">
+        <DialogContent className="max-w-2xl max-h-[90vh] bg-black/95 border-purple-dark">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-purple-light flex items-center gap-2">
               <ShoppingCart className="h-6 w-6" />
@@ -113,23 +106,31 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
             </DialogTitle>
           </DialogHeader>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Products Section */}
-            <div className="space-y-4">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="products" className="flex items-center gap-2">
+                <Package className="h-4 w-4" />
+                Produtos
+              </TabsTrigger>
+              <TabsTrigger value="cart" className="flex items-center gap-2">
+                <ShoppingCart className="h-4 w-4" />
+                Carrinho ({cart.length})
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="products" className="space-y-4">
               <div className="flex gap-2 flex-wrap">
-                <Button
-                  variant={selectedCategory === null ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedCategory(null)}
-                >
-                  Todos
-                </Button>
                 {categories.map(cat => (
                   <Button
                     key={cat.id}
-                    variant={selectedCategory === cat.name ? 'default' : 'outline'}
+                    variant="outline"
                     size="sm"
-                    onClick={() => setSelectedCategory(cat.name)}
+                    onClick={() => {
+                      const categoryProducts = products.filter(p => p.category === cat.name);
+                      if (categoryProducts.length > 0) {
+                        // Scroll to category or filter
+                      }
+                    }}
                   >
                     {cat.name}
                   </Button>
@@ -137,33 +138,57 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
               </div>
 
               <ScrollArea className="h-[400px] border border-gray-700 rounded-lg p-4">
-                <div className="space-y-2">
-                  {filteredProducts.map((product, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center justify-between p-2 bg-gray-900/50 rounded hover:bg-gray-900 cursor-pointer"
-                      onClick={() => addToCart(product)}
-                    >
-                      <div>
-                        <p className="text-white font-medium">{product.name}</p>
-                        <p className="text-sm text-gray-400">R$ {product.price.toFixed(2)}</p>
+                <div className="space-y-4">
+                  {categories.map(cat => {
+                    const categoryProducts = products.filter(p => p.category === cat.name);
+                    if (categoryProducts.length === 0) return null;
+
+                    return (
+                      <div key={cat.id} className="space-y-2">
+                        <h3 className="text-lg font-bold text-purple-light sticky top-0 bg-black/95 py-2">
+                          {cat.name}
+                        </h3>
+                        {categoryProducts.map((product, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center justify-between p-3 bg-gray-900/50 rounded hover:bg-gray-900 cursor-pointer transition-colors"
+                            onClick={() => {
+                              addToCart(product);
+                              setActiveTab('cart');
+                            }}
+                          >
+                            <div className="flex-1">
+                              <p className="text-white font-medium">{product.name}</p>
+                              <p className="text-sm text-purple-light font-bold">
+                                R$ {product.price.toFixed(2)}
+                              </p>
+                            </div>
+                            <Button size="sm" variant="outline" className="ml-2">
+                              +
+                            </Button>
+                          </div>
+                        ))}
                       </div>
-                      <Button size="sm" variant="outline">
-                        +
-                      </Button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </ScrollArea>
-            </div>
+            </TabsContent>
 
-            {/* Cart Section */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-bold text-purple-light">Carrinho</h3>
-              
-              <ScrollArea className="h-[300px] border border-gray-700 rounded-lg p-4">
+            <TabsContent value="cart" className="space-y-4">
+              <ScrollArea className="h-[400px] border border-gray-700 rounded-lg p-4">
                 {cart.length === 0 ? (
-                  <p className="text-gray-400 text-center py-8">Carrinho vazio</p>
+                  <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <ShoppingCart className="h-16 w-16 text-gray-600 mb-4" />
+                    <p className="text-gray-400">Carrinho vazio</p>
+                    <Button
+                      variant="outline"
+                      className="mt-4"
+                      onClick={() => setActiveTab('products')}
+                    >
+                      Adicionar Produtos
+                    </Button>
+                  </div>
                 ) : (
                   <div className="space-y-2">
                     {cart.map((item, idx) => (
@@ -231,17 +256,17 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
                   </Button>
                 </div>
               </div>
-            </div>
-          </div>
+            </TabsContent>
+          </Tabs>
         </DialogContent>
       </Dialog>
 
-      {/* Password Dialog */}
+      {/* Confirmation Dialog */}
       <Dialog open={showPasswordDialog} onOpenChange={(open) => !open && setShowPasswordDialog(false)}>
         <DialogContent className="max-w-md bg-black/95 border-purple-dark">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold text-purple-light">
-              Confirmar Pedido
+              Confirmar Pedido de Balcão
             </DialogTitle>
           </DialogHeader>
 
@@ -255,18 +280,7 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
                 onChange={(e) => setFuncionarioNome(e.target.value)}
                 placeholder="Digite seu nome"
                 className="mt-2"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="senha" className="text-white">Senha de Confirmação</Label>
-              <Input
-                id="senha"
-                type="password"
-                value={senha}
-                onChange={(e) => setSenha(e.target.value)}
-                placeholder="Digite a senha"
-                className="mt-2"
+                autoFocus
               />
             </div>
 
@@ -290,7 +304,7 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
               <Button
                 className="flex-1 bg-purple-dark hover:bg-purple-600"
                 onClick={handleConfirmOrder}
-                disabled={isProcessing || !senha || !funcionarioNome}
+                disabled={isProcessing || !funcionarioNome}
               >
                 {isProcessing ? 'Processando...' : 'Confirmar'}
               </Button>
