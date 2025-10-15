@@ -49,14 +49,14 @@ const AudioPlayer = () => {
       <Button
         size="icon"
         onClick={togglePlayPause}
-        className="bg-purple-dark/70 hover:bg-purple-dark text-white p-3 rounded-full shadow-lg transition-all duration-200"
+        className="bg-[hsl(291_68%_38%/0.7)] hover:bg-[hsl(291_68%_38%)] text-white p-3 rounded-full shadow-lg transition-all duration-200"
       >
         {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
       </Button>
       <Button
         size="icon"
         onClick={nextTrack}
-        className="bg-purple-dark/70 hover:bg-purple-dark text-white p-3 rounded-full shadow-lg transition-all duration-200"
+        className="bg-[hsl(291_68%_38%/0.7)] hover:bg-[hsl(291_68%_38%)] text-white p-3 rounded-full shadow-lg transition-all duration-200"
       >
         <SkipForward className="h-4 w-4" />
       </Button>

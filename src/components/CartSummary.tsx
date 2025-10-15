@@ -60,7 +60,7 @@ const CartSummary: React.FC<CartSummaryProps> = ({
       
       <div className="flex justify-between font-bold text-lg">
         <span className="text-white">Total:</span>
-        <span className="text-purple-light">R$ {calculatedTotal.toFixed(2)}</span>
+        <span className="text-[hsl(291_46%_82%)]">R$ {calculatedTotal.toFixed(2)}</span>
       </div>
     </div>
   );

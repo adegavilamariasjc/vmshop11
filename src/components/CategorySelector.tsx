@@ -78,7 +78,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ activeCategory, onS
             key={category}
             className={`py-2 px-4 rounded-full text-sm font-medium whitespace-nowrap ${
               activeCategory === category
-                ? "bg-purple-dark text-white"
+                ? "bg-[hsl(291_68%_38%)] text-white"
                 : "bg-gray-700 text-gray-200"
             }`}
             onClick={() => onSelectCategory(category)}

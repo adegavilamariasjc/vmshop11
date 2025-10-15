@@ -43,7 +43,7 @@ const MotoboyLoginModal: React.FC<MotoboyLoginModalProps> = ({
       <DialogContent className="bg-gray-900 border-gray-700 text-white max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
-            <div className="bg-purple-600 p-2 rounded-full">
+            <div className="bg-[hsl(291_64%_42%)] p-2 rounded-full">
               <Bike size={24} />
             </div>
             Login Motoboy
@@ -67,13 +67,13 @@ const MotoboyLoginModal: React.FC<MotoboyLoginModalProps> = ({
               type="button"
               variant="outline"
               onClick={onClose}
-              className="border-gray-600 text-white hover:bg-gray-800"
+              className="bg-white/10 border-white/20 text-white hover:bg-white/20"
             >
               Cancelar
             </Button>
             <Button
               type="submit"
-              className="bg-purple-600 hover:bg-purple-700 text-white"
+              className="bg-[hsl(291_64%_42%)] hover:bg-[hsl(291_68%_38%)] text-white"
             >
               Entrar
             </Button>
