@@ -49,7 +49,7 @@ const MotoboyPedidosListModal: React.FC<MotoboyPedidosListModalProps> = ({
       const { data, error } = await supabase
         .from('pedidos')
         .select('*')
-        .in('status', ['preparando', 'pronto', 'saiu_entrega'])
+        .in('status', ['aceito', 'preparando', 'pronto', 'saiu_entrega'])
         .neq('cliente_bairro', 'BALCAO')
         .order('data_criacao', { ascending: false });
 
@@ -87,6 +87,7 @@ const MotoboyPedidosListModal: React.FC<MotoboyPedidosListModalProps> = ({
 
   const getStatusBadge = (status: string) => {
     const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+      aceito: { label: 'Aceito', variant: 'outline' },
       preparando: { label: 'Preparando', variant: 'secondary' },
       pronto: { label: 'Pronto', variant: 'default' },
       saiu_entrega: { label: 'Saiu para Entrega', variant: 'outline' }
