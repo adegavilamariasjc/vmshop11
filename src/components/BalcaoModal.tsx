@@ -102,85 +102,76 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
   return (
     <>
       <Dialog open={isOpen && !showPasswordDialog} onOpenChange={handleClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] bg-black/95 border-purple-dark p-4">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-purple-light flex items-center gap-2">
-              <ShoppingCart className="h-5 w-5" />
+        <DialogContent className="w-[95vw] h-[90vh] max-w-none bg-black/95 border-purple-dark p-3 sm:p-4 flex flex-col">
+          <DialogHeader className="flex-shrink-0">
+            <DialogTitle className="text-lg sm:text-xl font-bold text-purple-light flex items-center gap-2">
+              <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
               Pedidos de Balcão
             </DialogTitle>
           </DialogHeader>
 
-          <div className="flex flex-col gap-4 h-full">
+          <div className="flex flex-col gap-3 flex-1 min-h-0">
             {/* Carrossel de Categorias */}
-            <div className="w-full px-8">
-              <Carousel className="w-full">
-                <CarouselContent>
-                  <CarouselItem className="basis-auto">
-                    <Button
-                      variant={selectedCategory === null ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSelectedCategory(null)}
-                      className="whitespace-nowrap"
-                    >
-                      Todos
-                    </Button>
-                  </CarouselItem>
+            <div className="w-full flex-shrink-0">
+              <ScrollArea className="w-full whitespace-nowrap">
+                <div className="flex gap-2 pb-2">
+                  <Button
+                    variant={selectedCategory === null ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedCategory(null)}
+                    className="whitespace-nowrap text-xs sm:text-sm h-8"
+                  >
+                    Todos
+                  </Button>
                   {categories.map(cat => (
-                    <CarouselItem key={cat.id} className="basis-auto">
-                      <Button
-                        variant={selectedCategory === cat.name ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setSelectedCategory(cat.name)}
-                        className="whitespace-nowrap"
-                      >
-                        {cat.name}
-                      </Button>
-                    </CarouselItem>
+                    <Button
+                      key={cat.id}
+                      variant={selectedCategory === cat.name ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedCategory(cat.name)}
+                      className="whitespace-nowrap text-xs sm:text-sm h-8"
+                    >
+                      {cat.name}
+                    </Button>
                   ))}
-                </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
-              </Carousel>
+                </div>
+              </ScrollArea>
             </div>
 
             {/* Grid de Produtos e Carrinho */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 min-h-0">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1 min-h-0">
               {/* Lista de Produtos */}
-              <div className="flex flex-col border border-gray-700 rounded-lg overflow-hidden">
-                <div className="bg-gray-900 p-2 border-b border-gray-700">
-                  <h3 className="text-white font-semibold">Produtos</h3>
+              <div className="flex flex-col border border-gray-700 rounded-lg overflow-hidden min-h-0">
+                <div className="bg-gray-900 p-2 border-b border-gray-700 flex-shrink-0">
+                  <h3 className="text-white font-semibold text-sm">Produtos</h3>
                 </div>
                 <ScrollArea className="flex-1 p-2">
                   <div className="space-y-2">
                     {filteredProducts.map((product, idx) => (
-                      <div
+                      <button
                         key={idx}
-                        className="flex items-center justify-between p-2 bg-gray-900/50 rounded hover:bg-gray-900 transition-colors"
+                        onClick={() => addToCart(product)}
+                        className="w-full flex items-center justify-between p-3 bg-gray-900/50 rounded hover:bg-gray-900 transition-colors active:bg-gray-800"
                       >
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 text-left">
                           <p className="text-white font-medium text-sm truncate">{product.name}</p>
                           <p className="text-xs text-purple-light font-bold">
                             R$ {product.price.toFixed(2)}
                           </p>
                         </div>
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          className="ml-2 h-8 w-8 p-0"
-                          onClick={() => addToCart(product)}
-                        >
-                          <Plus className="h-4 w-4" />
-                        </Button>
-                      </div>
+                        <div className="ml-2 h-9 w-9 flex items-center justify-center bg-purple-dark rounded-md flex-shrink-0">
+                          <Plus className="h-5 w-5 text-white" />
+                        </div>
+                      </button>
                     ))}
                   </div>
                 </ScrollArea>
               </div>
 
               {/* Carrinho */}
-              <div className="flex flex-col border border-gray-700 rounded-lg overflow-hidden">
-                <div className="bg-gray-900 p-2 border-b border-gray-700">
-                  <h3 className="text-white font-semibold">Carrinho ({cart.length})</h3>
+              <div className="flex flex-col border border-gray-700 rounded-lg overflow-hidden min-h-0">
+                <div className="bg-gray-900 p-2 border-b border-gray-700 flex-shrink-0">
+                  <h3 className="text-white font-semibold text-sm">Carrinho ({cart.length})</h3>
                 </div>
                 <ScrollArea className="flex-1 p-2">
                   {cart.length === 0 ? (
@@ -191,35 +182,31 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
                   ) : (
                     <div className="space-y-2">
                       {cart.map((item, idx) => (
-                        <div key={idx} className="bg-gray-900/50 p-2 rounded">
+                        <div key={idx} className="bg-gray-900/50 p-3 rounded">
                           <div className="flex items-center justify-between mb-2">
-                            <p className="text-white font-medium text-sm flex-1 min-w-0 truncate">{item.name}</p>
+                            <p className="text-white font-medium text-sm flex-1 min-w-0 truncate pr-2">{item.name}</p>
                             <button
                               onClick={() => updateQuantity(item, 0)}
-                              className="text-red-400 hover:text-red-300 ml-2"
+                              className="text-red-400 hover:text-red-300 p-1 flex-shrink-0"
                             >
-                              <X size={14} />
+                              <X size={16} />
                             </button>
                           </div>
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-1">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-6 w-6 p-0"
+                            <div className="flex items-center gap-2">
+                              <button
                                 onClick={() => updateQuantity(item, (item.qty || 0) - 1)}
+                                className="h-8 w-8 flex items-center justify-center bg-gray-800 hover:bg-gray-700 rounded border border-gray-600"
                               >
-                                <Minus className="h-3 w-3" />
-                              </Button>
-                              <span className="text-white w-8 text-center text-sm">{item.qty}</span>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-6 w-6 p-0"
+                                <Minus className="h-4 w-4 text-white" />
+                              </button>
+                              <span className="text-white w-8 text-center font-medium">{item.qty}</span>
+                              <button
                                 onClick={() => updateQuantity(item, (item.qty || 0) + 1)}
+                                className="h-8 w-8 flex items-center justify-center bg-gray-800 hover:bg-gray-700 rounded border border-gray-600"
                               >
-                                <Plus className="h-3 w-3" />
-                              </Button>
+                                <Plus className="h-4 w-4 text-white" />
+                              </button>
                             </div>
                             <p className="text-purple-light font-bold text-sm">
                               R$ {(item.price * (item.qty || 0)).toFixed(2)}
@@ -231,25 +218,25 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
                   )}
                 </ScrollArea>
                 
-                {/* Rodapé do Carrinho */}
-                <div className="border-t border-gray-700 p-3 bg-gray-900/50">
+                {/* Rodapé do Carrinho - Sempre visível */}
+                <div className="border-t border-gray-700 p-3 bg-gray-900/50 flex-shrink-0">
                   <div className="flex justify-between items-center mb-3">
-                    <span className="text-lg font-bold text-white">Total:</span>
-                    <span className="text-xl font-bold text-purple-light">
+                    <span className="text-base sm:text-lg font-bold text-white">Total:</span>
+                    <span className="text-lg sm:text-xl font-bold text-purple-light">
                       R$ {getTotal().toFixed(2)}
                     </span>
                   </div>
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
-                      className="flex-1"
+                      className="flex-1 h-10 text-sm"
                       onClick={clearCart}
                       disabled={cart.length === 0}
                     >
                       Limpar
                     </Button>
                     <Button
-                      className="flex-1 bg-purple-dark hover:bg-purple-600"
+                      className="flex-1 h-10 text-sm bg-purple-dark hover:bg-purple-600 font-semibold"
                       onClick={handleFinalize}
                       disabled={cart.length === 0}
                     >
