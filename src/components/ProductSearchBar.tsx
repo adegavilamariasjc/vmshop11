@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search, X, TrendingUp } from 'lucide-react';
 import { Input } from './ui/input';
 import { searchProductsEnhanced } from '@/lib/supabase/productStats';
+import { getProductIcon } from '@/utils/productIcons';
 
 interface ProductSearchBarProps {
   searchQuery: string;
@@ -106,32 +107,38 @@ const ProductSearchBar: React.FC<ProductSearchBarProps> = ({
       
       {showSuggestions && suggestions.length > 0 && (
         <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-md shadow-lg z-50 max-h-96 overflow-y-auto">
-          {suggestions.map((suggestion) => (
-            <button
-              key={suggestion.id}
-              onClick={() => handleSuggestionClick(suggestion)}
-              className="w-full px-4 py-3 text-left hover:bg-accent transition-colors flex items-center justify-between group"
-            >
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-foreground font-medium">{suggestion.name}</span>
-                  {suggestion.cart_additions > 5 && (
-                    <TrendingUp size={14} className="text-primary" />
-                  )}
+          {suggestions.map((suggestion) => {
+            const ProductIcon = getProductIcon(suggestion.name, suggestion.category_name);
+            return (
+              <button
+                key={suggestion.id}
+                onClick={() => handleSuggestionClick(suggestion)}
+                className="w-full px-4 py-3 text-left hover:bg-accent transition-colors flex items-center gap-3 group"
+              >
+                <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-primary/10 rounded-lg">
+                  <ProductIcon size={20} className="text-primary" />
                 </div>
-                <div className="text-sm text-muted-foreground flex items-center gap-2">
-                  <span>{suggestion.category_name}</span>
-                  <span>•</span>
-                  <span className="text-primary">R$ {suggestion.price.toFixed(2)}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-foreground font-medium truncate">{suggestion.name}</span>
+                    {suggestion.cart_additions > 5 && (
+                      <TrendingUp size={14} className="text-primary flex-shrink-0" />
+                    )}
+                  </div>
+                  <div className="text-sm text-muted-foreground flex items-center gap-2">
+                    <span className="truncate">{suggestion.category_name}</span>
+                    <span>•</span>
+                    <span className="text-primary">R$ {suggestion.price.toFixed(2)}</span>
+                  </div>
                 </div>
-              </div>
-              {suggestion.cart_additions > 0 && (
-                <div className="text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-                  {suggestion.cart_additions} vez{suggestion.cart_additions !== 1 ? 'es' : ''} adicionado
-                </div>
-              )}
-            </button>
-          ))}
+                {suggestion.cart_additions > 0 && (
+                  <div className="text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                    {suggestion.cart_additions}x
+                  </div>
+                )}
+              </button>
+            );
+          })}
         </div>
       )}
       

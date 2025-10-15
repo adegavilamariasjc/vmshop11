@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Plus, Minus, Loader2, TrendingUp } from 'lucide-react';
 import { Product } from '../types';
 import { searchProductsEnhanced, trackProductView } from '@/lib/supabase/productStats';
+import { getProductIcon } from '@/utils/productIcons';
 
 interface SearchProductListProps {
   searchQuery: string;
@@ -100,28 +101,33 @@ const SearchProductList: React.FC<SearchProductListProps> = ({
         
         const quantity = cartItem?.qty || 0;
         const isPopular = item.cart_additions > 10;
+        const ProductIcon = getProductIcon(item.name, item.category_name);
         
         return (
           <div 
             key={`${item.id}-${item.category_id}`} 
-            className="flex justify-between items-center border-b border-border py-3 hover:bg-accent/50 transition-colors px-2 rounded"
+            className="flex items-center gap-3 border-b border-border py-3 hover:bg-accent/50 transition-colors px-2 rounded"
           >
-            <div className="text-foreground flex-1">
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-primary/10 rounded-lg">
+              <ProductIcon size={20} className="text-primary" />
+            </div>
+            
+            <div className="text-foreground flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <p className="font-medium">{item.name}</p>
+                <p className="font-medium truncate">{item.name}</p>
                 {isPopular && (
-                  <span className="inline-flex items-center gap-1 text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">
+                  <span className="inline-flex items-center gap-1 text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full flex-shrink-0">
                     <TrendingUp size={12} />
                     Popular
                   </span>
                 )}
               </div>
-              <p className="text-sm text-muted-foreground">{item.category_name}</p>
+              <p className="text-sm text-muted-foreground truncate">{item.category_name}</p>
               <div className="flex items-center gap-2">
                 <p className="text-sm font-semibold text-primary">R$ {item.price.toFixed(2)}</p>
                 {item.cart_additions > 0 && (
                   <span className="text-xs text-muted-foreground">
-                    {item.cart_additions} vez{item.cart_additions !== 1 ? 'es' : ''} pedido
+                    {item.cart_additions}x pedido
                   </span>
                 )}
               </div>

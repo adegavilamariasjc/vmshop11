@@ -11,6 +11,7 @@ import { supabase } from '@/lib/supabase';
 import { Product } from '@/types';
 import { searchProductsEnhanced } from '@/lib/supabase/productStats';
 import ProductSearchBar from './ProductSearchBar';
+import { getProductIcon } from '@/utils/productIcons';
 
 interface BalcaoModalProps {
   isOpen: boolean;
@@ -220,12 +221,17 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
                     ) : (
                       displayProducts.map((product, idx) => {
                         const isPopular = (product as any).cart_additions > 10;
+                        const ProductIcon = getProductIcon(product.name, product.category);
                         return (
-                           <button
+                          <button
                             key={`${product.id}-${idx}`}
                             onClick={() => addToCart(product)}
-                            className="w-full flex items-center justify-between p-1.5 bg-gray-900/50 rounded hover:bg-gray-900 transition-colors active:bg-gray-800"
+                            className="w-full flex items-center gap-2 p-1.5 bg-gray-900/50 rounded hover:bg-gray-900 transition-colors active:bg-gray-800"
                           >
+                            <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-primary/10 rounded">
+                              <ProductIcon size={16} className="text-primary" />
+                            </div>
+                            
                             <div className="flex-1 min-w-0 text-left">
                               <div className="flex items-center gap-1">
                                 <p className="text-white font-medium text-xs truncate">{product.name}</p>
@@ -246,7 +252,8 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
                                 )}
                               </div>
                             </div>
-                            <div className="ml-2 h-7 w-7 flex items-center justify-center bg-purple-dark rounded flex-shrink-0">
+                            
+                            <div className="ml-1 h-7 w-7 flex items-center justify-center bg-purple-dark rounded flex-shrink-0">
                               <Plus className="h-4 w-4 text-white" />
                             </div>
                           </button>

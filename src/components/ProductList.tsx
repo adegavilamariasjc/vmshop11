@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Plus, Minus, Loader2 } from 'lucide-react';
 import { Product } from '../types';
 import { supabase } from '@/integrations/supabase/client';
+import { getProductIcon } from '@/utils/productIcons';
 
 interface ProductListProps {
   category: string;
@@ -110,18 +111,23 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
         );
         
         const quantity = cartItem?.qty || 0;
+        const ProductIcon = getProductIcon(item.name, category);
         
         return (
           <div 
             key={`${item.id}-${item.name}`} 
-            className="flex justify-between items-center border-b border-gray-600 py-3"
+            className="flex items-center gap-3 border-b border-gray-600 py-3"
           >
-            <div className="text-white">
-              <p className="font-medium">{item.name}</p>
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-primary/10 rounded-lg">
+              <ProductIcon size={20} className="text-primary" />
+            </div>
+            
+            <div className="text-white flex-1 min-w-0">
+              <p className="font-medium truncate">{item.name}</p>
               <p className="text-sm opacity-90">R$ {item.price.toFixed(2)}</p>
             </div>
             
-            <div className="flex items-center">
+            <div className="flex items-center gap-2 flex-shrink-0">
               <button
                 onClick={() => onUpdateQuantity({ id: item.id, ...item, category }, -1)}
                 className="w-8 h-8 flex items-center justify-center bg-gray-200 text-black rounded-full"
