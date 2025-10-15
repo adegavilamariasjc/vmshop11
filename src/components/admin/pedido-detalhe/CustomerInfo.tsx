@@ -24,17 +24,17 @@ const CustomerInfo: React.FC<CustomerInfoProps> = ({
 }) => {
   return (
     <div className="info">
-      <div><strong>Cliente:</strong> {name}</div>
-      <div><strong>Endereço:</strong> {address}, {number || ''}</div>
-      {complement && (
+      <div><strong>Cliente:</strong> {name || 'Não informado'}</div>
+      <div><strong>Endereço:</strong> {address || 'Não informado'}{number ? `, ${number}` : ''}</div>
+      {complement && complement !== 'null' && complement !== 'undefined' && (
         <div><strong>Complemento:</strong> {complement}</div>
       )}
-      {reference && (
+      {reference && reference !== 'null' && reference !== 'undefined' && (
         <div><strong>Referência:</strong> {reference}</div>
       )}
-      <div><strong>Bairro:</strong> {district}</div>
-      <div><strong>WhatsApp:</strong> {whatsapp}</div>
-      {observation && (
+      <div><strong>Bairro:</strong> {district || 'Não informado'}</div>
+      <div><strong>WhatsApp:</strong> {whatsapp || 'Não informado'}</div>
+      {observation && observation !== 'null' && observation !== 'undefined' && (
         <div><strong>Observação:</strong> {observation}</div>
       )}
     </div>

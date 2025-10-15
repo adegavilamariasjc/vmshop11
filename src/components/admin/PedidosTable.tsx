@@ -90,16 +90,18 @@ const PedidosTable: React.FC<PedidosTableProps> = ({
                 
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div className="text-gray-400">Cliente:</div>
-                  <div className="text-white">{pedido.cliente_nome}</div>
+                  <div className="text-white">{pedido.cliente_nome || 'Não informado'}</div>
                   
                   <div className="text-gray-400">Bairro:</div>
-                  <div className="text-white">{pedido.cliente_bairro}</div>
+                  <div className="text-white">{pedido.cliente_bairro || 'Não informado'}</div>
                   
                   <div className="text-gray-400">Pagamento:</div>
-                  <div className="text-white">{pedido.forma_pagamento}</div>
+                  <div className="text-white">{pedido.forma_pagamento || 'Não informado'}</div>
                   
                   <div className="text-gray-400">Total:</div>
-                  <div className="text-white font-bold">R$ {pedido.total.toFixed(2)}</div>
+                  <div className="text-white font-bold">
+                    R$ {(typeof pedido.total === 'number' && !isNaN(pedido.total)) ? pedido.total.toFixed(2) : '0.00'}
+                  </div>
                   
                   <div className="text-gray-400">Data:</div>
                   <div className="text-white">{formatDateTime(pedido.data_criacao)}</div>
@@ -214,16 +216,16 @@ const PedidosTable: React.FC<PedidosTableProps> = ({
                   {pedido.codigo_pedido}
                 </TableCell>
                 <TableCell className="text-white">
-                  {pedido.cliente_nome}
+                  {pedido.cliente_nome || 'Não informado'}
                 </TableCell>
                 <TableCell className="text-white hidden md:table-cell">
-                  {pedido.cliente_bairro}
+                  {pedido.cliente_bairro || 'Não informado'}
                 </TableCell>
                 <TableCell className="text-white hidden lg:table-cell">
-                  {pedido.forma_pagamento}
+                  {pedido.forma_pagamento || 'Não informado'}
                 </TableCell>
                 <TableCell className="text-white text-right">
-                  R$ {pedido.total.toFixed(2)}
+                  R$ {(typeof pedido.total === 'number' && !isNaN(pedido.total)) ? pedido.total.toFixed(2) : '0.00'}
                 </TableCell>
                 <TableCell className="">
                   <div className="flex items-center gap-2">

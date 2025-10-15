@@ -1,6 +1,11 @@
 import { supabase } from './client';
 
-export const trackProductView = async (productId: number) => {
+export const trackProductView = async (productId: number | undefined) => {
+  if (!productId || productId === undefined) {
+    console.warn('Attempted to track product view without valid product ID');
+    return;
+  }
+  
   try {
     const { error } = await supabase.rpc('track_product_view', {
       p_product_id: productId
@@ -11,7 +16,12 @@ export const trackProductView = async (productId: number) => {
   }
 };
 
-export const trackCartAddition = async (productId: number) => {
+export const trackCartAddition = async (productId: number | undefined) => {
+  if (!productId || productId === undefined) {
+    console.warn('Attempted to track cart addition without valid product ID');
+    return;
+  }
+  
   try {
     const { error } = await supabase.rpc('track_cart_addition', {
       p_product_id: productId
@@ -22,7 +32,12 @@ export const trackCartAddition = async (productId: number) => {
   }
 };
 
-export const trackPurchase = async (productId: number) => {
+export const trackPurchase = async (productId: number | undefined) => {
+  if (!productId || productId === undefined) {
+    console.warn('Attempted to track purchase without valid product ID');
+    return;
+  }
+  
   try {
     const { error } = await supabase.rpc('track_purchase', {
       p_product_id: productId

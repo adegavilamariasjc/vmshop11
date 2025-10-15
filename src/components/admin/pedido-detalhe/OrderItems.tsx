@@ -18,12 +18,20 @@ interface OrderItemsProps {
 }
 
 const OrderItems: React.FC<OrderItemsProps> = ({ items }) => {
+  // Function to format number safely
+  const formatNumber = (value: any): string => {
+    if (value === null || value === undefined || value === 'null' || value === 'undefined' || isNaN(value)) {
+      return '0.00';
+    }
+    return Number(value).toFixed(2);
+  };
+
   // Function to get the full product name for certain categories
   const getFullProductName = (item: OrderItem) => {
     if (item.category?.toLowerCase() === 'batidas' && !item.name.toLowerCase().includes('batida de')) {
       return `Batida de ${item.name}`;
     }
-    return item.name;
+    return item.name || 'Produto sem nome';
   };
 
   return (
@@ -61,15 +69,15 @@ const OrderItems: React.FC<OrderItemsProps> = ({ items }) => {
               {discountInfo.hasDiscount ? (
                 <>
                   <div className="line-through text-gray-400">
-                    Valor normal: R$ {(item.price * item.qty).toFixed(2)}
+                    Valor normal: R$ {formatNumber(item.price * (item.qty || 0))}
                   </div>
                   <div className="font-semibold text-green-400">
-                    Com desconto: R$ {discountInfo.discountedPrice.toFixed(2)}
+                    Com desconto: R$ {formatNumber(discountInfo.discountedPrice)}
                   </div>
                 </>
               ) : (
                 <div>
-                  R$ {(item.price * item.qty).toFixed(2)}
+                  R$ {formatNumber(item.price * (item.qty || 0))}
                 </div>
               )}
             </div>

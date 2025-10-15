@@ -105,7 +105,7 @@ export const useBalcaoOrder = () => {
 
       const pedido = await savePedido({
         codigo_pedido: codigoPedido,
-        cliente_nome: funcionarioNome,
+        cliente_nome: funcionarioNome || 'Balcão',
         cliente_endereco: '-',
         cliente_numero: null,
         cliente_complemento: null,
@@ -113,13 +113,13 @@ export const useBalcaoOrder = () => {
         cliente_bairro: 'BALCAO',
         taxa_entrega: 0,
         cliente_whatsapp: '-',
-        forma_pagamento: formaPagamento,
-        troco: valorTroco,
+        forma_pagamento: formaPagamento || 'Não informado',
+        troco: valorTroco || null,
         observacao: null,
         itens: cart as any,
-        total: total,
+        total: total || 0,
         status: 'pendente',
-        discount_amount: totalDiscountAmount,
+        discount_amount: totalDiscountAmount || 0,
         entregador: null
       });
 
