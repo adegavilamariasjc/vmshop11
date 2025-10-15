@@ -11,6 +11,7 @@ export interface Product {
   energyDrink?: string;
   energyDrinkFlavor?: string;
   energyDrinks?: Array<{ type: string; flavor: string }>;
+  observation?: string;
 }
 
 export interface Bairro {

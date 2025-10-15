@@ -276,40 +276,89 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
                       <p className="text-gray-400 text-xs">Carrinho vazio</p>
                     </div>
                   ) : (
-                    <div className="space-y-1">
-                      {cart.map((item, idx) => (
-                        <div key={idx} className="bg-gray-900/50 p-1.5 rounded">
-                          <div className="flex items-center justify-between mb-1">
-                            <p className="text-white font-medium text-xs flex-1 min-w-0 truncate pr-1">{item.name}</p>
-                            <button
-                              onClick={() => updateQuantity(item, 0)}
-                              className="text-red-400 hover:text-red-300 p-0.5 flex-shrink-0"
-                            >
-                              <X size={14} />
-                            </button>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-1">
+                    <div className="space-y-1.5">
+                      {cart.map((item, idx) => {
+                        const ProductIcon = getProductIcon(item.name, item.category);
+                        return (
+                          <div key={idx} className="bg-gray-900/70 border border-white/5 p-2 rounded-lg">
+                            <div className="flex items-start gap-2">
+                              {/* Ícone do produto */}
+                              <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-primary/10 rounded">
+                                <ProductIcon size={16} className="text-primary" />
+                              </div>
+                              
+                              {/* Informações do produto */}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-white font-medium text-xs truncate">{item.name}</p>
+                                <p className="text-white/60 text-[10px]">R$ {item.price.toFixed(2)} un.</p>
+                                
+                                {/* Detalhes adicionais */}
+                                {item.ice && (
+                                  <p className="text-blue-400/80 text-[10px] mt-0.5 flex items-center gap-1">
+                                    <span>❄️</span>
+                                    <span className="truncate">
+                                      {typeof item.ice === 'object' 
+                                        ? Object.entries(item.ice).map(([flavor, qty]) => `${flavor} (${qty})`).join(', ')
+                                        : item.ice}
+                                    </span>
+                                  </p>
+                                )}
+                                {item.alcohol && (
+                                  <p className="text-amber-400/80 text-[10px] mt-0.5 flex items-center gap-1">
+                                    <span>🥃</span>
+                                    <span className="truncate">{item.alcohol}</span>
+                                  </p>
+                                )}
+                                {item.observation && (
+                                  <p className="text-white/50 text-[10px] mt-0.5 italic flex items-center gap-1">
+                                    <span>💬</span>
+                                    <span className="truncate">{item.observation}</span>
+                                  </p>
+                                )}
+                              </div>
+                              
+                              {/* Botão de remover */}
                               <button
-                                onClick={() => updateQuantity(item, (item.qty || 0) - 1)}
-                                className="h-6 w-6 flex items-center justify-center bg-gray-800 hover:bg-gray-700 rounded border border-gray-600"
+                                onClick={() => updateQuantity(item, 0)}
+                                className="flex-shrink-0 w-5 h-5 flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded transition-colors"
+                                title="Remover item"
                               >
-                                <Minus className="h-3 w-3 text-white" />
-                              </button>
-                              <span className="text-white w-6 text-center font-medium text-xs">{item.qty}</span>
-                              <button
-                                onClick={() => updateQuantity(item, (item.qty || 0) + 1)}
-                                className="h-6 w-6 flex items-center justify-center bg-gray-800 hover:bg-gray-700 rounded border border-gray-600"
-                              >
-                                <Plus className="h-3 w-3 text-white" />
+                                <X size={12} />
                               </button>
                             </div>
-                            <p className="text-purple-light font-bold text-xs">
-                              R$ {(item.price * (item.qty || 0)).toFixed(2)}
-                            </p>
+                            
+                            {/* Controles de quantidade e subtotal */}
+                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5">
+                              <div className="flex items-center gap-1 bg-white/5 rounded-md p-0.5">
+                                <button
+                                  onClick={() => updateQuantity(item, (item.qty || 0) - 1)}
+                                  className="w-6 h-6 flex items-center justify-center bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded transition-colors"
+                                  title="Diminuir"
+                                >
+                                  <Minus size={12} />
+                                </button>
+                                
+                                <span className="text-white font-bold text-xs min-w-[24px] text-center">
+                                  {item.qty}
+                                </span>
+                                
+                                <button
+                                  onClick={() => updateQuantity(item, (item.qty || 0) + 1)}
+                                  className="w-6 h-6 flex items-center justify-center bg-green-500/10 hover:bg-green-500/20 text-green-400 rounded transition-colors"
+                                  title="Aumentar"
+                                >
+                                  <Plus size={12} />
+                                </button>
+                              </div>
+                              
+                              {/* Subtotal do item */}
+                              <span className="text-purple-light font-bold text-sm bg-purple-dark/20 px-2 py-1 rounded">
+                                R$ {(item.price * (item.qty || 0)).toFixed(2)}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </ScrollArea>
