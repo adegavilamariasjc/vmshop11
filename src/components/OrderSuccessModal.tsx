@@ -18,6 +18,7 @@ interface OrderSuccessModalProps {
   codigoPedido: string;
   isDuplicate?: boolean;
   onConfirm: () => void;
+  isStoreOpen: boolean;
 }
 
 const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
@@ -25,7 +26,8 @@ const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
   onClose,
   codigoPedido,
   isDuplicate = false,
-  onConfirm
+  onConfirm,
+  isStoreOpen
 }) => {
   const navigate = useNavigate();
   const [countdown, setCountdown] = useState(5);
@@ -60,7 +62,8 @@ const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
   }, [isOpen]);
 
   const handleOk = async () => {
-    if (!isDuplicate) {
+    // Only send notification (alarm) if store is open and not duplicate
+    if (!isDuplicate && isStoreOpen) {
       try {
         const channel = supabase.channel('pedido-confirmado');
         await channel.subscribe();
@@ -93,14 +96,14 @@ const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
           <DialogTitle className="text-2xl font-bold text-white">
             {isDuplicate ? 
               "Alerta de Pedido Duplicado!" : 
-              "Seu pedido foi enviado com sucesso!"}
+              isStoreOpen ? "Seu pedido foi enviado com sucesso!" : "Pedido Registrado - Fora do Horário"}
           </DialogTitle>
           <DialogDescription className="text-lg pt-4 px-2 text-white">
             {isDuplicate ? (
               <span className="text-amber-400 font-medium text-lg">
                 Detectamos um pedido semelhante recente. Por favor, entre em contato com a loja para confirmar este pedido.
               </span>
-            ) : (
+            ) : isStoreOpen ? (
               <>
                 <div className="mb-4 bg-green-900/70 p-4 rounded-md border border-green-500 shadow-lg">
                   <p className="text-xl">O código do seu pedido é:</p> 
@@ -110,6 +113,22 @@ const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
                 <p className="mt-4 text-white/90 font-medium">
                   Foi enviado para a loja com sucesso. Nosso tempo médio de entrega varia entre 20 e 50 minutos.
                 </p>
+              </>
+            ) : (
+              <>
+                <div className="mb-4 bg-blue-900/70 p-4 rounded-md border border-blue-500 shadow-lg">
+                  <p className="text-xl">O código do seu pedido é:</p> 
+                  <p className="font-bold text-2xl text-blue-400 my-2">{codigoPedido}</p>
+                  <p className="mt-2 text-blue-200">Guarde este código para consultas</p>
+                </div>
+                <div className="mt-4 bg-amber-900/50 p-4 rounded-md border border-amber-500">
+                  <p className="text-amber-200 font-medium text-base leading-relaxed">
+                    Seu pedido foi registrado fora do nosso horário de funcionamento e coletamos sua intenção de compra para melhor atendê-lo, coletando dados para futuras promoções.
+                  </p>
+                  <p className="mt-3 text-white font-semibold text-lg">
+                    🕐 Atendemos delivery das 18h às 5h
+                  </p>
+                </div>
               </>
             )}
           </DialogDescription>

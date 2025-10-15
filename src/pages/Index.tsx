@@ -125,6 +125,7 @@ const Index = () => {
         currentProductType={currentProductType}
         codigoPedido={codigoPedido}
         isDuplicateOrder={isDuplicateOrder}
+        isStoreOpen={isOpen}
         setIsFlavorModalOpen={setIsFlavorModalOpen}
         setIsAlcoholModalOpen={setIsAlcoholModalOpen}
         setIsBalyModalOpen={setIsBalyModalOpen}

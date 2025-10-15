@@ -21,6 +21,7 @@ interface IndexModalsProps {
   currentProductType: 'copao' | 'combo';
   codigoPedido: string;
   isDuplicateOrder: boolean;
+  isStoreOpen: boolean;
   setIsFlavorModalOpen: (isOpen: boolean) => void;
   setIsAlcoholModalOpen: (isOpen: boolean) => void;
   setIsBalyModalOpen: (isOpen: boolean) => void;
@@ -53,6 +54,7 @@ const IndexModals: React.FC<IndexModalsProps> = ({
   currentProductType,
   codigoPedido,
   isDuplicateOrder,
+  isStoreOpen,
   setIsFlavorModalOpen,
   setIsAlcoholModalOpen,
   setIsBalyModalOpen,
@@ -110,6 +112,7 @@ const IndexModals: React.FC<IndexModalsProps> = ({
         codigoPedido={codigoPedido}
         isDuplicate={isDuplicateOrder}
         onConfirm={handleOrderConfirmation}
+        isStoreOpen={isStoreOpen}
       />
     </>
   );

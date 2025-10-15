@@ -59,7 +59,7 @@ export const useOrderHandling = () => {
     }
   };
 
-  const preparePedido = async (cart: Product[], form: FormData) => {
+  const preparePedido = async (cart: Product[], form: FormData, isOpen: boolean) => {
     if (cart.length === 0) return false;
     
     // Calculate total with discounts applied
@@ -99,7 +99,7 @@ export const useOrderHandling = () => {
         observacao: form.observacao || null,
         itens: cart as any,
         total: typeof total === 'number' && !isNaN(total) ? total : 0,
-        status: 'pendente',
+        status: isOpen ? 'pendente' : 'fora_horario',
         discount_amount: typeof totalDiscountAmount === 'number' && !isNaN(totalDiscountAmount) ? totalDiscountAmount : 0,
         entregador: null
       });
@@ -183,7 +183,7 @@ export const useOrderHandling = () => {
   };
 
   const processOrder = async (cart: Product[], form: FormData, isOpen: boolean) => {
-    if (cart.length === 0 || !isOpen) {
+    if (cart.length === 0) {
       return;
     }
 
@@ -201,7 +201,7 @@ export const useOrderHandling = () => {
     setIsSendingOrder(true);
     
     try {
-      const success = await preparePedido(cart, form);
+      const success = await preparePedido(cart, form, isOpen);
       
       if (!success) {
         toast({
@@ -213,7 +213,8 @@ export const useOrderHandling = () => {
         return;
       }
       
-      if (!isDuplicateOrder) {
+      // Only create WhatsApp URL if store is open
+      if (!isDuplicateOrder && isOpen) {
         const url = createWhatsAppMessage(cart, form);
         setWhatsAppUrl(url);
       }

@@ -1,12 +1,11 @@
 
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Send, Loader2, AlertCircle } from 'lucide-react';
+import { ChevronLeft, Send, Loader2 } from 'lucide-react';
 import { FormData, Product } from '../types';
 import OrderSummary from './cart/OrderSummary';
 import CartSummary from './CartSummary';
 import CheckoutForm from './CheckoutForm';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { calculateBeerDiscount } from '../utils/discountUtils';
 
 interface CheckoutViewProps {
@@ -89,16 +88,6 @@ const CheckoutView: React.FC<CheckoutViewProps> = ({
       
       <h2 className="text-2xl font-bold text-white mb-6">Finalizar Pedido</h2>
       
-      {!isStoreOpen && (
-        <Alert className="bg-red-900/30 border-red-700 mb-6">
-          <AlertCircle className="h-5 w-5 text-red-400" />
-          <AlertTitle className="text-red-400">Loja Fechada</AlertTitle>
-          <AlertDescription className="text-red-300">
-            Não é possível enviar pedidos quando a loja está fechada. Por favor, retorne entre 18h e 5h.
-          </AlertDescription>
-        </Alert>
-      )}
-      
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Order Summary */}
         <div>
@@ -122,7 +111,7 @@ const CheckoutView: React.FC<CheckoutViewProps> = ({
           
           <motion.button
             onClick={onSubmit}
-            disabled={!isStoreOpen || !isFormValid || isSending}
+            disabled={!isFormValid || isSending}
             className="w-full bg-green-600 hover:bg-green-700 text-white rounded-md py-3 px-4 flex justify-center items-center gap-2 mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
@@ -135,7 +124,7 @@ const CheckoutView: React.FC<CheckoutViewProps> = ({
             ) : (
               <>
                 <Send size={18} />
-                <span>Enviar Pedido via WhatsApp</span>
+                <span>{isStoreOpen ? 'Enviar Pedido via WhatsApp' : 'Registrar Pedido (Fora do Horário)'}</span>
               </>
             )}
           </motion.button>
