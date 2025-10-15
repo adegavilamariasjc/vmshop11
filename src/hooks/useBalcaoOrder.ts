@@ -13,6 +13,13 @@ export const useBalcaoOrder = () => {
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const { toast } = useToast();
 
+  // Play cash register sound for counter orders
+  const playCashRegisterSound = () => {
+    const audio = new Audio('/caixaregistradora.mp3');
+    audio.volume = 0.8;
+    audio.play().catch(err => console.error('Erro ao tocar som de caixa:', err));
+  };
+
   const addToCart = (product: Product) => {
     setCart(prevCart => {
       const existingIndex = prevCart.findIndex(
@@ -111,6 +118,8 @@ export const useBalcaoOrder = () => {
       });
 
       if (pedido) {
+        playCashRegisterSound();
+        
         toast({
           title: 'Pedido registrado!',
           description: `Pedido #${codigoPedido} registrado com sucesso.`,
