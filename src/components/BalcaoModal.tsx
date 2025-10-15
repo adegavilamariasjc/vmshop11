@@ -140,15 +140,15 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
   return (
     <>
       <Dialog open={isOpen && !showPasswordDialog} onOpenChange={handleClose}>
-        <DialogContent className="w-[95vw] h-[90vh] max-w-none bg-black/95 border-purple-dark p-3 sm:p-4 flex flex-col">
-          <DialogHeader className="flex-shrink-0">
-            <DialogTitle className="text-lg sm:text-xl font-bold text-purple-light flex items-center gap-2">
-              <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
+        <DialogContent className="w-[95vw] h-[90vh] max-w-none bg-black/95 border-purple-dark p-2 flex flex-col">
+          <DialogHeader className="flex-shrink-0 pb-2">
+            <DialogTitle className="text-base font-bold text-purple-light flex items-center gap-2">
+              <ShoppingCart className="h-4 w-4" />
               Pedidos de Balcão
             </DialogTitle>
           </DialogHeader>
 
-          <div className="flex flex-col gap-3 flex-1 min-h-0">
+          <div className="flex flex-col gap-2 flex-1 min-h-0">
             {/* Barra de Pesquisa Avançada */}
             <div className="w-full flex-shrink-0">
               <ProductSearchBar
@@ -157,48 +157,50 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
               />
             </div>
 
-            {/* Carrossel de Categorias */}
-            <div className="w-full flex-shrink-0">
-              <div className="overflow-x-auto pb-2">
-                <div className="flex gap-2 min-w-max">
-                  <Button
-                    variant={selectedCategory === null ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedCategory(null)}
-                    className="whitespace-nowrap text-xs sm:text-sm h-8 flex-shrink-0"
-                  >
-                    Todos
-                  </Button>
-                  {categories.map(cat => (
+            {/* Carrossel de Categorias - Mais compacto */}
+            {!searchQuery && (
+              <div className="w-full flex-shrink-0">
+                <div className="overflow-x-auto">
+                  <div className="flex gap-1 min-w-max">
                     <Button
-                      key={cat.id}
-                      variant={selectedCategory === cat.name ? "default" : "outline"}
+                      variant={selectedCategory === null ? "default" : "outline"}
                       size="sm"
-                      onClick={() => setSelectedCategory(cat.name)}
-                      className="whitespace-nowrap text-xs sm:text-sm h-8 flex-shrink-0"
+                      onClick={() => setSelectedCategory(null)}
+                      className="whitespace-nowrap text-xs h-7 px-3 flex-shrink-0"
                     >
-                      {cat.name}
+                      Todos
                     </Button>
-                  ))}
+                    {categories.map(cat => (
+                      <Button
+                        key={cat.id}
+                        variant={selectedCategory === cat.name ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setSelectedCategory(cat.name)}
+                        className="whitespace-nowrap text-xs h-7 px-3 flex-shrink-0"
+                      >
+                        {cat.name}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
-            {/* Grid de Produtos e Carrinho */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 flex-1 min-h-0">
+            {/* Grid de Produtos e Carrinho - Mais compacto */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 flex-1 min-h-0">
               {/* Lista de Produtos */}
-              <div className="flex flex-col border border-gray-700 rounded-lg overflow-hidden min-h-0">
-                <div className="bg-gray-900 p-2 border-b border-gray-700 flex-shrink-0">
-                  <h3 className="text-white font-semibold text-sm">Produtos</h3>
+              <div className="flex flex-col border border-gray-700 rounded overflow-hidden min-h-0">
+                <div className="bg-gray-900 px-2 py-1 border-b border-gray-700 flex-shrink-0">
+                  <h3 className="text-white font-semibold text-xs">Produtos ({displayProducts.length})</h3>
                 </div>
-                <ScrollArea className="flex-1 p-2">
-                  <div className="space-y-2">
+                <ScrollArea className="flex-1 p-1">
+                  <div className="space-y-1">
                     {isSearching ? (
-                      <div className="flex justify-center items-center py-8">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                      <div className="flex justify-center items-center py-6">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
                       </div>
                     ) : displayProducts.length === 0 ? (
-                      <div className="text-center text-muted-foreground py-8">
+                      <div className="text-center text-muted-foreground py-6 text-xs">
                         {searchQuery ? 'Nenhum produto encontrado' : 'Nenhum produto disponível'}
                       </div>
                     ) : (
@@ -208,28 +210,30 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
                           <button
                             key={`${product.id}-${idx}`}
                             onClick={() => addToCart(product)}
-                            className="w-full flex items-center justify-between p-3 bg-gray-900/50 rounded hover:bg-gray-900 transition-colors active:bg-gray-800"
+                            className="w-full flex items-center justify-between p-2 bg-gray-900/50 rounded hover:bg-gray-900 transition-colors active:bg-gray-800"
                           >
                             <div className="flex-1 min-w-0 text-left">
-                              <div className="flex items-center gap-2">
-                                <p className="text-white font-medium text-sm truncate">{product.name}</p>
+                              <div className="flex items-center gap-1">
+                                <p className="text-white font-medium text-xs truncate">{product.name}</p>
                                 {isPopular && (
-                                  <span className="inline-flex items-center gap-1 text-xs bg-primary/20 text-primary px-1.5 py-0.5 rounded-full flex-shrink-0">
-                                    <TrendingUp size={10} />
+                                  <span className="inline-flex items-center gap-0.5 text-[10px] bg-primary/20 text-primary px-1 py-0.5 rounded-full flex-shrink-0">
+                                    <TrendingUp size={8} />
                                   </span>
                                 )}
                               </div>
-                              <p className="text-xs text-purple-light font-bold">
-                                R$ {product.price.toFixed(2)}
-                              </p>
-                              {(product as any).cart_additions > 0 && (
-                                <p className="text-xs text-muted-foreground">
-                                  {(product as any).cart_additions} vez{(product as any).cart_additions !== 1 ? 'es' : ''} pedido
+                              <div className="flex items-center gap-2">
+                                <p className="text-[11px] text-purple-light font-bold">
+                                  R$ {product.price.toFixed(2)}
                                 </p>
-                              )}
+                                {(product as any).cart_additions > 0 && (
+                                  <p className="text-[10px] text-muted-foreground">
+                                    {(product as any).cart_additions}x
+                                  </p>
+                                )}
+                              </div>
                             </div>
-                            <div className="ml-2 h-9 w-9 flex items-center justify-center bg-purple-dark rounded-md flex-shrink-0">
-                              <Plus className="h-5 w-5 text-white" />
+                            <div className="ml-2 h-7 w-7 flex items-center justify-center bg-purple-dark rounded flex-shrink-0">
+                              <Plus className="h-4 w-4 text-white" />
                             </div>
                           </button>
                         );
@@ -239,47 +243,47 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
                 </ScrollArea>
               </div>
 
-              {/* Carrinho */}
-              <div className="flex flex-col border border-gray-700 rounded-lg overflow-hidden min-h-0">
-                <div className="bg-gray-900 p-2 border-b border-gray-700 flex-shrink-0">
-                  <h3 className="text-white font-semibold text-sm">Carrinho ({cart.length})</h3>
+              {/* Carrinho - Mais compacto */}
+              <div className="flex flex-col border border-gray-700 rounded overflow-hidden min-h-0">
+                <div className="bg-gray-900 px-2 py-1 border-b border-gray-700 flex-shrink-0">
+                  <h3 className="text-white font-semibold text-xs">Carrinho ({cart.length})</h3>
                 </div>
-                <ScrollArea className="flex-1 p-2">
+                <ScrollArea className="flex-1 p-1">
                   {cart.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full text-center py-8">
-                      <ShoppingCart className="h-12 w-12 text-gray-600 mb-2" />
-                      <p className="text-gray-400 text-sm">Carrinho vazio</p>
+                    <div className="flex flex-col items-center justify-center h-full text-center py-6">
+                      <ShoppingCart className="h-8 w-8 text-gray-600 mb-1" />
+                      <p className="text-gray-400 text-xs">Carrinho vazio</p>
                     </div>
                   ) : (
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       {cart.map((item, idx) => (
-                        <div key={idx} className="bg-gray-900/50 p-3 rounded">
-                          <div className="flex items-center justify-between mb-2">
-                            <p className="text-white font-medium text-sm flex-1 min-w-0 truncate pr-2">{item.name}</p>
+                        <div key={idx} className="bg-gray-900/50 p-2 rounded">
+                          <div className="flex items-center justify-between mb-1">
+                            <p className="text-white font-medium text-xs flex-1 min-w-0 truncate pr-1">{item.name}</p>
                             <button
                               onClick={() => updateQuantity(item, 0)}
-                              className="text-red-400 hover:text-red-300 p-1 flex-shrink-0"
+                              className="text-red-400 hover:text-red-300 p-0.5 flex-shrink-0"
                             >
-                              <X size={16} />
+                              <X size={14} />
                             </button>
                           </div>
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1">
                               <button
                                 onClick={() => updateQuantity(item, (item.qty || 0) - 1)}
-                                className="h-8 w-8 flex items-center justify-center bg-gray-800 hover:bg-gray-700 rounded border border-gray-600"
+                                className="h-6 w-6 flex items-center justify-center bg-gray-800 hover:bg-gray-700 rounded border border-gray-600"
                               >
-                                <Minus className="h-4 w-4 text-white" />
+                                <Minus className="h-3 w-3 text-white" />
                               </button>
-                              <span className="text-white w-8 text-center font-medium">{item.qty}</span>
+                              <span className="text-white w-6 text-center font-medium text-xs">{item.qty}</span>
                               <button
                                 onClick={() => updateQuantity(item, (item.qty || 0) + 1)}
-                                className="h-8 w-8 flex items-center justify-center bg-gray-800 hover:bg-gray-700 rounded border border-gray-600"
+                                className="h-6 w-6 flex items-center justify-center bg-gray-800 hover:bg-gray-700 rounded border border-gray-600"
                               >
-                                <Plus className="h-4 w-4 text-white" />
+                                <Plus className="h-3 w-3 text-white" />
                               </button>
                             </div>
-                            <p className="text-purple-light font-bold text-sm">
+                            <p className="text-purple-light font-bold text-xs">
                               R$ {(item.price * (item.qty || 0)).toFixed(2)}
                             </p>
                           </div>
@@ -289,25 +293,25 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
                   )}
                 </ScrollArea>
                 
-                {/* Rodapé do Carrinho - Sempre visível */}
-                <div className="border-t border-gray-700 p-3 bg-gray-900/50 flex-shrink-0">
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="text-base sm:text-lg font-bold text-white">Total:</span>
-                    <span className="text-lg sm:text-xl font-bold text-purple-light">
+                {/* Rodapé do Carrinho - Compacto */}
+                <div className="border-t border-gray-700 p-2 bg-gray-900/50 flex-shrink-0">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-bold text-white">Total:</span>
+                    <span className="text-base font-bold text-purple-light">
                       R$ {getTotal().toFixed(2)}
                     </span>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1">
                     <Button
                       variant="outline"
-                      className="flex-1 h-10 text-sm"
+                      className="flex-1 h-8 text-xs"
                       onClick={clearCart}
                       disabled={cart.length === 0}
                     >
                       Limpar
                     </Button>
                     <Button
-                      className="flex-1 h-10 text-sm bg-purple-dark hover:bg-purple-600 font-semibold"
+                      className="flex-1 h-8 text-xs bg-purple-dark hover:bg-purple-600 font-semibold"
                       onClick={handleFinalize}
                       disabled={cart.length === 0}
                     >
