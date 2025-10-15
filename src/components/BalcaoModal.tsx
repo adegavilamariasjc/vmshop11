@@ -142,9 +142,9 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
       <Dialog open={isOpen && !showPasswordDialog} onOpenChange={handleClose}>
         <DialogContent className="w-[95vw] h-[90vh] max-w-none bg-black/95 border-purple-dark p-2 flex flex-col">
           <DialogHeader className="flex-shrink-0 pb-2">
-            <DialogTitle className="text-base font-bold text-purple-light flex items-center gap-2">
-              <ShoppingCart className="h-4 w-4" />
-              Pedidos de Balcão
+            <DialogTitle className="text-sm font-bold text-purple-light flex items-center gap-1.5">
+              <ShoppingCart className="h-3.5 w-3.5" />
+              Balcão
             </DialogTitle>
           </DialogHeader>
 
@@ -162,11 +162,11 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
               <div className="w-full flex-shrink-0">
                 <div className="overflow-x-auto">
                   <div className="flex gap-1 min-w-max">
-                    <Button
+                     <Button
                       variant={selectedCategory === null ? "default" : "outline"}
                       size="sm"
                       onClick={() => setSelectedCategory(null)}
-                      className="whitespace-nowrap text-xs h-7 px-3 flex-shrink-0"
+                      className="whitespace-nowrap text-[11px] h-6 px-2 flex-shrink-0"
                     >
                       Todos
                     </Button>
@@ -176,7 +176,7 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
                         variant={selectedCategory === cat.name ? "default" : "outline"}
                         size="sm"
                         onClick={() => setSelectedCategory(cat.name)}
-                        className="whitespace-nowrap text-xs h-7 px-3 flex-shrink-0"
+                        className="whitespace-nowrap text-[11px] h-6 px-2 flex-shrink-0"
                       >
                         {cat.name}
                       </Button>
@@ -191,7 +191,7 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
               {/* Lista de Produtos */}
               <div className="flex flex-col border border-gray-700 rounded overflow-hidden min-h-0">
                 <div className="bg-gray-900 px-2 py-1 border-b border-gray-700 flex-shrink-0">
-                  <h3 className="text-white font-semibold text-xs">Produtos ({displayProducts.length})</h3>
+                  <h3 className="text-white font-semibold text-[11px]">Produtos ({displayProducts.length})</h3>
                 </div>
                 <ScrollArea className="flex-1 p-1">
                   <div className="space-y-1">
@@ -207,10 +207,10 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
                       displayProducts.map((product, idx) => {
                         const isPopular = (product as any).cart_additions > 10;
                         return (
-                          <button
+                           <button
                             key={`${product.id}-${idx}`}
                             onClick={() => addToCart(product)}
-                            className="w-full flex items-center justify-between p-2 bg-gray-900/50 rounded hover:bg-gray-900 transition-colors active:bg-gray-800"
+                            className="w-full flex items-center justify-between p-1.5 bg-gray-900/50 rounded hover:bg-gray-900 transition-colors active:bg-gray-800"
                           >
                             <div className="flex-1 min-w-0 text-left">
                               <div className="flex items-center gap-1">
@@ -246,7 +246,7 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
               {/* Carrinho - Mais compacto */}
               <div className="flex flex-col border border-gray-700 rounded overflow-hidden min-h-0">
                 <div className="bg-gray-900 px-2 py-1 border-b border-gray-700 flex-shrink-0">
-                  <h3 className="text-white font-semibold text-xs">Carrinho ({cart.length})</h3>
+                  <h3 className="text-white font-semibold text-[11px]">Carrinho ({cart.length})</h3>
                 </div>
                 <ScrollArea className="flex-1 p-1">
                   {cart.length === 0 ? (
@@ -257,7 +257,7 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
                   ) : (
                     <div className="space-y-1">
                       {cart.map((item, idx) => (
-                        <div key={idx} className="bg-gray-900/50 p-2 rounded">
+                        <div key={idx} className="bg-gray-900/50 p-1.5 rounded">
                           <div className="flex items-center justify-between mb-1">
                             <p className="text-white font-medium text-xs flex-1 min-w-0 truncate pr-1">{item.name}</p>
                             <button
@@ -294,24 +294,24 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
                 </ScrollArea>
                 
                 {/* Rodapé do Carrinho - Compacto */}
-                <div className="border-t border-gray-700 p-2 bg-gray-900/50 flex-shrink-0">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-bold text-white">Total:</span>
-                    <span className="text-base font-bold text-purple-light">
+                <div className="border-t border-gray-700 p-1.5 bg-gray-900/50 flex-shrink-0">
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className="text-xs font-bold text-white">Total:</span>
+                    <span className="text-sm font-bold text-purple-light">
                       R$ {getTotal().toFixed(2)}
                     </span>
                   </div>
                   <div className="flex gap-1">
                     <Button
                       variant="outline"
-                      className="flex-1 h-8 text-xs"
+                      className="flex-1 h-7 text-[11px] px-2"
                       onClick={clearCart}
                       disabled={cart.length === 0}
                     >
                       Limpar
                     </Button>
                     <Button
-                      className="flex-1 h-8 text-xs bg-purple-dark hover:bg-purple-600 font-semibold"
+                      className="flex-1 h-7 text-[11px] px-2 bg-purple-dark hover:bg-purple-600 font-semibold"
                       onClick={handleFinalize}
                       disabled={cart.length === 0}
                     >
