@@ -15,9 +15,15 @@ export const useBalcaoOrder = () => {
 
   // Play cash register sound for counter orders
   const playCashRegisterSound = () => {
-    const audio = new Audio('/caixaregistradora.mp3');
-    audio.volume = 0.8;
-    audio.play().catch(err => console.error('Erro ao tocar som de caixa:', err));
+    try {
+      const audio = new Audio('/caixaregistradora.mp3');
+      audio.volume = 1.0;
+      audio.play()
+        .then(() => console.log('Som de caixa registradora tocado com sucesso'))
+        .catch(err => console.error('Erro ao tocar som de caixa:', err));
+    } catch (error) {
+      console.error('Erro ao criar áudio:', error);
+    }
   };
 
   const addToCart = (product: Product) => {
