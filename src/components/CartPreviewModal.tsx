@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ShoppingCart, Trash2, ArrowRight, X, AlertCircle } from 'lucide-react';
+import { ShoppingCart, Trash2, ArrowRight, X } from 'lucide-react';
 import { Product } from '../types';
 import {
   Dialog,
@@ -13,8 +13,6 @@ import OrderSummary from './cart/OrderSummary';
 import CartSummary from './CartSummary';
 import { Button } from './ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { getProductDisplayPrice } from '../utils/discountUtils';
 
 interface CartPreviewModalProps {
@@ -42,15 +40,6 @@ const CartPreviewModal: React.FC<CartPreviewModalProps> = ({
   const cartTotal = filteredCart.reduce((sum, item) => sum + getProductDisplayPrice(item), 0);
 
   const handleProceed = () => {
-    if (!isStoreOpen) {
-      toast({
-        title: "Loja Fechada",
-        description: "A loja está fechada no momento. Você pode navegar pelo cardápio, mas não é possível finalizar pedidos.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
     if (cartTotal < 20) {
       toast({
         title: "Valor mínimo não atingido",
@@ -93,16 +82,6 @@ const CartPreviewModal: React.FC<CartPreviewModalProps> = ({
           <span className="sr-only">Fechar</span>
         </DialogClose>
 
-        {!isStoreOpen && (
-          <Alert className="bg-red-900/30 border-red-700 mb-2">
-            <AlertCircle className="h-4 w-4 text-red-400" />
-            <AlertTitle className="text-red-400 text-sm">Loja Fechada</AlertTitle>
-            <AlertDescription className="text-red-300 text-xs">
-              Não é possível finalizar pedidos quando a loja está fechada.
-            </AlertDescription>
-          </Alert>
-        )}
-
         {/* Content area with scrolling */}
         <div className="flex-1 overflow-y-auto py-2" style={{ maxHeight: 'calc(70vh - 140px)' }}>
           <div className="pr-2">
@@ -127,7 +106,7 @@ const CartPreviewModal: React.FC<CartPreviewModalProps> = ({
             Limpar
           </Button>
           <Button
-            className={`w-full ${isStoreOpen ? 'bg-purple-dark hover:bg-purple-600' : 'bg-gray-600 hover:bg-gray-700'}`}
+            className="w-full bg-purple-dark hover:bg-purple-600"
             onClick={handleProceed}
             disabled={filteredCart.length === 0}
           >

@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ShoppingBag, AlertCircle } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { ShoppingBag } from 'lucide-react';
 import CategorySelector from './CategorySelector';
 import ProductList from './ProductList';
 import ProductSearchBar from './ProductSearchBar';
 import SearchProductList from './SearchProductList';
 import CartPreviewModal from './CartPreviewModal';
 import { Product } from '../types';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { getProductDisplayPrice } from '../utils/discountUtils';
 
 interface ProductSelectionViewProps {
@@ -32,7 +30,6 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
 }) => {
   const [isCartModalOpen, setIsCartModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const { toast } = useToast();
   
   // Filter cart items with zero quantity
   const filteredCart = cart.filter(item => (item.qty || 0) > 0);
@@ -53,14 +50,6 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
   };
 
   const handleCartClick = () => {
-    if (!isStoreOpen && filteredCart.length > 0) {
-      toast({
-        title: "Loja Fechada",
-        description: "A loja está fechada no momento. Você pode navegar pelo cardápio, mas não é possível finalizar pedidos.",
-        variant: "destructive",
-      });
-      return;
-    }
     setIsCartModalOpen(true);
   };
 
@@ -76,17 +65,7 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
       exit={{ opacity: 0 }}
       className="w-full"
     >
-      {!isStoreOpen && (
-        <Alert className="bg-red-900/30 border-red-700 mb-4">
-          <AlertCircle className="h-5 w-5 text-red-400" />
-          <AlertTitle className="text-red-400">Loja Fechada</AlertTitle>
-          <AlertDescription className="text-red-300">
-            Você pode navegar pelo cardápio e adicionar itens ao carrinho, mas não é possível finalizar pedidos no momento. Retorne entre 18h e 5h.
-          </AlertDescription>
-        </Alert>
-      )}
-      
-      <ProductSearchBar 
+      <ProductSearchBar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
       />
@@ -119,10 +98,10 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
       
       <motion.button
         onClick={handleCartClick}
-        className={`fixed bottom-6 right-6 ${isStoreOpen ? 'bg-purple-dark hover:bg-purple-600' : 'bg-gray-600 hover:bg-gray-700'} text-white px-4 py-3 rounded-full shadow-lg flex items-center gap-2`}
+        className="fixed bottom-6 right-6 bg-purple-dark hover:bg-purple-600 text-white px-4 py-3 rounded-full shadow-lg flex items-center gap-2"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        animate={filteredCart.length > 0 && isStoreOpen ? { y: [0, -5, 0], transition: { repeat: 2, duration: 0.6 } } : {}}
+        animate={filteredCart.length > 0 ? { y: [0, -5, 0], transition: { repeat: 2, duration: 0.6 } } : {}}
       >
         <ShoppingBag size={20} />
         <span className="font-semibold">
