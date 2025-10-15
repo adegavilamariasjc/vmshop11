@@ -2,75 +2,119 @@ import { useRef, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export const useOrderAlerts = () => {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const deliveryAudioRef = useRef<HTMLAudioElement | null>(null);
+  const balcaoAudioRef = useRef<HTMLAudioElement | null>(null);
   const channelRef = useRef<any>(null);
-  const isPlayingRef = useRef(false);
+  const isPlayingDeliveryRef = useRef(false);
+  const isPlayingBalcaoRef = useRef(false);
 
-  // Initialize audio with better error handling - usar som de caixa registradora
-  const initializeAudio = useCallback(() => {
-    if (!audioRef.current) {
-      audioRef.current = new Audio('/caixaregistradora.mp3');
-      audioRef.current.loop = true;
-      audioRef.current.volume = 1.0;
-      audioRef.current.preload = 'auto';
+  // Initialize delivery audio (order.mp3)
+  const initializeDeliveryAudio = useCallback(() => {
+    if (!deliveryAudioRef.current) {
+      deliveryAudioRef.current = new Audio('/order.mp3');
+      deliveryAudioRef.current.loop = true;
+      deliveryAudioRef.current.volume = 0.8;
+      deliveryAudioRef.current.preload = 'auto';
       
-      // Handle audio loading errors
-      audioRef.current.onerror = (e) => {
-        console.error('Audio loading error:', e);
+      deliveryAudioRef.current.onerror = (e) => {
+        console.error('Delivery audio loading error:', e);
       };
       
-      audioRef.current.oncanplaythrough = () => {
-        console.log('🔊 Audio de caixa registradora pronto');
+      deliveryAudioRef.current.oncanplaythrough = () => {
+        console.log('🔊 Audio de delivery pronto');
       };
     }
   }, []);
 
-  // Start alert for pending orders with improved reliability
-  const startAlert = useCallback(() => {
-    if (isPlayingRef.current) {
-      console.log('🔊 Alert already playing, skipping');
-      return;
-    }
-    
-    console.log('🎵 Starting audio alert');
-    initializeAudio();
-    
-    if (audioRef.current) {
-      // Reset audio to beginning
-      audioRef.current.currentTime = 0;
-      isPlayingRef.current = true;
+  // Initialize balcão audio (caixaregistradora.mp3)
+  const initializeBalcaoAudio = useCallback(() => {
+    if (!balcaoAudioRef.current) {
+      balcaoAudioRef.current = new Audio('/caixaregistradora.mp3');
+      balcaoAudioRef.current.loop = true;
+      balcaoAudioRef.current.volume = 1.0;
+      balcaoAudioRef.current.preload = 'auto';
       
-      audioRef.current.play()
-        .then(() => {
-          console.log('✅ Audio alert started successfully');
-        })
-        .catch(e => {
-          console.error('❌ Erro ao tocar alerta:', e);
-          isPlayingRef.current = false;
-          
-          // Retry after user interaction
-          const retryPlay = () => {
-            if (audioRef.current && !isPlayingRef.current) {
-              audioRef.current.play().then(() => {
-                isPlayingRef.current = true;
-                document.removeEventListener('click', retryPlay);
-                document.removeEventListener('keydown', retryPlay);
-              });
-            }
-          };
-          
-          document.addEventListener('click', retryPlay, { once: true });
-          document.addEventListener('keydown', retryPlay, { once: true });
-        });
+      balcaoAudioRef.current.onerror = (e) => {
+        console.error('Balcão audio loading error:', e);
+      };
+      
+      balcaoAudioRef.current.oncanplaythrough = () => {
+        console.log('🔊 Audio de balcão pronto');
+      };
     }
-  }, [initializeAudio]);
+  }, []);
 
-  // Stop alert
+  // Start alert based on order type
+  const startAlert = useCallback((orders: any[]) => {
+    const deliveryOrders = orders.filter(o => o.status === 'pendente' && o.cliente_bairro !== 'BALCAO');
+    const balcaoOrders = orders.filter(o => o.status === 'pendente' && o.cliente_bairro === 'BALCAO');
+    
+    // Play delivery alert
+    if (deliveryOrders.length > 0 && !isPlayingDeliveryRef.current) {
+      console.log('🎵 Starting delivery audio alert');
+      initializeDeliveryAudio();
+      
+      if (deliveryAudioRef.current) {
+        deliveryAudioRef.current.currentTime = 0;
+        isPlayingDeliveryRef.current = true;
+        
+        deliveryAudioRef.current.play()
+          .then(() => {
+            console.log('✅ Delivery alert started');
+          })
+          .catch(e => {
+            console.error('❌ Erro ao tocar alerta delivery:', e);
+            isPlayingDeliveryRef.current = false;
+          });
+      }
+    } else if (deliveryOrders.length === 0 && isPlayingDeliveryRef.current) {
+      // Stop delivery alert if no delivery orders
+      if (deliveryAudioRef.current) {
+        deliveryAudioRef.current.pause();
+        deliveryAudioRef.current.currentTime = 0;
+        isPlayingDeliveryRef.current = false;
+      }
+    }
+    
+    // Play balcão alert
+    if (balcaoOrders.length > 0 && !isPlayingBalcaoRef.current) {
+      console.log('🎵 Starting balcão audio alert');
+      initializeBalcaoAudio();
+      
+      if (balcaoAudioRef.current) {
+        balcaoAudioRef.current.currentTime = 0;
+        isPlayingBalcaoRef.current = true;
+        
+        balcaoAudioRef.current.play()
+          .then(() => {
+            console.log('✅ Balcão alert started');
+          })
+          .catch(e => {
+            console.error('❌ Erro ao tocar alerta balcão:', e);
+            isPlayingBalcaoRef.current = false;
+          });
+      }
+    } else if (balcaoOrders.length === 0 && isPlayingBalcaoRef.current) {
+      // Stop balcão alert if no balcão orders
+      if (balcaoAudioRef.current) {
+        balcaoAudioRef.current.pause();
+        balcaoAudioRef.current.currentTime = 0;
+        isPlayingBalcaoRef.current = false;
+      }
+    }
+  }, [initializeDeliveryAudio, initializeBalcaoAudio]);
+
+  // Stop all alerts
   const stopAlert = useCallback(() => {
-    if (audioRef.current && isPlayingRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      isPlayingRef.current = false;
+    if (deliveryAudioRef.current && isPlayingDeliveryRef.current) {
+      deliveryAudioRef.current.pause();
+      deliveryAudioRef.current.currentTime = 0;
+      isPlayingDeliveryRef.current = false;
+    }
+    if (balcaoAudioRef.current && isPlayingBalcaoRef.current) {
+      balcaoAudioRef.current.pause();
+      balcaoAudioRef.current.currentTime = 0;
+      isPlayingBalcaoRef.current = false;
     }
   }, []);
 
@@ -119,17 +163,16 @@ export const useOrderAlerts = () => {
                 // Update UI immediately
                 onOrderChange(data);
                 
-                // Check for pending orders and trigger alert
-                const pendingOrders = data.filter(order => 
-                  order.status === 'pendente'
-                );
+                // Check for pending orders and trigger appropriate alerts
+                const pendingOrders = data.filter(order => order.status === 'pendente');
                 console.log('📊 Pending orders count:', pendingOrders.length);
                 
                 if (pendingOrders.length > 0) {
-                  console.log('🔊 Starting alert for pending orders');
+                  console.log('🔊 Starting alerts for pending orders');
                   // Force audio initialization for immediate playback
-                  initializeAudio();
-                  setTimeout(() => startAlert(), 100); // Small delay to ensure audio is ready
+                  initializeDeliveryAudio();
+                  initializeBalcaoAudio();
+                  setTimeout(() => startAlert(data), 100);
                 } else {
                   stopAlert();
                 }
@@ -148,16 +191,7 @@ export const useOrderAlerts = () => {
               
               if (data) {
                 onOrderChange(data);
-                
-                const pendingOrders = data.filter(order => 
-                  order.status === 'pendente'
-                );
-                
-                if (pendingOrders.length > 0) {
-                  startAlert();
-                } else {
-                  stopAlert();
-                }
+                startAlert(data);
               }
             }
           } catch (error) {
@@ -174,12 +208,16 @@ export const useOrderAlerts = () => {
           supabase
             .from('pedidos')
             .select('*')
-            .eq('status', 'pendente')
+            .order('data_criacao', { ascending: false })
             .then(({ data }) => {
-              if (data && data.length > 0) {
-                console.log('🔔 Found pending orders on subscription, starting alert');
-                initializeAudio();
-                setTimeout(() => startAlert(), 200);
+              if (data) {
+                const pendingOrders = data.filter(o => o.status === 'pendente');
+                if (pendingOrders.length > 0) {
+                  console.log('🔔 Found pending orders on subscription');
+                  initializeDeliveryAudio();
+                  initializeBalcaoAudio();
+                  setTimeout(() => startAlert(data), 200);
+                }
               }
             });
         }
@@ -195,7 +233,7 @@ export const useOrderAlerts = () => {
       }
       stopAlert();
     };
-  }, [startAlert, stopAlert, initializeAudio]);
+  }, [startAlert, stopAlert, initializeDeliveryAudio, initializeBalcaoAudio]);
 
   // Cleanup on unmount
   useEffect(() => {
