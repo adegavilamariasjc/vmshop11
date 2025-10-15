@@ -5,10 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { X, ShoppingCart, Minus, Plus, Search } from 'lucide-react';
+import { X, ShoppingCart, Minus, Plus, Search, TrendingUp } from 'lucide-react';
 import { useBalcaoOrder } from '@/hooks/useBalcaoOrder';
 import { supabase } from '@/lib/supabase';
 import { Product } from '@/types';
+import { searchProductsEnhanced } from '@/lib/supabase/productStats';
+import ProductSearchBar from './ProductSearchBar';
 
 interface BalcaoModalProps {
   isOpen: boolean;
@@ -29,16 +31,42 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
   } = useBalcaoOrder();
 
   const [products, setProducts] = useState<Product[]>([]);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [funcionarioNome, setFuncionarioNome] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       loadProducts();
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    const searchProducts = async () => {
+      if (searchQuery.trim().length < 2) {
+        setSearchResults([]);
+        setIsSearching(false);
+        return;
+      }
+      
+      setIsSearching(true);
+      try {
+        const results = await searchProductsEnhanced(searchQuery);
+        setSearchResults(results);
+      } catch (err) {
+        console.error('Error searching:', err);
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+
+    const debounce = setTimeout(searchProducts, 300);
+    return () => clearTimeout(debounce);
+  }, [searchQuery]);
 
   const loadProducts = async () => {
     try {
@@ -52,15 +80,16 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
         setCategories(categoriesData);
       }
 
-      // Load products
+      // Load products with id
       const { data: productsData } = await supabase
         .from('products')
-        .select('*, categories(name)')
+        .select('id, name, price, is_paused, order_index, categories(name)')
         .eq('is_paused', false)
         .order('order_index', { ascending: true });
 
       if (productsData) {
         const formattedProducts = productsData.map(p => ({
+          id: p.id,
           name: p.name,
           price: p.price,
           category: p.categories?.name || '',
@@ -96,12 +125,17 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
     onClose();
   };
 
-  const filteredProducts = products.filter(p => {
-    const matchesCategory = !selectedCategory || p.category === selectedCategory;
-    const matchesSearch = !searchQuery || 
-      p.name.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  const displayProducts = searchQuery.trim().length >= 2 
+    ? searchResults.map(r => ({
+        id: r.id,
+        name: r.name,
+        price: r.price,
+        category: r.category_name,
+        qty: 0,
+        cart_additions: r.cart_additions,
+        purchases: r.purchases
+      }))
+    : products.filter(p => !selectedCategory || p.category === selectedCategory);
 
   return (
     <>
@@ -115,26 +149,12 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
           </DialogHeader>
 
           <div className="flex flex-col gap-3 flex-1 min-h-0">
-            {/* Barra de Pesquisa */}
+            {/* Barra de Pesquisa Avançada */}
             <div className="w-full flex-shrink-0">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                <Input
-                  type="text"
-                  placeholder="Buscar produtos..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-10 bg-gray-900/50 border-gray-600 text-white placeholder:text-gray-400 h-9 text-sm"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
-                  >
-                    <X size={18} />
-                  </button>
-                )}
-              </div>
+              <ProductSearchBar
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+              />
             </div>
 
             {/* Carrossel de Categorias */}
@@ -173,23 +193,48 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
                 </div>
                 <ScrollArea className="flex-1 p-2">
                   <div className="space-y-2">
-                    {filteredProducts.map((product, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => addToCart(product)}
-                        className="w-full flex items-center justify-between p-3 bg-gray-900/50 rounded hover:bg-gray-900 transition-colors active:bg-gray-800"
-                      >
-                        <div className="flex-1 min-w-0 text-left">
-                          <p className="text-white font-medium text-sm truncate">{product.name}</p>
-                          <p className="text-xs text-purple-light font-bold">
-                            R$ {product.price.toFixed(2)}
-                          </p>
-                        </div>
-                        <div className="ml-2 h-9 w-9 flex items-center justify-center bg-purple-dark rounded-md flex-shrink-0">
-                          <Plus className="h-5 w-5 text-white" />
-                        </div>
-                      </button>
-                    ))}
+                    {isSearching ? (
+                      <div className="flex justify-center items-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                      </div>
+                    ) : displayProducts.length === 0 ? (
+                      <div className="text-center text-muted-foreground py-8">
+                        {searchQuery ? 'Nenhum produto encontrado' : 'Nenhum produto disponível'}
+                      </div>
+                    ) : (
+                      displayProducts.map((product, idx) => {
+                        const isPopular = (product as any).cart_additions > 10;
+                        return (
+                          <button
+                            key={`${product.id}-${idx}`}
+                            onClick={() => addToCart(product)}
+                            className="w-full flex items-center justify-between p-3 bg-gray-900/50 rounded hover:bg-gray-900 transition-colors active:bg-gray-800"
+                          >
+                            <div className="flex-1 min-w-0 text-left">
+                              <div className="flex items-center gap-2">
+                                <p className="text-white font-medium text-sm truncate">{product.name}</p>
+                                {isPopular && (
+                                  <span className="inline-flex items-center gap-1 text-xs bg-primary/20 text-primary px-1.5 py-0.5 rounded-full flex-shrink-0">
+                                    <TrendingUp size={10} />
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-purple-light font-bold">
+                                R$ {product.price.toFixed(2)}
+                              </p>
+                              {(product as any).cart_additions > 0 && (
+                                <p className="text-xs text-muted-foreground">
+                                  {(product as any).cart_additions} vez{(product as any).cart_additions !== 1 ? 'es' : ''} pedido
+                                </p>
+                              )}
+                            </div>
+                            <div className="ml-2 h-9 w-9 flex items-center justify-center bg-purple-dark rounded-md flex-shrink-0">
+                              <Plus className="h-5 w-5 text-white" />
+                            </div>
+                          </button>
+                        );
+                      })
+                    )}
                   </div>
                 </ScrollArea>
               </div>

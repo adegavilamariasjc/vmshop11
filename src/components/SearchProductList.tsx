@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Minus, Loader2 } from 'lucide-react';
+import { Plus, Minus, Loader2, TrendingUp } from 'lucide-react';
 import { Product } from '../types';
-import { supabase } from '@/integrations/supabase/client';
+import { searchProductsEnhanced, trackProductView } from '@/lib/supabase/productStats';
 
 interface SearchProductListProps {
   searchQuery: string;
@@ -11,19 +11,31 @@ interface SearchProductListProps {
   onUpdateQuantity: (item: Product, delta: number) => void;
 }
 
+interface SearchResult {
+  id: number;
+  name: string;
+  price: number;
+  category_id: number;
+  category_name: string;
+  is_paused: boolean;
+  views: number;
+  cart_additions: number;
+  purchases: number;
+  relevance_score: number;
+}
+
 const SearchProductList: React.FC<SearchProductListProps> = ({ 
   searchQuery, 
   cart, 
   onAddProduct, 
   onUpdateQuantity 
 }) => {
-  const [products, setProducts] = useState<{name: string; price: number; category_id: number; is_paused?: boolean}[]>([]);
-  const [categories, setCategories] = useState<{[key: number]: string}>({});
+  const [products, setProducts] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchProducts = async () => {
-      if (!searchQuery || searchQuery.trim().length === 0) {
+      if (!searchQuery || searchQuery.trim().length < 2) {
         setProducts([]);
         return;
       }
@@ -31,39 +43,13 @@ const SearchProductList: React.FC<SearchProductListProps> = ({
       setIsLoading(true);
 
       try {
-        // Fetch categories first
-        const { data: categoriesData } = await supabase
-          .from('categories')
-          .select('id, name');
-
-        const categoryMap: {[key: number]: string} = {};
-        categoriesData?.forEach(cat => {
-          categoryMap[cat.id] = cat.name;
+        const results = await searchProductsEnhanced(searchQuery);
+        setProducts(results as SearchResult[]);
+        
+        // Track views for displayed products
+        results.forEach((product: any) => {
+          trackProductView(product.id);
         });
-        setCategories(categoryMap);
-
-        // Fetch products matching search query (ignoring accents)
-        const { data: productsData, error: productsError } = await supabase
-          .from('products')
-          .select('*')
-          .or(`name.ilike.%${searchQuery}%`)
-          .eq('is_paused', false)
-          .order('name');
-
-        if (productsError) {
-          console.error('Error fetching products:', productsError);
-          setProducts([]);
-          return;
-        }
-
-        // Filter results using the normalize_text function for better accent-insensitive matching
-        const normalizedQuery = searchQuery.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        const filteredProducts = productsData?.filter(p => {
-          const normalizedName = p.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-          return normalizedName.includes(normalizedQuery);
-        }) || [];
-
-        setProducts(filteredProducts);
       } catch (err) {
         console.error('Unexpected error:', err);
         setProducts([]);
@@ -72,7 +58,8 @@ const SearchProductList: React.FC<SearchProductListProps> = ({
       }
     };
 
-    fetchProducts();
+    const debounceTimer = setTimeout(fetchProducts, 300);
+    return () => clearTimeout(debounceTimer);
   }, [searchQuery]);
 
   if (!searchQuery || searchQuery.trim().length === 0) {
@@ -89,7 +76,7 @@ const SearchProductList: React.FC<SearchProductListProps> = ({
 
   if (products.length === 0) {
     return (
-      <div className="text-center text-white py-10">
+      <div className="text-center text-foreground py-10">
         <p>Nenhum produto encontrado para "{searchQuery}"</p>
       </div>
     );
@@ -97,36 +84,53 @@ const SearchProductList: React.FC<SearchProductListProps> = ({
 
   return (
     <div className="mb-4 pb-20">
-      <h2 className="text-lg font-semibold mb-3 text-white">
+      <h2 className="text-lg font-semibold mb-3 text-foreground flex items-center gap-2">
         Resultados da busca ({products.length})
+        <span className="text-xs text-muted-foreground font-normal">
+          ordenados por relevância e popularidade
+        </span>
       </h2>
       
       {products.map((item) => {
-        const category = categories[item.category_id] || '';
-        
         const cartItem = cart.find(p => 
           p.name === item.name && 
-          p.category === category &&
+          p.category === item.category_name &&
           !p.ice && !p.alcohol
         );
         
         const quantity = cartItem?.qty || 0;
+        const isPopular = item.cart_additions > 10;
         
         return (
           <div 
-            key={`${item.name}-${item.category_id}`} 
-            className="flex justify-between items-center border-b border-gray-600 py-3"
+            key={`${item.id}-${item.category_id}`} 
+            className="flex justify-between items-center border-b border-border py-3 hover:bg-accent/50 transition-colors px-2 rounded"
           >
-            <div className="text-white">
-              <p className="font-medium">{item.name}</p>
-              <p className="text-sm opacity-70">{category}</p>
-              <p className="text-sm opacity-90">R$ {item.price.toFixed(2)}</p>
+            <div className="text-foreground flex-1">
+              <div className="flex items-center gap-2">
+                <p className="font-medium">{item.name}</p>
+                {isPopular && (
+                  <span className="inline-flex items-center gap-1 text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">
+                    <TrendingUp size={12} />
+                    Popular
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground">{item.category_name}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-semibold text-primary">R$ {item.price.toFixed(2)}</p>
+                {item.cart_additions > 0 && (
+                  <span className="text-xs text-muted-foreground">
+                    {item.cart_additions} vez{item.cart_additions !== 1 ? 'es' : ''} pedido
+                  </span>
+                )}
+              </div>
             </div>
             
-            <div className="flex items-center">
+            <div className="flex items-center gap-2">
               <button
-                onClick={() => onUpdateQuantity({ ...item, category }, -1)}
-                className="w-8 h-8 flex items-center justify-center bg-gray-200 text-black rounded-full"
+                onClick={() => onUpdateQuantity({ ...item, category: item.category_name, id: item.id }, -1)}
+                className="w-8 h-8 flex items-center justify-center bg-muted hover:bg-muted/80 text-foreground rounded-full transition-colors disabled:opacity-50"
                 disabled={quantity === 0}
               >
                 <Minus size={16} />
@@ -135,14 +139,14 @@ const SearchProductList: React.FC<SearchProductListProps> = ({
               <motion.span
                 animate={{ scale: quantity ? [1, 1.2, 1] : 1 }}
                 transition={{ duration: 0.3 }}
-                className="w-8 text-center text-white"
+                className="w-8 text-center text-foreground font-semibold"
               >
                 {quantity}
               </motion.span>
               
               <button
-                onClick={() => onAddProduct({ ...item, category })}
-                className="w-8 h-8 flex items-center justify-center bg-purple-dark text-white rounded-full"
+                onClick={() => onAddProduct({ ...item, category: item.category_name, id: item.id })}
+                className="w-8 h-8 flex items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground rounded-full transition-colors"
               >
                 <Plus size={16} />
               </button>

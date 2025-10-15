@@ -3,6 +3,7 @@ import { Product, AlcoholOption } from '../../types';
 import { useToast } from '@/hooks/use-toast';
 import { containsBaly } from '../../data/products';
 import { isCopao, isCombo } from './useCartHelpers';
+import { trackCartAddition } from '@/lib/supabase/productStats';
 
 export const useCartOperations = (
   cart: Product[],
@@ -45,6 +46,11 @@ export const useCartOperations = (
   };
 
   const handleUpdateQuantity = (item: Product, delta: number) => {
+    // Track cart addition when adding items
+    if (delta > 0 && item.id) {
+      trackCartAddition(item.id);
+    }
+    
     setCart((prevCart) => {
       const existingItem = prevCart.find(
         (p) =>

@@ -302,6 +302,53 @@ export type Database = {
         }
         Relationships: []
       }
+      product_stats: {
+        Row: {
+          cart_additions: number | null
+          created_at: string | null
+          id: number
+          last_added_to_cart_at: string | null
+          last_purchased_at: string | null
+          last_viewed_at: string | null
+          product_id: number
+          purchases: number | null
+          updated_at: string | null
+          views: number | null
+        }
+        Insert: {
+          cart_additions?: number | null
+          created_at?: string | null
+          id?: number
+          last_added_to_cart_at?: string | null
+          last_purchased_at?: string | null
+          last_viewed_at?: string | null
+          product_id: number
+          purchases?: number | null
+          updated_at?: string | null
+          views?: number | null
+        }
+        Update: {
+          cart_additions?: number | null
+          created_at?: string | null
+          id?: number
+          last_added_to_cart_at?: string | null
+          last_purchased_at?: string | null
+          last_viewed_at?: string | null
+          product_id?: number
+          purchases?: number | null
+          updated_at?: string | null
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_product"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           category_id: number | null
@@ -403,6 +450,21 @@ export type Database = {
           relevance: number
         }[]
       }
+      search_products_enhanced: {
+        Args: { search_term: string }
+        Returns: {
+          cart_additions: number
+          category_id: number
+          category_name: string
+          id: number
+          is_paused: boolean
+          name: string
+          price: number
+          purchases: number
+          relevance_score: number
+          views: number
+        }[]
+      }
       set_limit: {
         Args: { "": number }
         Returns: number
@@ -414,6 +476,18 @@ export type Database = {
       show_trgm: {
         Args: { "": string }
         Returns: string[]
+      }
+      track_cart_addition: {
+        Args: { p_product_id: number }
+        Returns: undefined
+      }
+      track_product_view: {
+        Args: { p_product_id: number }
+        Returns: undefined
+      }
+      track_purchase: {
+        Args: { p_product_id: number }
+        Returns: undefined
       }
       unaccent: {
         Args: { "": string }

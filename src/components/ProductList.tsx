@@ -14,7 +14,7 @@ interface ProductListProps {
 }
 
 const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct, onUpdateQuantity, isStoreOpen }) => {
-  const [products, setProducts] = useState<{name: string; price: number; is_paused?: boolean; order_index?: number}[]>([]);
+  const [products, setProducts] = useState<{id: number; name: string; price: number; is_paused?: boolean; order_index?: number}[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -113,7 +113,7 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
         
         return (
           <div 
-            key={item.name} 
+            key={`${item.id}-${item.name}`} 
             className="flex justify-between items-center border-b border-gray-600 py-3"
           >
             <div className="text-white">
@@ -123,7 +123,7 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
             
             <div className="flex items-center">
               <button
-                onClick={() => onUpdateQuantity({ ...item, category }, -1)}
+                onClick={() => onUpdateQuantity({ id: item.id, ...item, category }, -1)}
                 className="w-8 h-8 flex items-center justify-center bg-gray-200 text-black rounded-full"
                 disabled={quantity === 0}
               >
@@ -139,7 +139,7 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
               </motion.span>
               
               <button
-                onClick={() => onAddProduct({ ...item, category })}
+                onClick={() => onAddProduct({ id: item.id, ...item, category })}
                 className="w-8 h-8 flex items-center justify-center bg-purple-dark text-white rounded-full"
               >
                 <Plus size={16} />
