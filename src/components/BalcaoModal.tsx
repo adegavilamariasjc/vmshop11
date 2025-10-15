@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { X, ShoppingCart, Package } from 'lucide-react';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { X, ShoppingCart, Minus, Plus } from 'lucide-react';
 import { useBalcaoOrder } from '@/hooks/useBalcaoOrder';
 import { supabase } from '@/lib/supabase';
 import { Product } from '@/types';
@@ -31,7 +31,7 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [funcionarioNome, setFuncionarioNome] = useState('');
-  const [activeTab, setActiveTab] = useState('products');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -91,173 +91,175 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
     clearCart();
     setFuncionarioNome('');
     setShowPasswordDialog(false);
-    setActiveTab('products');
+    setSelectedCategory(null);
     onClose();
   };
+
+  const filteredProducts = selectedCategory
+    ? products.filter(p => p.category === selectedCategory)
+    : products;
 
   return (
     <>
       <Dialog open={isOpen && !showPasswordDialog} onOpenChange={handleClose}>
-        <DialogContent className="max-w-2xl max-h-[90vh] bg-black/95 border-purple-dark">
+        <DialogContent className="max-w-4xl max-h-[90vh] bg-black/95 border-purple-dark p-4">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-purple-light flex items-center gap-2">
-              <ShoppingCart className="h-6 w-6" />
+            <DialogTitle className="text-xl font-bold text-purple-light flex items-center gap-2">
+              <ShoppingCart className="h-5 w-5" />
               Pedidos de Balcão
             </DialogTitle>
           </DialogHeader>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="products" className="flex items-center gap-2">
-                <Package className="h-4 w-4" />
-                Produtos
-              </TabsTrigger>
-              <TabsTrigger value="cart" className="flex items-center gap-2">
-                <ShoppingCart className="h-4 w-4" />
-                Carrinho ({cart.length})
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="products" className="space-y-4">
-              <div className="flex gap-2 flex-wrap">
-                {categories.map(cat => (
-                  <Button
-                    key={cat.id}
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      const categoryProducts = products.filter(p => p.category === cat.name);
-                      if (categoryProducts.length > 0) {
-                        // Scroll to category or filter
-                      }
-                    }}
-                  >
-                    {cat.name}
-                  </Button>
-                ))}
-              </div>
-
-              <ScrollArea className="h-[400px] border border-gray-700 rounded-lg p-4">
-                <div className="space-y-4">
-                  {categories.map(cat => {
-                    const categoryProducts = products.filter(p => p.category === cat.name);
-                    if (categoryProducts.length === 0) return null;
-
-                    return (
-                      <div key={cat.id} className="space-y-2">
-                        <h3 className="text-lg font-bold text-purple-light sticky top-0 bg-black/95 py-2">
-                          {cat.name}
-                        </h3>
-                        {categoryProducts.map((product, idx) => (
-                          <div
-                            key={idx}
-                            className="flex items-center justify-between p-3 bg-gray-900/50 rounded hover:bg-gray-900 cursor-pointer transition-colors"
-                            onClick={() => {
-                              addToCart(product);
-                              setActiveTab('cart');
-                            }}
-                          >
-                            <div className="flex-1">
-                              <p className="text-white font-medium">{product.name}</p>
-                              <p className="text-sm text-purple-light font-bold">
-                                R$ {product.price.toFixed(2)}
-                              </p>
-                            </div>
-                            <Button size="sm" variant="outline" className="ml-2">
-                              +
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    );
-                  })}
-                </div>
-              </ScrollArea>
-            </TabsContent>
-
-            <TabsContent value="cart" className="space-y-4">
-              <ScrollArea className="h-[400px] border border-gray-700 rounded-lg p-4">
-                {cart.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 text-center">
-                    <ShoppingCart className="h-16 w-16 text-gray-600 mb-4" />
-                    <p className="text-gray-400">Carrinho vazio</p>
+          <div className="flex flex-col gap-4 h-full">
+            {/* Carrossel de Categorias */}
+            <div className="w-full px-8">
+              <Carousel className="w-full">
+                <CarouselContent>
+                  <CarouselItem className="basis-auto">
                     <Button
-                      variant="outline"
-                      className="mt-4"
-                      onClick={() => setActiveTab('products')}
+                      variant={selectedCategory === null ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedCategory(null)}
+                      className="whitespace-nowrap"
                     >
-                      Adicionar Produtos
+                      Todos
                     </Button>
-                  </div>
-                ) : (
+                  </CarouselItem>
+                  {categories.map(cat => (
+                    <CarouselItem key={cat.id} className="basis-auto">
+                      <Button
+                        variant={selectedCategory === cat.name ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setSelectedCategory(cat.name)}
+                        className="whitespace-nowrap"
+                      >
+                        {cat.name}
+                      </Button>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious />
+                <CarouselNext />
+              </Carousel>
+            </div>
+
+            {/* Grid de Produtos e Carrinho */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 min-h-0">
+              {/* Lista de Produtos */}
+              <div className="flex flex-col border border-gray-700 rounded-lg overflow-hidden">
+                <div className="bg-gray-900 p-2 border-b border-gray-700">
+                  <h3 className="text-white font-semibold">Produtos</h3>
+                </div>
+                <ScrollArea className="flex-1 p-2">
                   <div className="space-y-2">
-                    {cart.map((item, idx) => (
-                      <div key={idx} className="bg-gray-900/50 p-3 rounded">
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="text-white font-medium">{item.name}</p>
-                          <button
-                            onClick={() => updateQuantity(item, 0)}
-                            className="text-red-400 hover:text-red-300"
-                          >
-                            <X size={16} />
-                          </button>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => updateQuantity(item, (item.qty || 0) - 1)}
-                            >
-                              -
-                            </Button>
-                            <span className="text-white w-8 text-center">{item.qty}</span>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => updateQuantity(item, (item.qty || 0) + 1)}
-                            >
-                              +
-                            </Button>
-                          </div>
-                          <p className="text-purple-light font-bold">
-                            R$ {(item.price * (item.qty || 0)).toFixed(2)}
+                    {filteredProducts.map((product, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between p-2 bg-gray-900/50 rounded hover:bg-gray-900 transition-colors"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white font-medium text-sm truncate">{product.name}</p>
+                          <p className="text-xs text-purple-light font-bold">
+                            R$ {product.price.toFixed(2)}
                           </p>
                         </div>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="ml-2 h-8 w-8 p-0"
+                          onClick={() => addToCart(product)}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
                       </div>
                     ))}
                   </div>
-                )}
-              </ScrollArea>
+                </ScrollArea>
+              </div>
 
-              <div className="border-t border-gray-700 pt-4">
-                <div className="flex justify-between items-center mb-4">
-                  <span className="text-xl font-bold text-white">Total:</span>
-                  <span className="text-2xl font-bold text-purple-light">
-                    R$ {getTotal().toFixed(2)}
-                  </span>
+              {/* Carrinho */}
+              <div className="flex flex-col border border-gray-700 rounded-lg overflow-hidden">
+                <div className="bg-gray-900 p-2 border-b border-gray-700">
+                  <h3 className="text-white font-semibold">Carrinho ({cart.length})</h3>
                 </div>
-
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={clearCart}
-                    disabled={cart.length === 0}
-                  >
-                    Limpar
-                  </Button>
-                  <Button
-                    className="flex-1 bg-purple-dark hover:bg-purple-600"
-                    onClick={handleFinalize}
-                    disabled={cart.length === 0}
-                  >
-                    Finalizar
-                  </Button>
+                <ScrollArea className="flex-1 p-2">
+                  {cart.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full text-center py-8">
+                      <ShoppingCart className="h-12 w-12 text-gray-600 mb-2" />
+                      <p className="text-gray-400 text-sm">Carrinho vazio</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {cart.map((item, idx) => (
+                        <div key={idx} className="bg-gray-900/50 p-2 rounded">
+                          <div className="flex items-center justify-between mb-2">
+                            <p className="text-white font-medium text-sm flex-1 min-w-0 truncate">{item.name}</p>
+                            <button
+                              onClick={() => updateQuantity(item, 0)}
+                              className="text-red-400 hover:text-red-300 ml-2"
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-6 w-6 p-0"
+                                onClick={() => updateQuantity(item, (item.qty || 0) - 1)}
+                              >
+                                <Minus className="h-3 w-3" />
+                              </Button>
+                              <span className="text-white w-8 text-center text-sm">{item.qty}</span>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-6 w-6 p-0"
+                                onClick={() => updateQuantity(item, (item.qty || 0) + 1)}
+                              >
+                                <Plus className="h-3 w-3" />
+                              </Button>
+                            </div>
+                            <p className="text-purple-light font-bold text-sm">
+                              R$ {(item.price * (item.qty || 0)).toFixed(2)}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </ScrollArea>
+                
+                {/* Rodapé do Carrinho */}
+                <div className="border-t border-gray-700 p-3 bg-gray-900/50">
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-lg font-bold text-white">Total:</span>
+                    <span className="text-xl font-bold text-purple-light">
+                      R$ {getTotal().toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={clearCart}
+                      disabled={cart.length === 0}
+                    >
+                      Limpar
+                    </Button>
+                    <Button
+                      className="flex-1 bg-purple-dark hover:bg-purple-600"
+                      onClick={handleFinalize}
+                      disabled={cart.length === 0}
+                    >
+                      Finalizar
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </TabsContent>
-          </Tabs>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
