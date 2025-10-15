@@ -216,20 +216,21 @@ const CategoryManager: React.FC = () => {
     <div className="space-y-4">
       <h2 className="text-xl font-bold text-white mb-4">Gerenciar Categorias</h2>
       
-      <div className="bg-gray-900/50 p-4 rounded-md mb-6">
-        <h3 className="text-lg font-semibold text-white mb-3">Adicionar Categoria</h3>
-        <div className="flex flex-col sm:flex-row gap-3">
+      <div className="bg-gray-900/50 p-3 sm:p-4 rounded-md mb-4 sm:mb-6">
+        <h3 className="text-base sm:text-lg font-semibold text-white mb-3">Adicionar Categoria</h3>
+        <div className="flex flex-col gap-2 sm:gap-3">
           <Input
             placeholder="Nome da categoria"
             value={newCategory}
             onChange={e => setNewCategory(e.target.value)}
-            className="bg-gray-800 border-gray-700 text-white flex-1"
+            className="bg-gray-800 border-gray-700 text-white w-full"
             disabled={isSaving}
           />
           <Button 
             onClick={handleAddCategory}
-            className="bg-green-600 hover:bg-green-700 text-white flex gap-1 items-center whitespace-nowrap"
+            className="bg-green-600 hover:bg-green-700 text-white flex gap-1 items-center justify-center w-full"
             disabled={isSaving}
+            size="sm"
           >
             {isSaving ? (
               <>
@@ -261,20 +262,14 @@ const CategoryManager: React.FC = () => {
             <DragDropContext onDragEnd={handleDragEnd}>
               <Droppable droppableId="categories">
                 {(provided) => (
-                  <div
-                    {...provided.droppableProps}
-                    ref={provided.innerRef}
-                    className="w-full"
-                  >
-                    <div className="min-w-full overflow-x-auto">
-                      <table className="w-full text-white">
-                        <thead className="bg-gray-800">
-                          <tr>
-                            <th className="p-3 text-left">Nome</th>
-                            <th className="p-3 text-right">Ações</th>
-                          </tr>
-                        </thead>
-                        <tbody>
+                    <div
+                      {...provided.droppableProps}
+                      ref={provided.innerRef}
+                      className="w-full"
+                    >
+                      <div className="space-y-2 sm:space-y-0">
+                        {/* Mobile View */}
+                        <div className="block sm:hidden">
                           {categories.map((category, index) => (
                             <Draggable
                               key={category.id.toString()}
@@ -282,66 +277,146 @@ const CategoryManager: React.FC = () => {
                               index={index}
                             >
                               {(provided) => (
-                                <tr
+                                <div
                                   ref={provided.innerRef}
                                   {...provided.draggableProps}
                                   {...provided.dragHandleProps}
-                                  className="border-t border-gray-700 hover:bg-gray-800/50 transition-colors cursor-move"
+                                  className="bg-gray-800 p-3 rounded-lg mb-2"
                                 >
-                                  <td className="p-3">
-                                    {editMode === category.id ? (
+                                  {editMode === category.id ? (
+                                    <div className="space-y-2">
                                       <Input
                                         value={editedCategory.name}
                                         onChange={e => setEditedCategory({...editedCategory, name: e.target.value})}
-                                        className="bg-gray-800 border-gray-700 text-white"
+                                        className="bg-gray-700 border-gray-600 text-white w-full"
                                         disabled={isSaving}
                                       />
-                                    ) : (
-                                      category.name
-                                    )}
-                                  </td>
-                                  <td className="p-3">
-                                    <div className="flex gap-2 justify-end">
-                                      {editMode === category.id ? (
+                                      <div className="flex gap-2">
                                         <Button
                                           onClick={() => handleSaveEdit(category.id)}
                                           size="sm"
-                                          className="bg-green-600 hover:bg-green-700"
+                                          className="bg-green-600 hover:bg-green-700 flex-1"
                                           disabled={isSaving}
                                         >
-                                          {isSaving ? (
-                                            <Loader2 size={16} className="animate-spin" />
-                                          ) : (
-                                            <Save size={16} />
-                                          )}
+                                          {isSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
                                         </Button>
-                                      ) : (
+                                        <Button
+                                          onClick={() => handleDeleteCategory(category.id)}
+                                          size="sm"
+                                          className="bg-red-600 hover:bg-red-700 flex-1"
+                                          disabled={isSaving}
+                                        >
+                                          <Trash size={14} />
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="flex justify-between items-center">
+                                      <span className="text-white font-medium">{category.name}</span>
+                                      <div className="flex gap-2">
                                         <Button
                                           onClick={() => handleEditCategory(category)}
                                           size="sm"
                                           className="bg-blue-600 hover:bg-blue-700"
                                           disabled={isSaving}
                                         >
-                                          <Pencil size={16} />
+                                          <Pencil size={14} />
                                         </Button>
-                                      )}
-                                      <Button
-                                        onClick={() => handleDeleteCategory(category.id)}
-                                        size="sm"
-                                        className="bg-red-600 hover:bg-red-700"
-                                        disabled={isSaving}
-                                      >
-                                        <Trash size={16} />
-                                      </Button>
+                                        <Button
+                                          onClick={() => handleDeleteCategory(category.id)}
+                                          size="sm"
+                                          className="bg-red-600 hover:bg-red-700"
+                                          disabled={isSaving}
+                                        >
+                                          <Trash size={14} />
+                                        </Button>
+                                      </div>
                                     </div>
-                                  </td>
-                                </tr>
+                                  )}
+                                </div>
                               )}
                             </Draggable>
                           ))}
-                        </tbody>
-                      </table>
-                    </div>
+                        </div>
+
+                        {/* Desktop View */}
+                        <div className="hidden sm:block overflow-x-auto">
+                          <table className="w-full text-white">
+                            <thead className="bg-gray-800">
+                              <tr>
+                                <th className="p-3 text-left">Nome</th>
+                                <th className="p-3 text-right">Ações</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {categories.map((category, index) => (
+                                <Draggable
+                                  key={category.id.toString()}
+                                  draggableId={category.id.toString()}
+                                  index={index}
+                                >
+                                  {(provided) => (
+                                    <tr
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      {...provided.dragHandleProps}
+                                      className="border-t border-gray-700 hover:bg-gray-800/50 transition-colors cursor-move"
+                                    >
+                                      <td className="p-3">
+                                        {editMode === category.id ? (
+                                          <Input
+                                            value={editedCategory.name}
+                                            onChange={e => setEditedCategory({...editedCategory, name: e.target.value})}
+                                            className="bg-gray-800 border-gray-700 text-white"
+                                            disabled={isSaving}
+                                          />
+                                        ) : (
+                                          category.name
+                                        )}
+                                      </td>
+                                      <td className="p-3">
+                                        <div className="flex gap-2 justify-end">
+                                          {editMode === category.id ? (
+                                            <Button
+                                              onClick={() => handleSaveEdit(category.id)}
+                                              size="sm"
+                                              className="bg-green-600 hover:bg-green-700"
+                                              disabled={isSaving}
+                                            >
+                                              {isSaving ? (
+                                                <Loader2 size={16} className="animate-spin" />
+                                              ) : (
+                                                <Save size={16} />
+                                              )}
+                                            </Button>
+                                          ) : (
+                                            <Button
+                                              onClick={() => handleEditCategory(category)}
+                                              size="sm"
+                                              className="bg-blue-600 hover:bg-blue-700"
+                                              disabled={isSaving}
+                                            >
+                                              <Pencil size={16} />
+                                            </Button>
+                                          )}
+                                          <Button
+                                            onClick={() => handleDeleteCategory(category.id)}
+                                            size="sm"
+                                            className="bg-red-600 hover:bg-red-700"
+                                            disabled={isSaving}
+                                          >
+                                            <Trash size={16} />
+                                          </Button>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  )}
+                                </Draggable>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
                     {provided.placeholder}
                   </div>
                 )}

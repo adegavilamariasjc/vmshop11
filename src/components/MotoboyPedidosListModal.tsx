@@ -98,20 +98,20 @@ const MotoboyPedidosListModal: React.FC<MotoboyPedidosListModalProps> = ({
   return (
     <>
       <Dialog open={isOpen && !selectedPedido} onOpenChange={onClose}>
-        <DialogContent className="bg-gray-900 border-gray-700 text-white max-w-4xl max-h-[90vh]">
+        <DialogContent className="bg-gray-900 border-gray-700 text-white w-[95vw] max-w-4xl h-[90vh] max-h-[90vh] p-4 sm:p-6">
           <DialogHeader>
-            <div className="flex justify-between items-center">
-              <DialogTitle className="flex items-center gap-2 text-xl">
-                <Package size={24} />
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+              <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                <Package size={20} className="sm:w-6 sm:h-6" />
                 Pedidos para Entrega
               </DialogTitle>
-              <div className="flex gap-2">
+              <div className="flex gap-2 w-full sm:w-auto">
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={loadPedidos}
                   disabled={loading}
-                  className="border-gray-600"
+                  className="border-gray-600 flex-1 sm:flex-initial"
                 >
                   <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                 </Button>
@@ -119,6 +119,7 @@ const MotoboyPedidosListModal: React.FC<MotoboyPedidosListModalProps> = ({
                   size="sm"
                   variant="destructive"
                   onClick={onClose}
+                  className="flex-1 sm:flex-initial"
                 >
                   <LogOut className="h-4 w-4 mr-1" />
                   Sair
@@ -127,7 +128,7 @@ const MotoboyPedidosListModal: React.FC<MotoboyPedidosListModalProps> = ({
             </div>
           </DialogHeader>
 
-          <ScrollArea className="h-[70vh] pr-4">
+          <ScrollArea className="h-[calc(90vh-120px)] pr-2 sm:pr-4">
             <div className="space-y-3">
               {pedidos.length === 0 ? (
                 <div className="text-center text-gray-400 py-8">

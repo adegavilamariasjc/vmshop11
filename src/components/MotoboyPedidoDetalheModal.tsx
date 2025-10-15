@@ -95,28 +95,30 @@ const MotoboyPedidoDetalheModal: React.FC<MotoboyPedidoDetalheModalProps> = ({
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="bg-gray-900 border-gray-700 text-white max-w-2xl max-h-[90vh]">
+      <DialogContent className="bg-gray-900 border-gray-700 text-white w-[95vw] max-w-2xl h-[90vh] max-h-[90vh] p-4 sm:p-6">
         <DialogHeader>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Button
               size="sm"
               variant="ghost"
               onClick={onClose}
-              className="text-white hover:bg-gray-800"
+              className="text-white hover:bg-gray-800 p-2"
             >
-              <ArrowLeft size={20} />
+              <ArrowLeft size={18} className="sm:w-5 sm:h-5" />
             </Button>
-            <DialogTitle className="text-xl">
-              Pedido #{pedido.codigo_pedido}
-            </DialogTitle>
-            {getStatusBadge(pedido.status)}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 flex-1">
+              <DialogTitle className="text-lg sm:text-xl">
+                Pedido #{pedido.codigo_pedido}
+              </DialogTitle>
+              {getStatusBadge(pedido.status)}
+            </div>
           </div>
-          <div className="text-sm text-gray-400">
+          <div className="text-xs sm:text-sm text-gray-400">
             {format(new Date(pedido.data_criacao), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
           </div>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[60vh]">
+        <ScrollArea className="h-[calc(90vh-180px)] sm:h-[calc(90vh-200px)]">
           <div className="space-y-4 pr-4">
             {/* Informações do Cliente */}
             <div className="bg-gray-800 p-4 rounded-lg space-y-3">

@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import PedidoDetalhe from './PedidoDetalhe';
 import { useOrderAlerts } from '@/hooks/pedidos/useOrderAlerts';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface PedidoSimplificado {
   id: string;
@@ -29,6 +30,7 @@ const SimplifiedAdminPedidos: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const { toast } = useToast();
   const { setupRealtimeMonitoring, stopAlert } = useOrderAlerts();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     loadPedidos();
@@ -209,20 +211,22 @@ const SimplifiedAdminPedidos: React.FC = () => {
 
   return (
     <div>
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <h2 className="text-xl font-bold text-white">Pedidos - Visão Administrativa</h2>
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+        <h2 className="text-lg sm:text-xl font-bold text-white">Pedidos</h2>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
           <Button 
             onClick={generateDailyReport}
-            className="bg-green-600 hover:bg-green-700 text-white"
+            className="bg-green-600 hover:bg-green-700 text-white text-sm"
+            size="sm"
           >
             <FileText className="mr-2 h-4 w-4" />
-            Relatório do Dia
+            Relatório
           </Button>
           <Button 
             onClick={handleRefresh} 
             disabled={refreshing}
-            className="bg-purple-dark hover:bg-purple-600 text-white"
+            className="bg-purple-dark hover:bg-purple-600 text-white text-sm"
+            size="sm"
           >
             <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
             Atualizar
@@ -231,67 +235,125 @@ const SimplifiedAdminPedidos: React.FC = () => {
       </div>
       
       <Card className="bg-black/50 border-purple-dark">
-        <CardContent className="p-6">
+        <CardContent className="p-2 sm:p-6">
           {isLoading ? (
             <div className="text-center text-gray-400 py-8">Carregando...</div>
           ) : pedidos.length === 0 ? (
             <div className="text-center text-gray-400 py-8">Nenhum pedido encontrado</div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-white">Código</TableHead>
-                  <TableHead className="text-white">Cliente</TableHead>
-                  <TableHead className="text-white">Bairro</TableHead>
-                  <TableHead className="text-white">Status</TableHead>
-                  <TableHead className="text-white">Total</TableHead>
-                  <TableHead className="text-white">Data/Hora</TableHead>
-                  <TableHead className="text-white">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {pedidos.map((pedido) => (
-                  <TableRow key={pedido.id}>
-                    <TableCell className="text-white font-medium">
-                      #{pedido.codigo_pedido}
-                    </TableCell>
-                    <TableCell className="text-white">{pedido.cliente_nome}</TableCell>
-                    <TableCell className="text-white">{pedido.cliente_bairro}</TableCell>
-                    <TableCell>
-                      <Badge className={`${getStatusColor(pedido.status)} text-white`}>
-                        {getStatusText(pedido.status)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-white">
-                      R$ {pedido.total.toFixed(2)}
-                    </TableCell>
-                    <TableCell className="text-white">
+          ) : isMobile ? (
+            <div className="space-y-3">
+              {pedidos.map((pedido) => (
+                <div key={pedido.id} className="bg-gray-800 rounded-lg p-3 space-y-2">
+                  <div className="flex justify-between items-start">
+                    <span className="text-white font-mono font-bold">#{pedido.codigo_pedido}</span>
+                    <Badge className={`${getStatusColor(pedido.status)} text-white text-xs`}>
+                      {getStatusText(pedido.status)}
+                    </Badge>
+                  </div>
+                  
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Cliente:</span>
+                      <span className="text-white">{pedido.cliente_nome}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Bairro:</span>
+                      <span className="text-white">{pedido.cliente_bairro}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Pagamento:</span>
+                      <span className="text-white">{pedido.forma_pagamento}</span>
+                    </div>
+                    <div className="flex justify-between font-bold">
+                      <span className="text-gray-400">Total:</span>
+                      <span className="text-green-400">R$ {pedido.total.toFixed(2)}</span>
+                    </div>
+                    <div className="text-gray-400 text-xs pt-1">
                       {new Date(pedido.data_criacao).toLocaleString('pt-BR')}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          onClick={() => handleViewOrder(pedido.id)}
-                          size="sm"
-                          className="bg-blue-600 hover:bg-blue-700 text-white"
-                        >
-                          <Eye className="h-3 w-3" />
-                        </Button>
-                        {pedido.status === 'pendente' && (
-                          <Button
-                            onClick={() => handleAcceptOrder(pedido.id)}
-                            size="sm"
-                            className="bg-green-600 hover:bg-green-700 text-white"
-                          >
-                            <Check className="h-3 w-3" />
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-2 pt-2 border-t border-gray-700">
+                    <Button
+                      onClick={() => handleViewOrder(pedido.id)}
+                      size="sm"
+                      className="bg-blue-600 hover:bg-blue-700 text-white flex-1"
+                    >
+                      <Eye className="h-4 w-4 mr-1" />
+                      Ver
+                    </Button>
+                    {pedido.status === 'pendente' && (
+                      <Button
+                        onClick={() => handleAcceptOrder(pedido.id)}
+                        size="sm"
+                        className="bg-green-600 hover:bg-green-700 text-white flex-1"
+                      >
+                        <Check className="h-4 w-4 mr-1" />
+                        Aceitar
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-white">Código</TableHead>
+                    <TableHead className="text-white">Cliente</TableHead>
+                    <TableHead className="text-white">Bairro</TableHead>
+                    <TableHead className="text-white">Status</TableHead>
+                    <TableHead className="text-white">Total</TableHead>
+                    <TableHead className="text-white">Data/Hora</TableHead>
+                    <TableHead className="text-white">Ações</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {pedidos.map((pedido) => (
+                    <TableRow key={pedido.id}>
+                      <TableCell className="text-white font-medium">
+                        #{pedido.codigo_pedido}
+                      </TableCell>
+                      <TableCell className="text-white">{pedido.cliente_nome}</TableCell>
+                      <TableCell className="text-white">{pedido.cliente_bairro}</TableCell>
+                      <TableCell>
+                        <Badge className={`${getStatusColor(pedido.status)} text-white`}>
+                          {getStatusText(pedido.status)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-white">
+                        R$ {pedido.total.toFixed(2)}
+                      </TableCell>
+                      <TableCell className="text-white">
+                        {new Date(pedido.data_criacao).toLocaleString('pt-BR')}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            onClick={() => handleViewOrder(pedido.id)}
+                            size="sm"
+                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                          >
+                            <Eye className="h-3 w-3" />
+                          </Button>
+                          {pedido.status === 'pendente' && (
+                            <Button
+                              onClick={() => handleAcceptOrder(pedido.id)}
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700 text-white"
+                            >
+                              <Check className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>

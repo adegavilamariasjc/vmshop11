@@ -64,41 +64,40 @@ const Admin = () => {
         playDuration={30000}
       />
       
-      <div className="relative z-10 w-full lg:max-w-6xl mx-auto min-h-screen bg-black/70 p-4 content-overlay">
+      <div className="relative z-10 w-full lg:max-w-6xl mx-auto min-h-screen bg-black/70 p-2 sm:p-4 content-overlay">
         {isAuthenticated ? (
           <>
-            <div className="flex justify-between items-center mb-4">
-              <div className="w-40">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+              <div className="w-32 sm:w-40">
                 <Logo />
               </div>
-              <div>
-                <Button 
-                  variant="destructive" 
-                  onClick={handleLogout}
-                  className="text-black font-medium"
-                >
-                  Sair
-                </Button>
-              </div>
+              <Button 
+                variant="destructive" 
+                onClick={handleLogout}
+                className="text-black font-medium w-full sm:w-auto"
+                size="sm"
+              >
+                Sair
+              </Button>
             </div>
             
-            <div className="mt-8">
-              <h1 className="text-2xl font-bold text-white mb-6">Painel Administrativo</h1>
+            <div className="mt-4 sm:mt-8">
+              <h1 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">Painel Administrativo</h1>
               
-              <div className="mb-8">
+              <div className="mb-4 sm:mb-8">
                 <TrafficIndicator />
               </div>
-              <div className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="mb-4 sm:mb-8 grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
                 <DatabaseExport />
                 <SalesExport />
                 <ProductPDFExport />
               </div>
               <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-                <TabsList className="grid grid-cols-4 mb-8 max-w-full overflow-x-auto">
-                  <TabsTrigger value="pedidos" className="text-black font-medium">Pedidos</TabsTrigger>
-                  <TabsTrigger value="produtos" className="text-black font-medium">Produtos</TabsTrigger>
-                  <TabsTrigger value="categorias" className="text-black font-medium">Categorias</TabsTrigger>
-                  <TabsTrigger value="bairros" className="text-black font-medium">Bairros</TabsTrigger>
+                <TabsList className="grid grid-cols-4 mb-4 sm:mb-8 w-full">
+                  <TabsTrigger value="pedidos" className="text-black font-medium text-xs sm:text-sm">Pedidos</TabsTrigger>
+                  <TabsTrigger value="produtos" className="text-black font-medium text-xs sm:text-sm">Produtos</TabsTrigger>
+                  <TabsTrigger value="categorias" className="text-black font-medium text-xs sm:text-sm">Categorias</TabsTrigger>
+                  <TabsTrigger value="bairros" className="text-black font-medium text-xs sm:text-sm">Bairros</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="pedidos" className="bg-black/50 p-4 rounded-md">
