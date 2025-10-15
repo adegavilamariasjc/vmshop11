@@ -37,13 +37,13 @@ const FlavorSelectionModal: React.FC<FlavorSelectionModalProps> = ({
   
   const maxIce = getMaxIce(product.category || '');
   const totalIce = Object.values(selectedIce).reduce((sum, v) => sum + v, 0);
-  const waterIceQuantity = selectedIce['Água'] || 0;
+  const waterIceQuantity = selectedIce['Gelo de Água'] || 0;
   const hasOtherIceSelected = Object.entries(selectedIce)
-    .some(([flavor, qty]) => flavor !== 'Água' && qty > 0);
-  
+    .some(([flavor, qty]) => flavor !== 'Gelo de Água' && qty > 0);
+
   const handleIceUpdate = (flavor: string, delta: number) => {
     // Se está tentando adicionar gelo de água e já tem outros gelos
-    if (flavor === 'Água' && delta > 0 && hasOtherIceSelected) {
+    if (flavor === 'Gelo de Água' && delta > 0 && hasOtherIceSelected) {
       toast({
         title: "Seleção não permitida",
         description: "Não é possível selecionar gelo de água quando outros tipos já foram selecionados.",
@@ -53,7 +53,7 @@ const FlavorSelectionModal: React.FC<FlavorSelectionModalProps> = ({
     }
     
     // Se está tentando adicionar outro tipo de gelo e já tem 5 gelos de água
-    if (flavor !== 'Água' && delta > 0 && waterIceQuantity === 5) {
+    if (flavor !== 'Gelo de Água' && delta > 0 && waterIceQuantity === 5) {
       toast({
         title: "Seleção não permitida",
         description: "Você já selecionou 5 gelos de água (1 saco grande). Não é possível adicionar outros tipos.",
@@ -63,7 +63,7 @@ const FlavorSelectionModal: React.FC<FlavorSelectionModalProps> = ({
     }
     
     // Se está tentando adicionar gelo de água além do limite de 5
-    if (flavor === 'Água' && waterIceQuantity + delta > 5) {
+    if (flavor === 'Gelo de Água' && waterIceQuantity + delta > 5) {
       toast({
         title: "Limite atingido",
         description: "O máximo permitido é 5 gelos de água (1 saco grande).",
@@ -148,9 +148,9 @@ const FlavorSelectionModal: React.FC<FlavorSelectionModalProps> = ({
                   className="w-8 h-8 flex items-center justify-center bg-purple-dark text-white rounded-full"
                   disabled={
                     isSubmitting ||
-                    (flavor === 'Água' && waterIceQuantity >= 5) ||
-                    (flavor !== 'Água' && waterIceQuantity === 5) ||
-                    (flavor === 'Água' && hasOtherIceSelected) ||
+                    (flavor === 'Gelo de Água' && waterIceQuantity >= 5) ||
+                    (flavor !== 'Gelo de Água' && waterIceQuantity === 5) ||
+                    (flavor === 'Gelo de Água' && hasOtherIceSelected) ||
                     totalIce >= maxIce
                   }
                 >

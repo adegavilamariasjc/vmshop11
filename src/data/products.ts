@@ -698,7 +698,7 @@ export const requiresAlcoholChoice = (category: string) => {
 
 export const getMaxIce = (category: string) => {
   const lowerCategory = category.toLowerCase();
-  if (lowerCategory.includes('copão') || lowerCategory.includes('copao')) return 1;
+  if (lowerCategory.includes('copão') || lowerCategory.includes('copao')) return 5;
   if (lowerCategory.includes('combo')) return 5;
   return 0;
 };

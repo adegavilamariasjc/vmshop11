@@ -71,7 +71,7 @@ export const useBalcaoOrder = () => {
 
   const addToCart = (product: Product) => {
     const productWithCategory = { ...product, category: product.category || '' };
-    const categoryToCheck = product.category || '';
+    const categoryToCheck = product.category || product.name || '';
     
     console.log('🛒 Add to cart - Product:', product.name, 'Category:', categoryToCheck);
     
