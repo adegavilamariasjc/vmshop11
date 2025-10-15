@@ -7,7 +7,6 @@ import ProductSelectionView from '../components/ProductSelectionView';
 import CheckoutView from '../components/CheckoutView';
 import AdminLink from '../components/AdminLink';
 import BalcaoLink from '../components/BalcaoLink';
-import MotoboyLink from '../components/MotoboyLink';
 import { useStoreStatus } from '@/hooks/useStoreStatus';
 import LoadingIndicator from '../components/LoadingIndicator';
 import IndexModals from '../components/IndexModals';
@@ -141,7 +140,6 @@ const Index = () => {
       />
       
       <BalcaoLink />
-      <MotoboyLink />
       <AdminLink />
     </PageLayout>
   );
