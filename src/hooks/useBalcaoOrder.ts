@@ -63,7 +63,7 @@ export const useBalcaoOrder = () => {
     return cart.reduce((sum, p) => sum + getProductDisplayPrice(p), 0);
   };
 
-  const processOrder = async (funcionarioNome: string) => {
+  const processOrder = async (funcionarioNome: string, formaPagamento: string, valorTroco: string | null) => {
     if (cart.length === 0) {
       toast({
         title: 'Carrinho vazio',
@@ -100,8 +100,8 @@ export const useBalcaoOrder = () => {
         cliente_bairro: 'BALCAO',
         taxa_entrega: 0,
         cliente_whatsapp: '-',
-        forma_pagamento: 'Dinheiro',
-        troco: null,
+        forma_pagamento: formaPagamento,
+        troco: valorTroco,
         observacao: `Pedido realizado no balcão por ${funcionarioNome}`,
         itens: cart as any,
         total: total,

@@ -37,6 +37,8 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [formaPagamento, setFormaPagamento] = useState('Dinheiro');
+  const [trocoParaQuanto, setTrocoParaQuanto] = useState('');
 
   useEffect(() => {
     if (isOpen) {
@@ -110,9 +112,19 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
   };
 
   const handleConfirmOrder = async () => {
-    const success = await processOrder(funcionarioNome || 'Funcionário');
+    let valorTroco = null;
+    if (formaPagamento === 'Dinheiro' && trocoParaQuanto) {
+      const trocoValor = parseFloat(trocoParaQuanto);
+      if (!isNaN(trocoValor) && trocoValor > getTotal()) {
+        valorTroco = `R$ ${trocoValor.toFixed(2)}`;
+      }
+    }
+    
+    const success = await processOrder(funcionarioNome || 'Funcionário', formaPagamento, valorTroco);
     if (success) {
       setFuncionarioNome('');
+      setFormaPagamento('Dinheiro');
+      setTrocoParaQuanto('');
       onClose();
     }
   };
@@ -120,6 +132,8 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
   const handleClose = () => {
     clearCart();
     setFuncionarioNome('');
+    setFormaPagamento('Dinheiro');
+    setTrocoParaQuanto('');
     setShowPasswordDialog(false);
     setSelectedCategory(null);
     onClose();
@@ -348,6 +362,64 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
               />
             </div>
 
+            <div>
+              <Label className="text-white">Forma de Pagamento</Label>
+              <div className="grid grid-cols-3 gap-2 mt-2">
+                <Button
+                  type="button"
+                  variant={formaPagamento === 'Dinheiro' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setFormaPagamento('Dinheiro')}
+                  className="text-xs"
+                >
+                  Dinheiro
+                </Button>
+                <Button
+                  type="button"
+                  variant={formaPagamento === 'Pix' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setFormaPagamento('Pix')}
+                  className="text-xs"
+                >
+                  Pix
+                </Button>
+                <Button
+                  type="button"
+                  variant={formaPagamento === 'Cartão' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setFormaPagamento('Cartão')}
+                  className="text-xs"
+                >
+                  Cartão
+                </Button>
+              </div>
+            </div>
+
+            {formaPagamento === 'Dinheiro' && (
+              <div>
+                <Label htmlFor="troco" className="text-white">Troco para quanto?</Label>
+                <Input
+                  id="troco"
+                  type="number"
+                  step="0.01"
+                  value={trocoParaQuanto}
+                  onChange={(e) => setTrocoParaQuanto(e.target.value)}
+                  placeholder={`Mínimo R$ ${getTotal().toFixed(2)}`}
+                  className="mt-2"
+                />
+                {trocoParaQuanto && parseFloat(trocoParaQuanto) > getTotal() && (
+                  <p className="text-xs text-green-400 mt-1">
+                    Troco: R$ {(parseFloat(trocoParaQuanto) - getTotal()).toFixed(2)}
+                  </p>
+                )}
+                {trocoParaQuanto && parseFloat(trocoParaQuanto) < getTotal() && (
+                  <p className="text-xs text-red-400 mt-1">
+                    Valor deve ser maior que o total
+                  </p>
+                )}
+              </div>
+            )}
+
             <div className="bg-gray-900/50 p-4 rounded">
               <p className="text-white font-bold mb-2">Resumo do Pedido:</p>
               <p className="text-gray-300">{cart.length} item(ns)</p>
@@ -368,7 +440,7 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
               <Button
                 className="flex-1 bg-purple-dark hover:bg-purple-600"
                 onClick={handleConfirmOrder}
-                disabled={isProcessing || !funcionarioNome}
+                disabled={isProcessing || !funcionarioNome || (formaPagamento === 'Dinheiro' && trocoParaQuanto && parseFloat(trocoParaQuanto) < getTotal())}
               >
                 {isProcessing ? 'Processando...' : 'Confirmar'}
               </Button>
