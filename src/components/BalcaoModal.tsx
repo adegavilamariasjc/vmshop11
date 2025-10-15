@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { X, ShoppingCart, Minus, Plus } from 'lucide-react';
+import { X, ShoppingCart, Minus, Plus, Search } from 'lucide-react';
 import { useBalcaoOrder } from '@/hooks/useBalcaoOrder';
 import { supabase } from '@/lib/supabase';
 import { Product } from '@/types';
@@ -32,6 +32,7 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
   const [categories, setCategories] = useState<any[]>([]);
   const [funcionarioNome, setFuncionarioNome] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (isOpen) {
@@ -95,9 +96,12 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
     onClose();
   };
 
-  const filteredProducts = selectedCategory
-    ? products.filter(p => p.category === selectedCategory)
-    : products;
+  const filteredProducts = products.filter(p => {
+    const matchesCategory = !selectedCategory || p.category === selectedCategory;
+    const matchesSearch = !searchQuery || 
+      p.name.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
   return (
     <>
@@ -111,15 +115,37 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
           </DialogHeader>
 
           <div className="flex flex-col gap-3 flex-1 min-h-0">
+            {/* Barra de Pesquisa */}
+            <div className="w-full flex-shrink-0">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <Input
+                  type="text"
+                  placeholder="Buscar produtos..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 pr-10 bg-gray-900/50 border-gray-600 text-white placeholder:text-gray-400 h-9 text-sm"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                  >
+                    <X size={18} />
+                  </button>
+                )}
+              </div>
+            </div>
+
             {/* Carrossel de Categorias */}
             <div className="w-full flex-shrink-0">
-              <ScrollArea className="w-full whitespace-nowrap">
-                <div className="flex gap-2 pb-2">
+              <div className="overflow-x-auto pb-2">
+                <div className="flex gap-2 min-w-max">
                   <Button
                     variant={selectedCategory === null ? "default" : "outline"}
                     size="sm"
                     onClick={() => setSelectedCategory(null)}
-                    className="whitespace-nowrap text-xs sm:text-sm h-8"
+                    className="whitespace-nowrap text-xs sm:text-sm h-8 flex-shrink-0"
                   >
                     Todos
                   </Button>
@@ -129,13 +155,13 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
                       variant={selectedCategory === cat.name ? "default" : "outline"}
                       size="sm"
                       onClick={() => setSelectedCategory(cat.name)}
-                      className="whitespace-nowrap text-xs sm:text-sm h-8"
+                      className="whitespace-nowrap text-xs sm:text-sm h-8 flex-shrink-0"
                     >
                       {cat.name}
                     </Button>
                   ))}
                 </div>
-              </ScrollArea>
+              </div>
             </div>
 
             {/* Grid de Produtos e Carrinho */}
