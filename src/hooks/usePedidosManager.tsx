@@ -1,79 +1,76 @@
-
-import { useEffect, useCallback } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { useMemo, useEffect, useCallback } from 'react';
 import { useOrderAlerts } from './pedidos/useOrderAlerts';
 import { usePedidoState } from './pedidos/usePedidoState';
 import { useProductionTimer } from './pedidos/useProductionTimer';
 import { usePedidosUtils } from './pedidos/usePedidosUtils';
+import { supabase } from '@/lib/supabase';
 
 export interface Pedido {
   id: string;
   codigo_pedido: string;
   cliente_nome: string;
   cliente_bairro: string;
-  forma_pagamento: string;
-  total: number;
   status: string;
+  total: number;
   data_criacao: string;
-  timeInProduction?: number; // Time in minutes the order has been in production
+  timeInProduction?: number;
+  forma_pagamento?: string;
 }
 
 export const usePedidosManager = () => {
-  const { toast } = useToast();
-  
-  // Initialize hooks
-  const { setupRealtimeMonitoring } = useOrderAlerts();
+  const { setupRealtimeMonitoring, stopAlert } = useOrderAlerts();
   const { 
     pedidos, 
-    setPedidos,
+    setPedidos, 
     isLoading, 
     selectedPedido, 
-    showDetalhe,
-    refreshing, 
+    showDetalhe, 
+    refreshing,
     isDeleting,
-    fetchPedidosData, 
-    handleRefresh, 
-    handleVisualizarPedido, 
-    handleExcluirPedido, 
-    handleAtualizarStatus, 
-    setShowDetalhe 
+    fetchPedidosData,
+    handleRefresh,
+    handleVisualizarPedido,
+    handleExcluirPedido,
+    handleAtualizarStatus,
+    setShowDetalhe
   } = usePedidoState();
+  
   const { startProductionTimer, stopProductionTimer } = useProductionTimer(setPedidos);
   const { formatDateTime } = usePedidosUtils();
 
-  // Handle order changes from realtime
   const handleOrderChange = useCallback((orders: any[]) => {
-    const processedPedidos = orders.map(pedido => {
-      if (pedido.status === 'preparando') {
-        const orderDate = new Date(pedido.data_criacao);
-        const now = new Date();
+    const now = new Date();
+    const processedOrders = orders.map(order => {
+      if (order.status === 'preparando') {
+        const orderDate = new Date(order.data_criacao);
         const elapsedMinutes = Math.floor((now.getTime() - orderDate.getTime()) / (1000 * 60));
-        return { ...pedido, timeInProduction: elapsedMinutes };
+        return { ...order, timeInProduction: elapsedMinutes };
       }
-      return pedido;
+      return order;
     });
-    setPedidos(processedPedidos);
+    
+    setPedidos(processedOrders);
   }, [setPedidos]);
 
-  // Initialize realtime monitoring and production timer on mount
   useEffect(() => {
-    console.log('Setting up realtime monitoring and initial data fetch');
-    
-    // Setup realtime monitoring
-    const cleanup = setupRealtimeMonitoring(handleOrderChange);
-    
-    // Fetch initial orders
-    fetchPedidosData();
-    
-    // Start production timer
-    startProductionTimer();
-    
-    // Cleanup function
-    return () => {
-      cleanup();
-      stopProductionTimer();
+    const initializeManager = async () => {
+      const cleanupRealtime = setupRealtimeMonitoring(handleOrderChange);
+      await fetchPedidosData();
+      startProductionTimer();
+
+      return () => {
+        cleanupRealtime();
+        stopProductionTimer();
+        stopAlert();
+      };
     };
-  }, [setupRealtimeMonitoring, handleOrderChange, fetchPedidosData, startProductionTimer, stopProductionTimer]);
+
+    const cleanup = initializeManager();
+
+    return () => {
+      cleanup.then(cleanupFn => cleanupFn?.());
+    };
+  }, [setupRealtimeMonitoring, handleOrderChange, fetchPedidosData, startProductionTimer, stopProductionTimer, stopAlert]);
 
   return {
     pedidos,

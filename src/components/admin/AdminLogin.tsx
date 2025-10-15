@@ -8,10 +8,9 @@ import { useNavigate } from 'react-router-dom';
 
 interface AdminLoginProps {
   onLogin: (password: string) => void;
-  onMotoboyClick: () => void;
 }
 
-const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onMotoboyClick }) => {
+const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin }) => {
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
@@ -44,30 +43,20 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onMotoboyClick }) => {
               />
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col gap-4">
-            <div className="flex justify-between w-full">
-              <Button 
-                type="button"
-                variant="outline"
-                onClick={() => navigate('/')}
-                className="flex items-center justify-center gap-2 text-black font-bold border-white hover:bg-white/10"
-              >
-                <ArrowLeft size={16} /> Voltar
-              </Button>
-              <Button 
-                type="submit" 
-                className="bg-purple-dark hover:bg-purple-600"
-              >
-                Entrar
-              </Button>
-            </div>
+          <CardFooter className="flex justify-between">
             <Button 
               type="button"
-              variant="secondary"
-              onClick={onMotoboyClick}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+              variant="outline"
+              onClick={() => navigate('/')}
+              className="flex items-center justify-center gap-2 text-black font-bold border-white hover:bg-white/10"
             >
-              Motoboys
+              <ArrowLeft size={16} /> Voltar
+            </Button>
+            <Button 
+              type="submit" 
+              className="bg-purple-dark hover:bg-purple-600"
+            >
+              Entrar
             </Button>
           </CardFooter>
         </form>
