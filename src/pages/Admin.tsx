@@ -64,7 +64,7 @@ const Admin = () => {
       <div className="relative z-10 w-full lg:max-w-6xl mx-auto min-h-screen bg-black/70 p-2 sm:p-4 content-overlay">
         {isAuthenticated ? (
           <>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
               <div className="w-32 sm:w-40">
                 <Logo />
               </div>
@@ -78,12 +78,13 @@ const Admin = () => {
               </Button>
             </div>
             
-            <div className="mt-4 sm:mt-8">
-              <h1 className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6">Painel Administrativo</h1>
-              
-              <div className="mb-4 sm:mb-8">
-                <TrafficIndicator />
-              </div>
+            {/* Monitor de tráfego compacto no topo */}
+            <div className="mt-3">
+              <TrafficIndicator />
+            </div>
+            
+            <div className="mt-4 sm:mt-6">
+              <h1 className="text-xl sm:text-2xl font-bold text-white mb-4">Painel Administrativo</h1>
               
               <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
                 <TabsList className="grid grid-cols-4 mb-4 sm:mb-8 w-full">

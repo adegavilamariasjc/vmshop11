@@ -6,12 +6,12 @@ export const useOrderAlerts = () => {
   const channelRef = useRef<any>(null);
   const isPlayingRef = useRef(false);
 
-  // Initialize audio with better error handling
+  // Initialize audio with better error handling - usar som de caixa registradora
   const initializeAudio = useCallback(() => {
     if (!audioRef.current) {
-      audioRef.current = new Audio('/order.mp3');
+      audioRef.current = new Audio('/caixaregistradora.mp3');
       audioRef.current.loop = true;
-      audioRef.current.volume = 0.8;
+      audioRef.current.volume = 1.0;
       audioRef.current.preload = 'auto';
       
       // Handle audio loading errors
@@ -20,7 +20,7 @@ export const useOrderAlerts = () => {
       };
       
       audioRef.current.oncanplaythrough = () => {
-        console.log('🔊 Audio ready for playback');
+        console.log('🔊 Audio de caixa registradora pronto');
       };
     }
   }, []);
