@@ -33,6 +33,16 @@ export const useBalcaoOrder = () => {
   
   const { toast } = useToast();
 
+  // Initialize ice selections when a product is selected for flavor
+  useEffect(() => {
+    if (selectedProductForFlavor) {
+      const initialIce: Record<string, number> = {};
+      const iceFlavors = ["Coco", "Melancia", "Maracujá", "Maçã Verde", "Morango", "Gelo de Água"];
+      iceFlavors.forEach(flavor => { initialIce[flavor] = 0; });
+      setSelectedIce(initialIce);
+    }
+  }, [selectedProductForFlavor]);
+
   // Debug helpers
   useEffect(() => {
     console.log('🔍 Modal States Updated:', {
@@ -239,11 +249,18 @@ export const useBalcaoOrder = () => {
   };
   
   // Ice/flavor selection helpers
-  const updateIceQuantity = (flavor: string, quantity: number) => {
-    setSelectedIce(prev => ({
-      ...prev,
-      [flavor]: Math.max(0, quantity)
-    }));
+  const updateIceQuantity = (flavor: string, delta: number) => {
+    setSelectedIce((prev) => {
+      const currentTotal = Object.values(prev).reduce((sum, v) => sum + v, 0);
+      const maxIce = 5; // Copão e Combo sempre têm 5 gelos
+      
+      if (delta > 0 && currentTotal >= maxIce) return prev;
+      
+      return { 
+        ...prev, 
+        [flavor]: Math.max(0, (prev[flavor] || 0) + delta) 
+      };
+    });
   };
   
   const confirmFlavorSelection = () => {
