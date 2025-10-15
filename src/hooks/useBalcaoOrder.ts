@@ -92,9 +92,9 @@ export const useBalcaoOrder = () => {
 
       const pedido = await savePedido({
         codigo_pedido: codigoPedido,
-        cliente_nome: `BALCÃO - ${funcionarioNome}`,
-        cliente_endereco: 'BALCAO',
-        cliente_numero: '-',
+        cliente_nome: funcionarioNome,
+        cliente_endereco: '-',
+        cliente_numero: null,
         cliente_complemento: null,
         cliente_referencia: null,
         cliente_bairro: 'BALCAO',
@@ -102,7 +102,7 @@ export const useBalcaoOrder = () => {
         cliente_whatsapp: '-',
         forma_pagamento: formaPagamento,
         troco: valorTroco,
-        observacao: `Pedido realizado no balcão por ${funcionarioNome}`,
+        observacao: null,
         itens: cart as any,
         total: total,
         status: 'pendente',
