@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/carousel";
 import { useInterval } from "@/hooks/useInterval";
 import ImageModal from './ImageModal';
+import logoImg from "@/assets/logo.gif";
 
 const Logo: React.FC = () => {
   const [api, setApi] = useState<any>(null);
@@ -16,7 +17,7 @@ const Logo: React.FC = () => {
 
   const [images, setImages] = useState([
     {
-      src: `https://adegavm.shop/logo.gif?t=${timestamp}`,
+      src: logoImg,
       alt: "Logotipo da Loja",
       fallbackSrc: "/placeholder.svg"
     },
