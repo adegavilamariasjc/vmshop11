@@ -24,11 +24,10 @@ const MotoboyLink = () => {
     <>
       <Button
         onClick={() => setShowLoginModal(true)}
-        className="fixed top-4 right-20 bg-purple-600 hover:bg-purple-700 text-white font-bold z-50 shadow-lg"
-        size="sm"
+        className="fixed top-4 right-20 bg-purple-600 hover:bg-purple-700 text-white font-bold z-50 shadow-lg rounded-full p-3 h-12 w-12"
+        size="icon"
       >
-        <Bike className="mr-2 h-4 w-4" />
-        Entregas
+        <Bike className="h-5 w-5" />
       </Button>
 
       <MotoboyLoginModal

@@ -45,10 +45,21 @@ const MotoboyPedidoDetalheModal: React.FC<MotoboyPedidoDetalheModalProps> = ({
   const { toast } = useToast();
 
   const handleSaveEntregador = async () => {
-    if (!motoboyName.trim()) {
+    const trimmedName = motoboyName.trim();
+    
+    if (!trimmedName) {
       toast({
         title: "Nome obrigatório",
         description: "Digite seu nome para registrar a entrega",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (trimmedName.length < 2) {
+      toast({
+        title: "Nome muito curto",
+        description: "Digite seu nome completo",
         variant: "destructive",
       });
       return;
@@ -58,14 +69,14 @@ const MotoboyPedidoDetalheModal: React.FC<MotoboyPedidoDetalheModalProps> = ({
     try {
       const { error } = await supabase
         .from('pedidos')
-        .update({ entregador: motoboyName.trim() })
+        .update({ entregador: trimmedName })
         .eq('id', pedido.id);
 
       if (error) throw error;
 
       toast({
         title: "Entregador registrado!",
-        description: `${motoboyName} foi atribuído ao pedido #${pedido.codigo_pedido}`,
+        description: `${trimmedName} foi atribuído ao pedido #${pedido.codigo_pedido}`,
       });
       
       onUpdate();
@@ -122,12 +133,12 @@ const MotoboyPedidoDetalheModal: React.FC<MotoboyPedidoDetalheModalProps> = ({
           <div className="space-y-4 pr-4">
             {/* Informações do Cliente */}
             <div className="bg-gray-800 p-4 rounded-lg space-y-3">
-              <h3 className="font-bold flex items-center gap-2">
-                <User size={18} />
+              <h3 className="font-bold flex items-center gap-2 text-base sm:text-lg">
+                <User size={20} />
                 Informações do Cliente
               </h3>
-              <div className="space-y-2 text-sm">
-                <div><strong>Nome:</strong> {pedido.cliente_nome}</div>
+              <div className="space-y-3 text-sm sm:text-base">
+                <div className="text-base sm:text-lg"><strong>Nome:</strong> <span className="text-white">{pedido.cliente_nome}</span></div>
                 <div className="flex items-start gap-2">
                   <MapPin size={16} className="mt-1 flex-shrink-0" />
                   <div>
@@ -143,7 +154,14 @@ const MotoboyPedidoDetalheModal: React.FC<MotoboyPedidoDetalheModalProps> = ({
                 </div>
                 <div className="flex items-center gap-2">
                   <Phone size={16} />
-                  {pedido.cliente_whatsapp}
+                  <a 
+                    href={`https://wa.me/55${pedido.cliente_whatsapp.replace(/\D/g, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-green-400 hover:text-green-300 underline font-semibold"
+                  >
+                    {pedido.cliente_whatsapp}
+                  </a>
                 </div>
               </div>
             </div>
@@ -196,19 +214,20 @@ const MotoboyPedidoDetalheModal: React.FC<MotoboyPedidoDetalheModalProps> = ({
 
             {/* Registrar Entregador */}
             <div className="bg-purple-600/20 border border-purple-600 p-4 rounded-lg space-y-3">
-              <h3 className="font-bold">Registrar Entregador</h3>
-              <div className="flex gap-2">
+              <h3 className="font-bold text-base sm:text-lg">Registrar Entregador</h3>
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Input
-                  placeholder="Digite seu nome"
+                  placeholder="Digite seu nome completo"
                   value={motoboyName}
                   onChange={(e) => setMotoboyName(e.target.value)}
                   className="bg-gray-800 border-gray-600 text-white"
                   disabled={saving}
+                  required
                 />
                 <Button
                   onClick={handleSaveEntregador}
-                  disabled={saving}
-                  className="bg-purple-600 hover:bg-purple-700"
+                  disabled={saving || !motoboyName.trim()}
+                  className="bg-purple-600 hover:bg-purple-700 w-full sm:w-auto"
                 >
                   {saving ? 'Salvando...' : 'Salvar'}
                 </Button>

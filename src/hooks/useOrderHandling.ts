@@ -186,6 +186,17 @@ export const useOrderHandling = () => {
     if (cart.length === 0 || !isOpen) {
       return;
     }
+
+    // Validate WhatsApp number
+    const cleanWhatsApp = form.whatsapp.replace(/\D/g, '');
+    if (cleanWhatsApp.length < 10) {
+      toast({
+        title: 'WhatsApp inválido',
+        description: 'Digite um número de WhatsApp válido com DDD.',
+        variant: 'destructive'
+      });
+      return;
+    }
     
     setIsSendingOrder(true);
     

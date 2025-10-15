@@ -14,7 +14,7 @@ const PersonalInfoFields: React.FC<PersonalInfoFieldsProps> = ({
   whatsapp,
   onChange
 }) => {
-  // Format WhatsApp number with proper spacing
+  // Format WhatsApp number with proper spacing and validation
   const handleWhatsAppChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, ''); // Remove non-digits
     
@@ -38,6 +38,9 @@ const PersonalInfoFields: React.FC<PersonalInfoFieldsProps> = ({
       onChange(syntheticEvent);
     }
   };
+
+  // Validation for WhatsApp field
+  const isWhatsAppValid = whatsapp.replace(/\D/g, '').length >= 10;
   
   return (
     <div className="space-y-3">
@@ -65,12 +68,18 @@ const PersonalInfoFields: React.FC<PersonalInfoFieldsProps> = ({
             type="tel"
             value={whatsapp}
             onChange={handleWhatsAppChange}
-            className="w-full bg-gray-800 text-gray-200 text-shadow-dark border border-gray-700 rounded-md p-2 text-sm placeholder:text-gray-400"
+            className={`w-full bg-gray-800 text-gray-200 text-shadow-dark border rounded-md p-2 text-sm placeholder:text-gray-400 ${
+              whatsapp && !isWhatsAppValid ? 'border-red-500' : 'border-gray-700'
+            }`}
             placeholder="Ex: 12 999999999"
             required
+            minLength={12}
             maxLength={13} // 2 digits + space + 9 digits = 12 chars
             style={{color: '#D6BCFA'}} // Light purple text color
           />
+          {whatsapp && !isWhatsAppValid && (
+            <p className="text-red-500 text-xs mt-1">Digite um número válido com DDD (mínimo 10 dígitos)</p>
+          )}
         </FormField>
       </div>
     </div>
