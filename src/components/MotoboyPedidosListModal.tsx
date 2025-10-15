@@ -50,6 +50,7 @@ const MotoboyPedidosListModal: React.FC<MotoboyPedidosListModalProps> = ({
         .from('pedidos')
         .select('*')
         .in('status', ['preparando', 'pronto', 'saiu_entrega'])
+        .neq('cliente_bairro', 'BALCAO')
         .order('data_criacao', { ascending: false });
 
       if (error) throw error;
