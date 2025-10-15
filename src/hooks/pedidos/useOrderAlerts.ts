@@ -119,12 +119,11 @@ export const useOrderAlerts = () => {
                 // Update UI immediately
                 onOrderChange(data);
                 
-                // Check for pending orders (excluding balcão orders) and trigger alert
+                // Check for pending orders and trigger alert
                 const pendingOrders = data.filter(order => 
-                  order.status === 'pendente' && 
-                  order.cliente_bairro !== 'BALCAO'
+                  order.status === 'pendente'
                 );
-                console.log('📊 Pending orders count (excluding balcão):', pendingOrders.length);
+                console.log('📊 Pending orders count:', pendingOrders.length);
                 
                 if (pendingOrders.length > 0) {
                   console.log('🔊 Starting alert for pending orders');
@@ -151,8 +150,7 @@ export const useOrderAlerts = () => {
                 onOrderChange(data);
                 
                 const pendingOrders = data.filter(order => 
-                  order.status === 'pendente' && 
-                  order.cliente_bairro !== 'BALCAO'
+                  order.status === 'pendente'
                 );
                 
                 if (pendingOrders.length > 0) {
@@ -172,15 +170,14 @@ export const useOrderAlerts = () => {
         if (status === 'SUBSCRIBED') {
           console.log('✅ Successfully subscribed to pedidos updates');
           
-          // Initial check for pending orders when subscribing (excluding balcão)
+          // Initial check for pending orders when subscribing
           supabase
             .from('pedidos')
             .select('*')
             .eq('status', 'pendente')
             .then(({ data }) => {
-              const pendingNonBalcao = data?.filter(order => order.cliente_bairro !== 'BALCAO') || [];
-              if (pendingNonBalcao.length > 0) {
-                console.log('🔔 Found pending orders on subscription (excluding balcão), starting alert');
+              if (data && data.length > 0) {
+                console.log('🔔 Found pending orders on subscription, starting alert');
                 initializeAudio();
                 setTimeout(() => startAlert(), 200);
               }
