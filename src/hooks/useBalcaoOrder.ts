@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { savePedido } from '@/lib/supabase';
 import { Product, AlcoholOption } from '../types';
@@ -33,6 +33,19 @@ export const useBalcaoOrder = () => {
   
   const { toast } = useToast();
 
+  // Debug helpers
+  useEffect(() => {
+    console.log('🔍 Modal States Updated:', {
+      isFlavorModalOpen,
+      isAlcoholModalOpen,
+      isBalyModalOpen,
+      isEnergyDrinkModalOpen,
+      hasPendingProduct: !!pendingProductWithIce,
+      hasSelectedFlavor: !!selectedProductForFlavor,
+      currentProductType
+    });
+  }, [isFlavorModalOpen, isAlcoholModalOpen, isBalyModalOpen, isEnergyDrinkModalOpen, pendingProductWithIce, selectedProductForFlavor, currentProductType]);
+
   // Play cash register sound for counter orders
   const playCashRegisterSound = () => {
     try {
@@ -50,18 +63,25 @@ export const useBalcaoOrder = () => {
     const productWithCategory = { ...product, category: product.category || '' };
     const categoryToCheck = product.category || '';
     
+    console.log('🛒 Add to cart - Product:', product.name, 'Category:', categoryToCheck);
+    
     // Check if product needs customization
     if (requiresFlavor(categoryToCheck)) {
+      console.log('✅ Product requires flavor selection');
       setSelectedProductForFlavor(productWithCategory);
+      setSelectedIce({}); // Reset ice selection
       setIsFlavorModalOpen(true);
     } else if (requiresAlcoholChoice(categoryToCheck)) {
+      console.log('✅ Product requires alcohol selection');
       setSelectedProductForAlcohol(productWithCategory);
       setSelectedAlcohol(null);
       setIsAlcoholModalOpen(true);
     } else if (containsBaly(product.name)) {
+      console.log('✅ Product contains Baly');
       setSelectedProductForBaly(productWithCategory);
       setIsBalyModalOpen(true);
     } else {
+      console.log('✅ Direct add to cart');
       handleUpdateQuantity(productWithCategory, 1);
     }
   };
@@ -233,6 +253,9 @@ export const useBalcaoOrder = () => {
     const isCopaoProduct = isCopao(selectedProductForFlavor);
     const isComboProduct = isCombo(selectedProductForFlavor);
     
+    console.log('🎯 Confirm Flavor - Is Copão:', isCopaoProduct, 'Is Combo:', isComboProduct, 'Total Ice:', totalIce);
+    console.log('🎯 Product:', selectedProductForFlavor.name, 'Category:', selectedProductForFlavor.category);
+    
     if ((isCopaoProduct || isComboProduct) && totalIce !== 5) {
       toast({
         title: "Seleção incompleta",
@@ -247,25 +270,32 @@ export const useBalcaoOrder = () => {
       ice: { ...selectedIce }
     };
     
+    console.log('🎯 Product with ice:', productWithIce);
+    
     if (isCopaoProduct) {
+      console.log('✅ Opening energy drink modal for Copão');
       setCurrentProductType('copao');
       setPendingProductWithIce(productWithIce);
       setIsFlavorModalOpen(false);
       setIsEnergyDrinkModalOpen(true);
     } else if (isComboProduct) {
+      console.log('✅ Opening energy drink modal for Combo');
       setCurrentProductType('combo');
       setPendingProductWithIce(productWithIce);
       setIsFlavorModalOpen(false);
       setIsEnergyDrinkModalOpen(true);
     } else if (containsBaly(selectedProductForFlavor.name)) {
+      console.log('✅ Opening Baly modal');
       setPendingProductWithIce(productWithIce);
       setIsFlavorModalOpen(false);
       setSelectedProductForBaly(productWithIce);
       setIsBalyModalOpen(true);
     } else {
+      console.log('✅ Direct add to cart with ice');
       handleUpdateQuantity(productWithIce, 1);
       setIsFlavorModalOpen(false);
       setSelectedProductForFlavor(null);
+      setSelectedIce({}); // Reset
     }
   };
   
@@ -306,7 +336,13 @@ export const useBalcaoOrder = () => {
     selections: Array<{ type: string; flavor: string }>;
     totalExtraCost: number;
   }) => {
-    if (!pendingProductWithIce) return;
+    if (!pendingProductWithIce) {
+      console.log('❌ No pending product with ice');
+      return;
+    }
+
+    console.log('⚡ Energy drink selection:', energyDrinks);
+    console.log('⚡ Pending product:', pendingProductWithIce.name);
 
     const firstEnergyDrink = energyDrinks.selections.length > 0 ? 
       energyDrinks.selections[0].type : '';
@@ -321,9 +357,13 @@ export const useBalcaoOrder = () => {
       price: (pendingProductWithIce.price || 0) + energyDrinks.totalExtraCost
     };
 
+    console.log('✅ Final product with energy drinks:', finalProduct);
+
     handleUpdateQuantity(finalProduct, 1);
     setIsEnergyDrinkModalOpen(false);
     setPendingProductWithIce(null);
+    setSelectedProductForFlavor(null);
+    setSelectedIce({}); // Reset
 
     toast({
       title: "Energéticos selecionados",
