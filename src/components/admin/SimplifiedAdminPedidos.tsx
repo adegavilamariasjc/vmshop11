@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { RefreshCw, Eye, Check, FileText } from 'lucide-react';
+import { RefreshCw, Eye, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import PedidoDetalhe from './PedidoDetalhe';
@@ -121,74 +121,6 @@ const SimplifiedAdminPedidos: React.FC = () => {
     setShowDetalhe(true);
   };
 
-  const generateDailyReport = async () => {
-    try {
-      const today = new Date().toISOString().split('T')[0];
-      
-      // Get today's orders
-      const { data: todayOrders, error: ordersError } = await supabase
-        .from('pedidos')
-        .select('*')
-        .gte('data_criacao', `${today}T00:00:00`)
-        .lt('data_criacao', `${today}T23:59:59`);
-
-      if (ordersError) throw ordersError;
-
-      // Get comprovantes for today's orders
-      const orderIds = todayOrders?.map(o => o.id) || [];
-      const { data: comprovantes, error: comprovantesError } = await supabase
-        .from('pedido_comprovantes')
-        .select('*')
-        .in('pedido_id', orderIds);
-
-      if (comprovantesError) throw comprovantesError;
-
-      // Generate report data
-      const entregues = todayOrders?.filter(p => p.status === 'entregue') || [];
-      const totalTaxas = entregues.reduce((sum, p) => sum + Number(p.taxa_entrega), 0);
-      const totalPedidos = todayOrders?.length || 0;
-      const totalComprovantes = comprovantes?.length || 0;
-
-      const reportData = {
-        data: today,
-        total_pedidos: totalPedidos,
-        pedidos_entregues: entregues.length,
-        total_taxas: totalTaxas,
-        comprovantes_recebidos: totalComprovantes,
-        detalhes: entregues.map(p => ({
-          codigo: p.codigo_pedido,
-          cliente: p.cliente_nome,
-          taxa: p.taxa_entrega,
-          comprovante: comprovantes?.find(c => c.pedido_id === p.id) ? 'Sim' : 'Não'
-        }))
-      };
-
-      // Download as JSON
-      const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `relatorio-${today}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-      toast({
-        title: "Relatório gerado",
-        description: `Relatório do dia ${today} baixado com sucesso`,
-      });
-
-    } catch (error) {
-      console.error('Error generating report:', error);
-      toast({
-        title: "Erro ao gerar relatório",
-        description: "Tente novamente",
-        variant: "destructive"
-      });
-    }
-  };
-
   const getClientDisplayName = (nomeCompleto: string, isBalcao: boolean) => {
     if (isBalcao && nomeCompleto.startsWith('BALCÃO - ')) {
       // Extract employee name and show first name prominently
@@ -246,25 +178,15 @@ const SimplifiedAdminPedidos: React.FC = () => {
     <div>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
         <h2 className="text-lg sm:text-xl font-bold text-white">Pedidos</h2>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-          <Button 
-            onClick={generateDailyReport}
-            className="bg-green-600 hover:bg-green-700 text-white text-sm"
-            size="sm"
-          >
-            <FileText className="mr-2 h-4 w-4" />
-            Relatório
-          </Button>
-          <Button 
-            onClick={handleRefresh} 
-            disabled={refreshing}
-            className="bg-purple-dark hover:bg-purple-600 text-white text-sm"
-            size="sm"
-          >
-            <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-            Atualizar
-          </Button>
-        </div>
+        <Button 
+          onClick={handleRefresh} 
+          disabled={refreshing}
+          className="bg-purple-dark hover:bg-purple-600 text-white w-full sm:w-auto"
+          size="sm"
+        >
+          <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+          Atualizar
+        </Button>
       </div>
       
       <Card className="bg-black/50 border-purple-dark">

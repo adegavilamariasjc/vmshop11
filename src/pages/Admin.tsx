@@ -14,9 +14,6 @@ import SimplifiedAdminPedidos from '../components/admin/SimplifiedAdminPedidos';
 import ProductManager from '../components/admin/ProductManager';
 import CategoryManager from '../components/admin/CategoryManager';
 import BairroManager from '../components/admin/BairroManager';
-import DatabaseExport from '../components/admin/DatabaseExport';
-import { SalesExport } from '../components/admin/SalesExport';
-import { ProductPDFExport } from '../components/admin/ProductPDFExport';
 
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -87,11 +84,7 @@ const Admin = () => {
               <div className="mb-4 sm:mb-8">
                 <TrafficIndicator />
               </div>
-              <div className="mb-4 sm:mb-8 grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
-                <DatabaseExport />
-                <SalesExport />
-                <ProductPDFExport />
-              </div>
+              
               <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
                 <TabsList className="grid grid-cols-4 mb-4 sm:mb-8 w-full">
                   <TabsTrigger value="pedidos" className="text-black font-medium text-xs sm:text-sm">Pedidos</TabsTrigger>
