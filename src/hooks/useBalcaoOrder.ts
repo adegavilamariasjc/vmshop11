@@ -199,7 +199,7 @@ export const useBalcaoOrder = () => {
 
       const pedido = await savePedido({
         codigo_pedido: codigoPedido,
-        cliente_nome: funcionarioNome || 'Balcão',
+        cliente_nome: `BALCÃO - ${funcionarioNome || 'Funcionário'}`,
         cliente_endereco: '-',
         cliente_numero: null,
         cliente_complemento: null,
