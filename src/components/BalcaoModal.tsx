@@ -12,6 +12,10 @@ import { Product } from '@/types';
 import { searchProductsEnhanced } from '@/lib/supabase/productStats';
 import ProductSearchBar from './ProductSearchBar';
 import { getProductIcon } from '@/utils/productIcons';
+import FlavorSelectionModal from './FlavorSelectionModal';
+import AlcoholSelectionModal from './AlcoholSelectionModal';
+import BalyFlavorSelectionModal from './BalyFlavorSelectionModal';
+import EnergyDrinkSelectionModal from './EnergyDrinkSelectionModal';
 
 interface BalcaoModalProps {
   isOpen: boolean;
@@ -23,12 +27,34 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
     cart,
     isProcessing,
     showPasswordDialog,
+    isFlavorModalOpen,
+    isAlcoholModalOpen,
+    isBalyModalOpen,
+    isEnergyDrinkModalOpen,
+    selectedProductForFlavor,
+    selectedProductForAlcohol,
+    selectedProductForBaly,
+    selectedIce,
+    selectedAlcohol,
+    pendingProductWithIce,
+    currentProductType,
     setShowPasswordDialog,
+    setIsFlavorModalOpen,
+    setIsAlcoholModalOpen,
+    setIsBalyModalOpen,
+    setIsEnergyDrinkModalOpen,
+    setSelectedAlcohol,
+    setPendingProductWithIce,
     addToCart,
     updateQuantity,
     getTotal,
     processOrder,
-    clearCart
+    clearCart,
+    updateIceQuantity,
+    confirmFlavorSelection,
+    confirmAlcoholSelection,
+    confirmBalySelection,
+    handleEnergyDrinkSelection
   } = useBalcaoOrder();
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -309,6 +335,22 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
                                     <span className="truncate">{item.alcohol}</span>
                                   </p>
                                 )}
+                                {item.balyFlavor && (
+                                  <p className="text-pink-400/80 text-[10px] mt-0.5 flex items-center gap-1">
+                                    <span>🍹</span>
+                                    <span className="truncate">Baly: {item.balyFlavor}</span>
+                                  </p>
+                                )}
+                                {item.energyDrinks && item.energyDrinks.length > 0 && (
+                                  <p className="text-yellow-400/80 text-[10px] mt-0.5 flex items-center gap-1">
+                                    <span>⚡</span>
+                                    <span className="truncate">
+                                      {item.energyDrinks.map(ed => 
+                                        `${ed.type}${ed.flavor !== 'Tradicional' ? ` - ${ed.flavor}` : ''}`
+                                      ).join(', ')}
+                                    </span>
+                                  </p>
+                                )}
                                 {item.observation && (
                                   <p className="text-white/50 text-[10px] mt-0.5 italic flex items-center gap-1">
                                     <span>💬</span>
@@ -504,6 +546,42 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
           </div>
         </DialogContent>
       </Dialog>
+      
+      {/* Modals de Customização */}
+      <FlavorSelectionModal 
+        isOpen={isFlavorModalOpen}
+        onClose={() => setIsFlavorModalOpen(false)}
+        product={selectedProductForFlavor}
+        selectedIce={selectedIce}
+        updateIceQuantity={updateIceQuantity}
+        onConfirm={confirmFlavorSelection}
+      />
+      
+      <AlcoholSelectionModal
+        isOpen={isAlcoholModalOpen}
+        onClose={() => setIsAlcoholModalOpen(false)}
+        product={selectedProductForAlcohol}
+        selectedAlcohol={selectedAlcohol}
+        setSelectedAlcohol={setSelectedAlcohol}
+        onConfirm={confirmAlcoholSelection}
+      />
+      
+      <BalyFlavorSelectionModal
+        isOpen={isBalyModalOpen}
+        onClose={() => setIsBalyModalOpen(false)}
+        product={selectedProductForBaly}
+        onConfirm={confirmBalySelection}
+      />
+      
+      <EnergyDrinkSelectionModal
+        isOpen={isEnergyDrinkModalOpen}
+        onClose={() => {
+          setIsEnergyDrinkModalOpen(false);
+          setPendingProductWithIce(null);
+        }}
+        onConfirm={handleEnergyDrinkSelection}
+        productType={currentProductType}
+      />
     </>
   );
 };
