@@ -89,8 +89,12 @@ const SimplifiedAdminPedidos: React.FC = () => {
         p.id === pedidoId ? { ...p, status: 'aceito' } : p
       ));
 
-      // Check if there are still pending orders
-      const stillHasPending = pedidos.some(p => p.id !== pedidoId && p.status === 'pendente');
+      // Check if there are still pending orders (excluding balcão)
+      const stillHasPending = pedidos.some(p => 
+        p.id !== pedidoId && 
+        p.status === 'pendente' && 
+        p.cliente_bairro !== 'BALCAO'
+      );
       
       // Stop alert if no more pending orders
       if (!stillHasPending) {
@@ -185,6 +189,35 @@ const SimplifiedAdminPedidos: React.FC = () => {
     }
   };
 
+  const getClientDisplayName = (nomeCompleto: string, isBalcao: boolean) => {
+    if (isBalcao && nomeCompleto.startsWith('BALCÃO - ')) {
+      // Extract employee name and show first name prominently
+      const funcionarioNome = nomeCompleto.replace('BALCÃO - ', '');
+      const primeiroNome = funcionarioNome.split(' ')[0];
+      return (
+        <span>
+          <span className="font-bold text-orange-400">BALCÃO</span>
+          {' - '}
+          <span className="font-bold text-lg">{primeiroNome}</span>
+          {funcionarioNome.length > primeiroNome.length && (
+            <span className="text-sm text-gray-400"> {funcionarioNome.substring(primeiroNome.length)}</span>
+          )}
+        </span>
+      );
+    }
+    
+    // For delivery orders, show first name prominently
+    const primeiroNome = nomeCompleto.split(' ')[0];
+    return (
+      <span>
+        <span className="font-bold text-lg">{primeiroNome}</span>
+        {nomeCompleto.length > primeiroNome.length && (
+          <span className="text-sm text-gray-400"> {nomeCompleto.substring(primeiroNome.length)}</span>
+        )}
+      </span>
+    );
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pendente': return 'bg-yellow-500';
@@ -252,9 +285,9 @@ const SimplifiedAdminPedidos: React.FC = () => {
                   </div>
                   
                   <div className="space-y-1 text-sm">
-                    <div className="flex justify-between">
+                    <div className="flex justify-between items-center">
                       <span className="text-gray-400">Cliente:</span>
-                      <span className="text-white">{pedido.cliente_nome}</span>
+                      <span className="text-white">{getClientDisplayName(pedido.cliente_nome, pedido.cliente_bairro === 'BALCAO')}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Bairro:</span>
@@ -316,7 +349,7 @@ const SimplifiedAdminPedidos: React.FC = () => {
                       <TableCell className="text-white font-medium">
                         #{pedido.codigo_pedido}
                       </TableCell>
-                      <TableCell className="text-white">{pedido.cliente_nome}</TableCell>
+                      <TableCell className="text-white">{getClientDisplayName(pedido.cliente_nome, pedido.cliente_bairro === 'BALCAO')}</TableCell>
                       <TableCell className="text-white">{pedido.cliente_bairro}</TableCell>
                       <TableCell>
                         <Badge className={`${getStatusColor(pedido.status)} text-white`}>

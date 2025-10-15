@@ -119,9 +119,12 @@ export const useOrderAlerts = () => {
                 // Update UI immediately
                 onOrderChange(data);
                 
-                // Check for pending orders and trigger alert
-                const pendingOrders = data.filter(order => order.status === 'pendente');
-                console.log('📊 Pending orders count:', pendingOrders.length);
+                // Check for pending orders (excluding balcão orders) and trigger alert
+                const pendingOrders = data.filter(order => 
+                  order.status === 'pendente' && 
+                  order.cliente_bairro !== 'BALCAO'
+                );
+                console.log('📊 Pending orders count (excluding balcão):', pendingOrders.length);
                 
                 if (pendingOrders.length > 0) {
                   console.log('🔊 Starting alert for pending orders');
@@ -147,7 +150,10 @@ export const useOrderAlerts = () => {
               if (data) {
                 onOrderChange(data);
                 
-                const pendingOrders = data.filter(order => order.status === 'pendente');
+                const pendingOrders = data.filter(order => 
+                  order.status === 'pendente' && 
+                  order.cliente_bairro !== 'BALCAO'
+                );
                 
                 if (pendingOrders.length > 0) {
                   startAlert();
@@ -166,14 +172,15 @@ export const useOrderAlerts = () => {
         if (status === 'SUBSCRIBED') {
           console.log('✅ Successfully subscribed to pedidos updates');
           
-          // Initial check for pending orders when subscribing
+          // Initial check for pending orders when subscribing (excluding balcão)
           supabase
             .from('pedidos')
             .select('*')
             .eq('status', 'pendente')
             .then(({ data }) => {
-              if (data && data.length > 0) {
-                console.log('🔔 Found pending orders on subscription, starting alert');
+              const pendingNonBalcao = data?.filter(order => order.cliente_bairro !== 'BALCAO') || [];
+              if (pendingNonBalcao.length > 0) {
+                console.log('🔔 Found pending orders on subscription (excluding balcão), starting alert');
                 initializeAudio();
                 setTimeout(() => startAlert(), 200);
               }
