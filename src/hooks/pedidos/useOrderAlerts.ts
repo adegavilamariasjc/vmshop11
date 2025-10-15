@@ -7,6 +7,7 @@ export const useOrderAlerts = () => {
   const channelRef = useRef<any>(null);
   const isPlayingDeliveryRef = useRef(false);
   const isPlayingBalcaoRef = useRef(false);
+  const playedBalcaoPedidosRef = useRef<Set<string>>(new Set());
 
   // Initialize delivery audio (order.mp3)
   const initializeDeliveryAudio = useCallback(() => {
@@ -30,7 +31,7 @@ export const useOrderAlerts = () => {
   const initializeBalcaoAudio = useCallback(() => {
     if (!balcaoAudioRef.current) {
       balcaoAudioRef.current = new Audio('/caixaregistradora.mp3');
-      balcaoAudioRef.current.loop = true;
+      balcaoAudioRef.current.loop = false; // Toca apenas uma vez
       balcaoAudioRef.current.volume = 1.0;
       balcaoAudioRef.current.preload = 'auto';
       
@@ -40,6 +41,12 @@ export const useOrderAlerts = () => {
       
       balcaoAudioRef.current.oncanplaythrough = () => {
         console.log('🔊 Audio de balcão pronto');
+      };
+
+      // Quando terminar de tocar, reseta o estado
+      balcaoAudioRef.current.onended = () => {
+        console.log('✅ Audio de balcão terminou');
+        isPlayingBalcaoRef.current = false;
       };
     }
   }, []);
@@ -76,27 +83,44 @@ export const useOrderAlerts = () => {
       }
     }
     
-    // Play balcão alert
-    if (balcaoOrders.length > 0 && !isPlayingBalcaoRef.current) {
-      console.log('🎵 Starting balcão audio alert');
-      initializeBalcaoAudio();
+    // Play balcão alert - apenas uma vez por pedido novo
+    if (balcaoOrders.length > 0) {
+      // Remove pedidos que não estão mais pendentes do tracking
+      const currentBalcaoIds = new Set(balcaoOrders.map(o => o.id));
+      playedBalcaoPedidosRef.current.forEach(id => {
+        if (!currentBalcaoIds.has(id)) {
+          playedBalcaoPedidosRef.current.delete(id);
+        }
+      });
+
+      // Toca som apenas para pedidos novos (não reproduzidos ainda)
+      const newBalcaoOrders = balcaoOrders.filter(o => !playedBalcaoPedidosRef.current.has(o.id));
       
-      if (balcaoAudioRef.current) {
-        balcaoAudioRef.current.currentTime = 0;
-        isPlayingBalcaoRef.current = true;
+      if (newBalcaoOrders.length > 0 && !isPlayingBalcaoRef.current) {
+        console.log('🎵 Starting balcão audio alert for', newBalcaoOrders.length, 'new orders');
+        initializeBalcaoAudio();
         
-        balcaoAudioRef.current.play()
-          .then(() => {
-            console.log('✅ Balcão alert started');
-          })
-          .catch(e => {
-            console.error('❌ Erro ao tocar alerta balcão:', e);
-            isPlayingBalcaoRef.current = false;
-          });
+        if (balcaoAudioRef.current) {
+          balcaoAudioRef.current.currentTime = 0;
+          isPlayingBalcaoRef.current = true;
+          
+          // Marca todos os novos pedidos como reproduzidos
+          newBalcaoOrders.forEach(o => playedBalcaoPedidosRef.current.add(o.id));
+          
+          balcaoAudioRef.current.play()
+            .then(() => {
+              console.log('✅ Balcão alert started');
+            })
+            .catch(e => {
+              console.error('❌ Erro ao tocar alerta balcão:', e);
+              isPlayingBalcaoRef.current = false;
+            });
+        }
       }
-    } else if (balcaoOrders.length === 0 && isPlayingBalcaoRef.current) {
-      // Stop balcão alert if no balcão orders
-      if (balcaoAudioRef.current) {
+    } else {
+      // Limpa tracking quando não há mais pedidos de balcão pendentes
+      playedBalcaoPedidosRef.current.clear();
+      if (isPlayingBalcaoRef.current && balcaoAudioRef.current) {
         balcaoAudioRef.current.pause();
         balcaoAudioRef.current.currentTime = 0;
         isPlayingBalcaoRef.current = false;
