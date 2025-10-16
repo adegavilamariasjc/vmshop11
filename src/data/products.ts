@@ -683,28 +683,26 @@ export const alcoholOptions = [
   { name: "Saquê", extraCost: 10 },
 ];
 
+import { normalizeText } from '@/lib/utils';
+
 export const gerarCodigoPedido = () => `A${Math.floor(1000 + Math.random() * 9000)}`;
 
 export const requiresFlavor = (category: string) => {
-  const lowerCategory = category.toLowerCase();
-  return lowerCategory.includes('copão') || 
-         lowerCategory.includes('combo') || 
-         lowerCategory.includes('copao');
+  return normalizeText(category).includes('copao') || normalizeText(category).includes('combo');
 };
 
 export const requiresAlcoholChoice = (category: string) => {
-  return category.toLowerCase().includes('caipirinha');
+  return normalizeText(category).includes('caipirinha');
 };
 
 export const getMaxIce = (category: string) => {
-  const lowerCategory = category.toLowerCase();
-  if (lowerCategory.includes('copão') || lowerCategory.includes('copao')) return 5;
-  if (lowerCategory.includes('combo')) return 5;
+  const normalized = normalizeText(category);
+  if (normalized.includes('copao') || normalized.includes('combo')) return 5;
   return 0;
 };
 
 export const containsBaly = (productName: string): boolean => {
-  return productName.toLowerCase().includes('baly');
+  return normalizeText(productName).includes('baly');
 };
 
 // Local Storage functions to save/load data

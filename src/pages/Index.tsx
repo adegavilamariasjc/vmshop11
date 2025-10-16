@@ -14,6 +14,7 @@ import IndexModals from '../components/IndexModals';
 import { useFormData } from '../hooks/useFormData';
 import { useOrderHandling } from '../hooks/useOrderHandling';
 import { AlcoholOption } from '@/types';
+import { normalizeText } from '@/lib/utils';
 
 const Index = () => {
   const { isOpen } = useStoreStatus();
@@ -68,7 +69,7 @@ const Index = () => {
   } = useOrderHandling();
 
   const handleIceConfirmation = (productWithIce) => {
-    if (productWithIce.name.toLowerCase().includes('copão')) {
+    if (normalizeText(productWithIce.name).includes('copao')) {
       setPendingProductWithIce(productWithIce);
       setIsEnergyDrinkModalOpen(true);
     } else {

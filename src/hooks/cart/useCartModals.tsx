@@ -4,6 +4,7 @@ import { Product } from '../../types';
 import { iceFlavors, getMaxIce, containsBaly } from '../../data/products';
 import { useToast } from '@/hooks/use-toast';
 import { isCopao, isCombo } from './useCartHelpers';
+import { normalizeText } from '@/lib/utils';
 
 export const useCartModals = (
   selectedProductForFlavor: Product | null,
@@ -61,7 +62,7 @@ export const useCartModals = (
     }
     
     // Validação específica para combos (devem ter exatamente 5 gelos)
-    if (selectedProductForFlavor?.category?.includes('Combo') && totalIce !== 5) {
+    if (normalizeText(selectedProductForFlavor?.category).includes('combo') && totalIce !== 5) {
       toast({
         title: "Seleção incompleta",
         description: "Combos devem ter exatamente 5 unidades de gelo.",

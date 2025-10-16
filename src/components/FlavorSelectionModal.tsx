@@ -5,6 +5,7 @@ import { Plus, Minus, X } from 'lucide-react';
 import { Product } from '../types';
 import { iceFlavors, getMaxIce } from '../data/products';
 import { useToast } from '@/hooks/use-toast';
+import { normalizeText } from '@/lib/utils';
 
 interface FlavorSelectionModalProps {
   isOpen: boolean;
@@ -163,7 +164,7 @@ const FlavorSelectionModal: React.FC<FlavorSelectionModalProps> = ({
         
         <div className="text-sm text-gray-300 mb-4">
           Total selecionado: {totalIce} de {maxIce} unidades
-          {product?.category?.includes('Combo') && (
+          {normalizeText(product?.category).includes('combo') && (
             <div className="mt-2 text-purple-light font-semibold">
               ⚠️ Combos devem ter exatamente 5 unidades de gelo
             </div>
@@ -188,11 +189,11 @@ const FlavorSelectionModal: React.FC<FlavorSelectionModalProps> = ({
             onClick={handleConfirm}
             className={`px-4 py-2 rounded ${
               totalIce === 0 || isSubmitting || 
-              (product?.category?.includes('Combo') && totalIce !== 5)
+              (normalizeText(product?.category).includes('combo') && totalIce !== 5)
                 ? 'bg-gray-600 text-gray-300 cursor-not-allowed' 
                 : 'bg-purple-dark text-white'
             }`}
-            disabled={totalIce === 0 || isSubmitting || (product?.category?.includes('Combo') && totalIce !== 5)}
+            disabled={totalIce === 0 || isSubmitting || (normalizeText(product?.category).includes('combo') && totalIce !== 5)}
           >
             {isSubmitting ? 'Processando...' : 'Confirmar'}
           </button>

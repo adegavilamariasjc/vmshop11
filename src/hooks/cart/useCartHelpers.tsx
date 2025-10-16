@@ -5,15 +5,14 @@ import {
   requiresAlcoholChoice, 
   containsBaly 
 } from '../../data/products';
+import { normalizeText } from '../../lib/utils';
 
 export const isCopao = (product: Product): boolean => {
-  const lowerName = product.name.toLowerCase();
-  return lowerName.includes('copão') || lowerName.includes('copao');
+  return normalizeText(product.name).includes('copao');
 };
 
 export const isCombo = (product: Product): boolean => {
-  return product.category === "Combos" || 
-        (product.category && product.category.toLowerCase().includes('combo'));
+  return normalizeText(product.category).includes('combo');
 };
 
 export const useCartHelpers = () => {
