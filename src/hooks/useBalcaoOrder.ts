@@ -41,7 +41,7 @@ export const useBalcaoOrder = () => {
       iceFlavors.forEach(flavor => { initialIce[flavor] = 0; });
       setSelectedIce(initialIce);
     }
-  }, [selectedProductForFlavor]);
+  }, [selectedProductForFlavor, setSelectedIce]);
 
   // Debug helpers
   useEffect(() => {
@@ -71,39 +71,21 @@ export const useBalcaoOrder = () => {
 
   const addToCart = (product: Product) => {
     const productWithCategory = { ...product, category: product.category || '' };
-    const categoryToCheck = product.category || product.name || '';
-
-    console.log('🛒 Add to cart - Product:', product.name, 'Category:', categoryToCheck);
-
-    // Force flavor flow for Copão/Combo regardless of category coming from DB
-    if (isCopao(productWithCategory) || isCombo(productWithCategory) || requiresFlavor(categoryToCheck)) {
-      console.log('✅ Product requires flavor selection (Copão/Combo or category rule)');
+    const categoryToCheck = product.category || '';
+    
+    if (requiresFlavor(categoryToCheck)) {
       setSelectedProductForFlavor(productWithCategory);
-      setSelectedIce({}); // Reset ice selection
       setIsFlavorModalOpen(true);
-      return;
-    }
-
-    // Check if product needs alcohol selection
-    if (requiresAlcoholChoice(categoryToCheck)) {
-      console.log('✅ Product requires alcohol selection');
+    } else if (requiresAlcoholChoice(categoryToCheck)) {
       setSelectedProductForAlcohol(productWithCategory);
       setSelectedAlcohol(null);
       setIsAlcoholModalOpen(true);
-      return;
-    }
-
-    // Check if product contains Baly
-    if (containsBaly(product.name)) {
-      console.log('✅ Product contains Baly');
+    } else if (containsBaly(product.name)) {
       setSelectedProductForBaly(productWithCategory);
       setIsBalyModalOpen(true);
-      return;
+    } else {
+      handleUpdateQuantity(productWithCategory, 1);
     }
-
-    // Direct add to cart
-    console.log('✅ Direct add to cart');
-    handleUpdateQuantity(productWithCategory, 1);
   };
   
   const handleUpdateQuantity = (item: Product, delta: number) => {
@@ -294,53 +276,61 @@ export const useBalcaoOrder = () => {
   const confirmFlavorSelection = () => {
     if (!selectedProductForFlavor) return;
     
-    const totalIce = Object.values(selectedIce).reduce((sum, qty) => sum + qty, 0);
-    const isCopaoProduct = isCopao(selectedProductForFlavor);
-    const isComboProduct = isCombo(selectedProductForFlavor);
+    const totalIce = Object.values(selectedIce).reduce((sum, v) => sum + v, 0);
+    const maxIce = 5; // Copão e Combo sempre têm 5 gelos
     
-    console.log('🎯 Confirm Flavor - Is Copão:', isCopaoProduct, 'Is Combo:', isComboProduct, 'Total Ice:', totalIce);
-    console.log('🎯 Product:', selectedProductForFlavor.name, 'Category:', selectedProductForFlavor.category);
-    
-    if ((isCopaoProduct || isComboProduct) && totalIce !== 5) {
+    if (totalIce === 0) {
       toast({
         title: "Seleção incompleta",
-        description: `Por favor, selecione exatamente 5 gelos para ${isCopaoProduct ? 'Copão' : 'Combo'}.`,
+        description: "Por favor, selecione ao menos 1 unidade de gelo.",
         variant: "destructive",
       });
       return;
     }
     
-    const productWithIce = {
-      ...selectedProductForFlavor,
-      ice: { ...selectedIce }
-    };
+    // Validação específica para combos (devem ter exatamente 5 gelos)
+    if (selectedProductForFlavor?.category?.includes('Combo') && totalIce !== 5) {
+      toast({
+        title: "Seleção incompleta",
+        description: "Combos devem ter exatamente 5 unidades de gelo.",
+        variant: "destructive",
+      });
+      return;
+    }
     
-    console.log('🎯 Product with ice:', productWithIce);
+    const itemWithIce = { ...selectedProductForFlavor, ice: selectedIce };
     
-    if (isCopaoProduct) {
-      console.log('✅ Opening energy drink modal for Copão');
+    setIsFlavorModalOpen(false);
+    setSelectedProductForFlavor(null);
+    
+    if (isCopao(itemWithIce)) {
+      setPendingProductWithIce(itemWithIce);
       setCurrentProductType('copao');
-      setPendingProductWithIce(productWithIce);
-      setIsFlavorModalOpen(false);
       setIsEnergyDrinkModalOpen(true);
-    } else if (isComboProduct) {
-      console.log('✅ Opening energy drink modal for Combo');
+      
+      toast({
+        title: "Gelo adicionado",
+        description: "Agora selecione o energético para seu copão.",
+      });
+    } else if (isCombo(itemWithIce)) {
+      setPendingProductWithIce(itemWithIce);
       setCurrentProductType('combo');
-      setPendingProductWithIce(productWithIce);
-      setIsFlavorModalOpen(false);
       setIsEnergyDrinkModalOpen(true);
-    } else if (containsBaly(selectedProductForFlavor.name)) {
-      console.log('✅ Opening Baly modal');
-      setPendingProductWithIce(productWithIce);
-      setIsFlavorModalOpen(false);
-      setSelectedProductForBaly(productWithIce);
+      
+      toast({
+        title: "Gelo adicionado",
+        description: "Agora selecione o energético para seu combo.",
+      });
+    } else if (containsBaly(itemWithIce.name)) {
+      setSelectedProductForBaly(itemWithIce);
       setIsBalyModalOpen(true);
     } else {
-      console.log('✅ Direct add to cart with ice');
-      handleUpdateQuantity(productWithIce, 1);
-      setIsFlavorModalOpen(false);
-      setSelectedProductForFlavor(null);
-      setSelectedIce({}); // Reset
+      handleUpdateQuantity(itemWithIce, 1);
+      
+      toast({
+        title: "Item adicionado",
+        description: `${selectedProductForFlavor.name} adicionado ao pedido.`,
+      });
     }
   };
   
