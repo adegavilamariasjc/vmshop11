@@ -284,7 +284,7 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !isSubmitting && !open && onClose()}>
-      <DialogContent className="max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-h-[85vh] overflow-y-auto z-[70]">
         <DialogHeader>
           <DialogTitle className="text-lg font-bold text-white">
             Qual energético acompanha o {productType === 'copao' ? 'copão' : 'combo'}?

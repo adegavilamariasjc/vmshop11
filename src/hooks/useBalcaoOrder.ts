@@ -144,13 +144,31 @@ export const useBalcaoOrder = () => {
     setCart(prevCart => {
       if (newQty <= 0) {
         return prevCart.filter(
-          item => !(item.name === product.name && item.category === product.category)
+          item => !(
+            item.name === product.name &&
+            item.category === product.category &&
+            ((item.ice && product.ice && JSON.stringify(item.ice) === JSON.stringify(product.ice)) ||
+             (!item.ice && !product.ice)) &&
+            item.alcohol === product.alcohol &&
+            item.balyFlavor === product.balyFlavor &&
+            item.energyDrink === product.energyDrink &&
+            item.energyDrinkFlavor === product.energyDrinkFlavor &&
+            JSON.stringify(item.energyDrinks) === JSON.stringify(product.energyDrinks)
+          )
         );
       }
 
       const existingIndex = prevCart.findIndex(
-        item => item.name === product.name && 
-                item.category === product.category
+        item => 
+          item.name === product.name && 
+          item.category === product.category &&
+          ((item.ice && product.ice && JSON.stringify(item.ice) === JSON.stringify(product.ice)) ||
+           (!item.ice && !product.ice)) &&
+          item.alcohol === product.alcohol &&
+          item.balyFlavor === product.balyFlavor &&
+          item.energyDrink === product.energyDrink &&
+          item.energyDrinkFlavor === product.energyDrinkFlavor &&
+          JSON.stringify(item.energyDrinks) === JSON.stringify(product.energyDrinks)
       );
 
       if (existingIndex >= 0) {

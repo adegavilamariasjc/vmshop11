@@ -7,7 +7,8 @@ import {
 } from '../../data/products';
 
 export const isCopao = (product: Product): boolean => {
-  return product.name.toLowerCase().includes('copão');
+  const lowerName = product.name.toLowerCase();
+  return lowerName.includes('copão') || lowerName.includes('copao');
 };
 
 export const isCombo = (product: Product): boolean => {
