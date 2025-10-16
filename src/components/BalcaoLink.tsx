@@ -41,7 +41,7 @@ const BalcaoLink: React.FC = () => {
     <>
       <button
         onClick={handleButtonClick}
-        className="fixed bottom-4 left-16 bg-[hsl(142_76%_36%/0.7)] hover:bg-[hsl(142_76%_36%)] text-white p-3 rounded-full shadow-lg transition-all duration-200"
+        className="fixed bottom-4 left-16 bg-[hsl(142_76%_36%/0.7)] hover:bg-[hsl(142_76%_36%)] text-white p-3 rounded-full shadow-lg transition-all duration-200 z-50"
         title="Pedidos de Balcão"
       >
         <ShoppingBag size={16} />
