@@ -6,6 +6,7 @@ import { gerarCodigoPedido, requiresFlavor, requiresAlcoholChoice, containsBaly 
 import { getProductDisplayPrice, calculateBeerDiscount } from '../utils/discountUtils';
 import { isCopao, isCombo } from './cart/useCartHelpers';
 import { trackCartAddition } from '@/lib/supabase/productStats';
+import { normalizeText } from '@/lib/utils';
 
 const SENHA_BALCAO = '141288';
 
@@ -289,7 +290,7 @@ export const useBalcaoOrder = () => {
     }
     
     // Validação específica para combos (devem ter exatamente 5 gelos)
-    if (selectedProductForFlavor?.category?.includes('Combo') && totalIce !== 5) {
+    if (normalizeText(selectedProductForFlavor?.category).includes('combo') && totalIce !== 5) {
       toast({
         title: "Seleção incompleta",
         description: "Combos devem ter exatamente 5 unidades de gelo.",
