@@ -284,12 +284,12 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !isSubmitting && !open && onClose()}>
-      <DialogContent className="max-h-[85vh] overflow-y-auto z-[70]">
+      <DialogContent className="max-h-[85vh] overflow-y-auto z-[80] bg-gray-900 border-purple-dark/50">
         <DialogHeader>
           <DialogTitle className="text-lg font-bold text-white">
             Qual energético acompanha o {productType === 'copao' ? 'copão' : 'combo'}?
           </DialogTitle>
-          <DialogDescription className="text-gray-300 text-sm">
+          <DialogDescription className="text-gray-200 text-sm">
             {productType === 'copao' 
               ? 'Selecione 1 energético para o seu copão'
               : 'Selecione os energéticos desejados (máx. 5 latas no total para Red Bull e Monster, 1 para os demais)'}
@@ -303,11 +303,11 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
               : option.extraCost;
               
             return (
-              <div key={option.name} className="bg-gray-800/50 rounded-lg p-2">
-                <h3 className="text-purple-light font-semibold mb-1 flex items-center gap-2 text-sm">
+              <div key={option.name} className="bg-gray-800 rounded-lg p-3 border border-gray-700">
+                <h3 className="text-purple-light font-semibold mb-2 flex items-center gap-2 text-sm">
                   🔹 {option.name}
                   {extraCost > 0 && (
-                    <span className="text-xs text-gray-300">(+R${extraCost.toFixed(2)})</span>
+                    <span className="text-xs text-gray-200">(+R${extraCost.toFixed(2)})</span>
                   )}
                 </h3>
                 <div className="grid grid-cols-2 gap-1 text-xs">

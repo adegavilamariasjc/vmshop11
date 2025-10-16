@@ -181,7 +181,7 @@ const BalcaoModal: React.FC<BalcaoModalProps> = ({ isOpen, onClose }) => {
   return (
     <>
       <Dialog open={isOpen && !showPasswordDialog} onOpenChange={handleClose}>
-        <DialogContent className="w-[95vw] h-[90vh] max-w-none bg-black/95 border-purple-dark p-2 flex flex-col">
+        <DialogContent className="w-[95vw] h-[90vh] max-w-none bg-black/95 border-purple-dark p-2 flex flex-col z-[40]">
           <DialogHeader className="flex-shrink-0 pb-2">
             <DialogTitle className="text-sm font-bold text-purple-light flex items-center gap-1.5">
               <ShoppingCart className="h-3.5 w-3.5" />
