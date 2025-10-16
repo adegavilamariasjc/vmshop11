@@ -72,28 +72,38 @@ export const useBalcaoOrder = () => {
   const addToCart = (product: Product) => {
     const productWithCategory = { ...product, category: product.category || '' };
     const categoryToCheck = product.category || product.name || '';
-    
+
     console.log('🛒 Add to cart - Product:', product.name, 'Category:', categoryToCheck);
-    
-    // Check if product needs customization
-    if (requiresFlavor(categoryToCheck)) {
-      console.log('✅ Product requires flavor selection');
+
+    // Force flavor flow for Copão/Combo regardless of category coming from DB
+    if (isCopao(productWithCategory) || isCombo(productWithCategory) || requiresFlavor(categoryToCheck)) {
+      console.log('✅ Product requires flavor selection (Copão/Combo or category rule)');
       setSelectedProductForFlavor(productWithCategory);
       setSelectedIce({}); // Reset ice selection
       setIsFlavorModalOpen(true);
-    } else if (requiresAlcoholChoice(categoryToCheck)) {
+      return;
+    }
+
+    // Check if product needs alcohol selection
+    if (requiresAlcoholChoice(categoryToCheck)) {
       console.log('✅ Product requires alcohol selection');
       setSelectedProductForAlcohol(productWithCategory);
       setSelectedAlcohol(null);
       setIsAlcoholModalOpen(true);
-    } else if (containsBaly(product.name)) {
+      return;
+    }
+
+    // Check if product contains Baly
+    if (containsBaly(product.name)) {
       console.log('✅ Product contains Baly');
       setSelectedProductForBaly(productWithCategory);
       setIsBalyModalOpen(true);
-    } else {
-      console.log('✅ Direct add to cart');
-      handleUpdateQuantity(productWithCategory, 1);
+      return;
     }
+
+    // Direct add to cart
+    console.log('✅ Direct add to cart');
+    handleUpdateQuantity(productWithCategory, 1);
   };
   
   const handleUpdateQuantity = (item: Product, delta: number) => {
