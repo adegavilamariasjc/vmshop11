@@ -6,7 +6,6 @@ import PageLayout from '../components/PageLayout';
 import ProductSelectionView from '../components/ProductSelectionView';
 import CheckoutView from '../components/CheckoutView';
 import AdminLink from '../components/AdminLink';
-import BalcaoLink from '../components/BalcaoLink';
 import MotoboyLink from '../components/MotoboyLink';
 import { useStoreStatus } from '@/hooks/useStoreStatus';
 import LoadingIndicator from '../components/LoadingIndicator';
@@ -105,7 +104,7 @@ const Index = () => {
             setForm={setForm}
             bairros={bairros}
             onBackToProducts={() => setShowSummary(false)}
-            onSubmit={() => processOrder(cart, form, isOpen)}
+            onSubmit={(isBalcao?: boolean) => processOrder(cart, form, isOpen, { balcao: !!isBalcao })}
             isSending={isSendingOrder}
             isStoreOpen={isOpen}
           />
@@ -142,7 +141,6 @@ const Index = () => {
         setPendingProductWithIce={setPendingProductWithIce}
       />
       
-      <BalcaoLink />
       <MotoboyLink />
       <AdminLink />
     </PageLayout>

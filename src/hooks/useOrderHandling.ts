@@ -59,59 +59,60 @@ export const useOrderHandling = () => {
     }
   };
 
-  const preparePedido = async (cart: Product[], form: FormData, isOpen: boolean) => {
-    if (cart.length === 0) return false;
-    
-    // Calculate total with discounts applied
-    const total = cart.reduce((sum, p) => sum + getProductDisplayPrice(p), 0) + form.bairro.taxa;
-    
-    // Calculate total discount amount for beer products
-    const totalDiscountAmount = cart.reduce((sum, item) => {
-      const discountInfo = calculateBeerDiscount(item);
-      if (discountInfo.hasDiscount) {
-        const regularPrice = item.price * (item.qty || 0);
-        const discountAmount = regularPrice - discountInfo.discountedPrice;
-        return sum + discountAmount;
-      }
-      return sum;
-    }, 0);
-    
-    const isDuplicate = await checkDuplicateOrder(form.nome, form.whatsapp, total);
-    setIsDuplicateOrder(isDuplicate);
+const preparePedido = async (cart: Product[], form: FormData, isOpen: boolean, isBalcao: boolean) => {
+  if (cart.length === 0) return false;
+  
+  // Calculate total with discounts applied
+  const deliveryFee = isBalcao ? 0 : form.bairro.taxa;
+  const total = cart.reduce((sum, p) => sum + getProductDisplayPrice(p), 0) + deliveryFee;
+  
+  // Calculate total discount amount for beer products
+  const totalDiscountAmount = cart.reduce((sum, item) => {
+    const discountInfo = calculateBeerDiscount(item);
+    if (discountInfo.hasDiscount) {
+      const regularPrice = item.price * (item.qty || 0);
+      const discountAmount = regularPrice - discountInfo.discountedPrice;
+      return sum + discountAmount;
+    }
+    return sum;
+  }, 0);
+  
+  const isDuplicate = isBalcao ? false : await checkDuplicateOrder(form.nome, form.whatsapp, total);
+  setIsDuplicateOrder(isDuplicate);
 
-    if (isDuplicate) {
-      return true;
-    }
+  if (isDuplicate) {
+    return true;
+  }
+  
+  try {
+    const pedido = await savePedido({
+      codigo_pedido: codigoPedido,
+      cliente_nome: isBalcao ? `BALCÃO - ${form.nome || 'Cliente'}` : (form.nome || 'Cliente'),
+      cliente_endereco: isBalcao ? 'Retirada no balcão' : (form.endereco || 'Não informado'),
+      cliente_numero: isBalcao ? 's/n' : (form.numero || null),
+      cliente_complemento: isBalcao ? null : (form.complemento || null),
+      cliente_referencia: isBalcao ? null : (form.referencia || null),
+      cliente_bairro: isBalcao ? 'BALCAO' : (form.bairro.nome || 'Não informado'),
+      taxa_entrega: isBalcao ? 0 : (typeof form.bairro.taxa === 'number' ? form.bairro.taxa : 0),
+      cliente_whatsapp: isBalcao ? 'Não informado' : (form.whatsapp || 'Não informado'),
+      forma_pagamento: form.pagamento || 'Não informado',
+      troco: form.troco || null,
+      observacao: isBalcao ? `[BALCÃO] ${form.observacao || ''}` : (form.observacao || null),
+      itens: cart as any,
+      total: typeof total === 'number' && !isNaN(total) ? total : 0,
+      status: isOpen ? 'pendente' : 'fora_horario',
+      discount_amount: typeof totalDiscountAmount === 'number' && !isNaN(totalDiscountAmount) ? totalDiscountAmount : 0,
+      entregador: null
+    });
     
-    try {
-      const pedido = await savePedido({
-        codigo_pedido: codigoPedido,
-        cliente_nome: form.nome || 'Cliente',
-        cliente_endereco: form.endereco || 'Não informado',
-        cliente_numero: form.numero || null,
-        cliente_complemento: form.complemento || null,
-        cliente_referencia: form.referencia || null,
-        cliente_bairro: form.bairro.nome || 'Não informado',
-        taxa_entrega: typeof form.bairro.taxa === 'number' ? form.bairro.taxa : 0,
-        cliente_whatsapp: form.whatsapp || 'Não informado',
-        forma_pagamento: form.pagamento || 'Não informado',
-        troco: form.troco || null,
-        observacao: form.observacao || null,
-        itens: cart as any,
-        total: typeof total === 'number' && !isNaN(total) ? total : 0,
-        status: isOpen ? 'pendente' : 'fora_horario',
-        discount_amount: typeof totalDiscountAmount === 'number' && !isNaN(totalDiscountAmount) ? totalDiscountAmount : 0,
-        entregador: null
-      });
-      
-      // Pedido saved successfully - Telegram will be sent when deliverer is selected
-      
-      return !!pedido;
-    } catch (err) {
-      console.error('Erro inesperado ao salvar pedido:', err);
-      return false;
-    }
-  };
+    // Pedido saved successfully - Telegram will be sent when deliverer is selected
+    
+    return !!pedido;
+  } catch (err) {
+    console.error('Erro inesperado ao salvar pedido:', err);
+    return false;
+  }
+};
 
   const createWhatsAppMessage = (cart: Product[], form: FormData) => {
     if (cart.length === 0) {
@@ -182,12 +183,15 @@ export const useOrderHandling = () => {
     return `https://wa.me/5512982704573?text=${mensagemEncoded}`;
   };
 
-  const processOrder = async (cart: Product[], form: FormData, isOpen: boolean) => {
-    if (cart.length === 0) {
-      return;
-    }
+const processOrder = async (cart: Product[], form: FormData, isOpen: boolean, options?: { balcao?: boolean }) => {
+  if (cart.length === 0) {
+    return;
+  }
 
-    // Validate WhatsApp number
+  const isBalcao = !!options?.balcao;
+
+  // Validate WhatsApp number only for delivery orders
+  if (!isBalcao) {
     const cleanWhatsApp = form.whatsapp.replace(/\D/g, '');
     if (cleanWhatsApp.length < 10) {
       toast({
@@ -197,41 +201,42 @@ export const useOrderHandling = () => {
       });
       return;
     }
+  }
+  
+  setIsSendingOrder(true);
+  
+  try {
+    const success = await preparePedido(cart, form, isOpen, isBalcao);
     
-    setIsSendingOrder(true);
-    
-    try {
-      const success = await preparePedido(cart, form, isOpen);
-      
-      if (!success) {
-        toast({
-          title: 'Erro',
-          description: 'Não foi possível registrar o pedido. Tente novamente.',
-          variant: 'destructive'
-        });
-        setIsSendingOrder(false);
-        return;
-      }
-      
-      // Only create WhatsApp URL if store is open
-      if (!isDuplicateOrder && isOpen) {
-        const url = createWhatsAppMessage(cart, form);
-        setWhatsAppUrl(url);
-      }
-      
-      setShowSuccessModal(true);
-      
-    } catch (err) {
-      console.error('Erro ao enviar pedido:', err);
+    if (!success) {
       toast({
         title: 'Erro',
-        description: 'Ocorreu um erro ao enviar o pedido. Tente novamente.',
+        description: 'Não foi possível registrar o pedido. Tente novamente.',
         variant: 'destructive'
       });
-    } finally {
       setIsSendingOrder(false);
+      return;
     }
-  };
+    
+    // Only create WhatsApp URL if store is open and not balcão
+    if (!isDuplicateOrder && isOpen && !isBalcao) {
+      const url = createWhatsAppMessage(cart, form);
+      setWhatsAppUrl(url);
+    }
+    
+    setShowSuccessModal(true);
+    
+  } catch (err) {
+    console.error('Erro ao enviar pedido:', err);
+    toast({
+      title: 'Erro',
+      description: 'Ocorreu um erro ao enviar o pedido. Tente novamente.',
+      variant: 'destructive'
+    });
+  } finally {
+    setIsSendingOrder(false);
+  }
+};
 
   const handleOrderConfirmation = () => {
     if (!isDuplicateOrder && whatsAppUrl) {

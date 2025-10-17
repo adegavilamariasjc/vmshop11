@@ -1,12 +1,16 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Send, Loader2 } from 'lucide-react';
+import { ChevronLeft, Send, Loader2, ShoppingBag, Lock } from 'lucide-react';
 import { FormData, Product } from '../types';
 import OrderSummary from './cart/OrderSummary';
 import CartSummary from './CartSummary';
 import CheckoutForm from './CheckoutForm';
 import { calculateBeerDiscount } from '../utils/discountUtils';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 
 interface CheckoutViewProps {
   cart: Product[];
@@ -14,10 +18,11 @@ interface CheckoutViewProps {
   setForm: React.Dispatch<React.SetStateAction<FormData>>;
   bairros: { nome: string; taxa: number }[];
   onBackToProducts: () => void;
-  onSubmit: () => void;
+  onSubmit: (isBalcao?: boolean) => void;
   isSending?: boolean;
   isStoreOpen: boolean;
 }
+
 
 const CheckoutView: React.FC<CheckoutViewProps> = ({
   cart,
@@ -62,14 +67,18 @@ const CheckoutView: React.FC<CheckoutViewProps> = ({
     [subtotalWithDiscount, form.bairro.taxa]
   );
 
-  // Check if the form is valid for submission
-  const isFormValid = filteredCart.length > 0 && 
-    form.nome !== '' && 
-    form.endereco !== '' && 
-    form.numero !== '' && 
-    form.bairro.nome !== 'Selecione Um Bairro' && 
-    form.pagamento !== '';
+// Check if the form is valid for submission
+const isFormValid = filteredCart.length > 0 && 
+  form.nome !== '' && 
+  form.endereco !== '' && 
+  form.numero !== '' && 
+  form.bairro.nome !== 'Selecione Um Bairro' && 
+  form.pagamento !== '';
 
+const SENHA_BALCAO = '141288';
+const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+const [senha, setSenha] = useState('');
+const [senhaError, setSenhaError] = useState('');
   return (
     <motion.div
       key="checkout"
@@ -110,7 +119,7 @@ const CheckoutView: React.FC<CheckoutViewProps> = ({
           />
           
           <motion.button
-            onClick={onSubmit}
+            onClick={() => onSubmit(false)}
             disabled={!isFormValid || isSending}
             className="w-full bg-green-600 hover:bg-green-700 text-white rounded-md py-3 px-4 flex justify-center items-center gap-2 mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
             whileHover={{ scale: 1.02 }}
@@ -128,6 +137,61 @@ const CheckoutView: React.FC<CheckoutViewProps> = ({
               </>
             )}
           </motion.button>
+
+          {/* Botão discreto para pedido de balcão */}
+          <button
+            type="button"
+            onClick={() => { setShowPasswordDialog(true); setSenha(''); setSenhaError(''); }}
+            title="Pedido de Balcão"
+            className="fixed bottom-4 left-4 z-40 opacity-40 hover:opacity-90 bg-purple-700/60 hover:bg-purple-700 text-white rounded-full p-2 shadow-lg transition-all"
+          >
+            <ShoppingBag size={16} />
+          </button>
+
+          {/* Dialog de senha para balcão */}
+          <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
+            <DialogContent className="max-w-sm bg-black/95 border-white/20">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-bold text-white flex items-center gap-2">
+                  <Lock size={18} /> Pedido de Balcão
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="senha-balcao" className="text-white">Senha de Acesso</Label>
+                  <Input
+                    id="senha-balcao"
+                    type="password"
+                    value={senha}
+                    onChange={(e) => { setSenha(e.target.value); setSenhaError(''); }}
+                    placeholder="Digite a senha"
+                    className="mt-2"
+                    autoFocus
+                  />
+                  {senhaError && <p className="text-red-400 text-sm mt-1">{senhaError}</p>}
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20" onClick={() => setShowPasswordDialog(false)}>
+                    Cancelar
+                  </Button>
+                  <Button
+                    className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+                    onClick={() => {
+                      if (senha === SENHA_BALCAO) {
+                        setShowPasswordDialog(false);
+                        onSubmit(true);
+                      } else {
+                        setSenhaError('Senha incorreta');
+                      }
+                    }}
+                    disabled={!senha}
+                  >
+                    Acessar
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </motion.div>
