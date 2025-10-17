@@ -138,12 +138,12 @@ const [senhaError, setSenhaError] = useState('');
             )}
           </motion.button>
 
-          {/* Botão discreto para pedido de balcão */}
+          {/* Botão para pedido de balcão */}
           <button
             type="button"
             onClick={() => { setShowPasswordDialog(true); setSenha(''); setSenhaError(''); }}
             title="Pedido de Balcão"
-            className="fixed bottom-4 left-4 z-40 opacity-40 hover:opacity-90 bg-purple-700/60 hover:bg-purple-700 text-white rounded-full p-2 shadow-lg transition-all"
+            className="fixed bottom-4 left-28 bg-purple-dark/70 hover:bg-purple-dark text-white p-3 rounded-full shadow-lg transition-all duration-200"
           >
             <ShoppingBag size={16} />
           </button>
