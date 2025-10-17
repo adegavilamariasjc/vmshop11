@@ -173,16 +173,22 @@ const MotoboyPedidoDetalheModal: React.FC<MotoboyPedidoDetalheModalProps> = ({
                 Itens do Pedido
               </h3>
               <div className="space-y-2">
-                {pedido.itens.map((item: any, index: number) => (
-                  <div key={index} className="flex justify-between text-sm border-b border-gray-700 pb-2">
-                    <div>
-                      <div>{item.quantity}x {item.name}</div>
-                      {item.ice && <div className="text-gray-400 text-xs">Gelo: {item.ice}</div>}
-                      {item.alcohol && <div className="text-gray-400 text-xs">Bebida: {item.alcohol}</div>}
+                {pedido.itens.map((item: any, index: number) => {
+                  const qty = Number(item.qty) || 0;
+                  const price = Number(item.price) || 0;
+                  const itemTotal = price * qty;
+                  
+                  return (
+                    <div key={index} className="flex justify-between text-sm border-b border-gray-700 pb-2">
+                      <div>
+                        <div>{qty}x {item.name}</div>
+                        {item.ice && <div className="text-gray-400 text-xs">Gelo: {item.ice}</div>}
+                        {item.alcohol && <div className="text-gray-400 text-xs">Bebida: {item.alcohol}</div>}
+                      </div>
+                      <div className="text-green-400">R$ {itemTotal.toFixed(2)}</div>
                     </div>
-                    <div className="text-green-400">R$ {Number(item.price * item.quantity).toFixed(2)}</div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
@@ -195,15 +201,15 @@ const MotoboyPedidoDetalheModal: React.FC<MotoboyPedidoDetalheModalProps> = ({
               <div className="text-sm space-y-1">
                 <div className="flex justify-between">
                   <span>Subtotal:</span>
-                  <span>R$ {(Number(pedido.total) - Number(pedido.taxa_entrega)).toFixed(2)}</span>
+                  <span>R$ {((Number(pedido.total) || 0) - (Number(pedido.taxa_entrega) || 0)).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Taxa de Entrega:</span>
-                  <span>R$ {Number(pedido.taxa_entrega).toFixed(2)}</span>
+                  <span>R$ {(Number(pedido.taxa_entrega) || 0).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between font-bold text-lg border-t border-gray-700 pt-2">
                   <span>Total:</span>
-                  <span className="text-green-400">R$ {Number(pedido.total).toFixed(2)}</span>
+                  <span className="text-green-400">R$ {(Number(pedido.total) || 0).toFixed(2)}</span>
                 </div>
                 <div className="mt-2 pt-2 border-t border-gray-700">
                   <div><strong>Forma:</strong> {pedido.forma_pagamento}</div>

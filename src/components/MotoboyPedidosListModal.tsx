@@ -159,7 +159,7 @@ const MotoboyPedidosListModal: React.FC<MotoboyPedidosListModalProps> = ({
                       <div className="text-gray-400 truncate">{pedido.cliente_endereco}</div>
                       <div className="flex justify-between items-center mt-2 pt-2 border-t border-gray-700">
                         <span className="text-green-400 font-bold">
-                          R$ {Number(pedido.total).toFixed(2)}
+                          R$ {(Number(pedido.total) || 0).toFixed(2)}
                         </span>
                         {pedido.entregador && (
                           <Badge variant="outline" className="bg-purple-600/20 border-purple-600">
