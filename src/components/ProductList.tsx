@@ -118,8 +118,8 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
             key={`${item.id}-${item.name}`} 
             className="flex items-center gap-3 border-b border-gray-600 py-3"
           >
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-primary/10 rounded-lg">
-              <ProductIcon size={20} className="text-primary" />
+            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-purple-600/20 rounded-lg">
+              <ProductIcon size={20} className="text-purple-300" />
             </div>
             
             <div className="text-white flex-1 min-w-0">

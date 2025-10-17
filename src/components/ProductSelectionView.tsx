@@ -98,14 +98,14 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
       
       <motion.button
         onClick={handleCartClick}
-        className="fixed bottom-6 right-6 bg-purple-dark hover:bg-purple-600 text-white px-4 py-3 rounded-full shadow-lg flex items-center gap-2"
+        className="fixed bottom-6 right-6 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white px-6 py-4 rounded-full shadow-2xl flex items-center gap-3 border-2 border-purple-400/30"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         animate={filteredCart.length > 0 ? { y: [0, -5, 0], transition: { repeat: 2, duration: 0.6 } } : {}}
       >
-        <ShoppingBag size={20} />
-        <span className="font-semibold">
-          {filteredCart.length > 0 ? `${filteredCart.reduce((sum, p) => sum + (p.qty || 1), 0)} itens - R$ ${cartTotal.toFixed(2)}` : "Cardápio"}
+        <ShoppingBag size={24} />
+        <span className="font-bold text-lg">
+          {filteredCart.length > 0 ? `${filteredCart.reduce((sum, p) => sum + (p.qty || 1), 0)} itens - R$ ${cartTotal.toFixed(2)}` : "Carrinho"}
         </span>
       </motion.button>
 
