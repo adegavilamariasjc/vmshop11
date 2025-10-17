@@ -70,12 +70,12 @@ const Logo: React.FC = () => {
         loop: true,
       }}
       setApi={setApi}
-      className="w-full max-w-full sm:max-w-[400px]"
+      className="w-full max-w-full sm:max-w-[800px]"
     >
       <CarouselContent>
         {images.map((image, index) => (
           <CarouselItem key={index} className="flex items-center justify-center">
-            <div className="w-full sm:w-[400px] flex items-center justify-center">
+            <div className="w-full sm:w-[800px] flex items-center justify-center">
               <ImageModal
                 src={image.src}
                 alt={image.alt}
