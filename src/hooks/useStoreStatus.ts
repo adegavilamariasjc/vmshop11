@@ -8,8 +8,8 @@ export const useStoreStatus = () => {
     const now = new Date();
     const hour = now.getHours();
     
-    // Store is open from 18:00 to 05:00
-    return hour >= 18 || hour < 5;
+    // Store is open from 18:00 to 06:00
+    return hour >= 18 || hour < 6;
   };
 
   useEffect(() => {

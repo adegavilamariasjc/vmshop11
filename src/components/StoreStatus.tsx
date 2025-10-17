@@ -16,7 +16,7 @@ const StoreStatus = () => {
         <>
           <DoorClosed className="h-5 w-5 text-red-400" />
           <span className="text-red-400 font-medium">
-            Fechado - Abrimos às 18h
+            Fechado - Delivery das 18h às 6h
           </span>
         </>
       )}
