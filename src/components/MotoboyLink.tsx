@@ -24,7 +24,7 @@ const MotoboyLink = () => {
     <>
       <button
         onClick={() => setShowLoginModal(true)}
-        className="fixed bottom-4 left-28 bg-[hsl(291_64%_42%/0.7)] hover:bg-[hsl(291_64%_42%)] text-white p-3 rounded-full shadow-lg transition-all duration-200"
+        className="fixed bottom-4 left-16 bg-purple-dark/70 hover:bg-purple-dark text-white p-3 rounded-full shadow-lg transition-all duration-200"
         title="Área de Entregas"
       >
         <Bike size={16} />
