@@ -75,7 +75,7 @@ const isFormValid = filteredCart.length > 0 &&
   form.bairro.nome !== 'Selecione Um Bairro' && 
   form.pagamento !== '';
 
-const SENHA_BALCAO = '141288';
+const SENHA_BALCAO = 'vm11';
 const [showPasswordDialog, setShowPasswordDialog] = useState(false);
 const [senha, setSenha] = useState('');
 const [senhaError, setSenhaError] = useState('');
