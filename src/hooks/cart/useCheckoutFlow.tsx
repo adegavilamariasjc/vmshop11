@@ -36,16 +36,6 @@ export const useCheckoutFlow = (
       });
       return;
     }
-
-    // Check if store is open
-    if (!isStoreOpen) {
-      toast({
-        title: "Loja Fechada",
-        description: "Não é possível finalizar pedidos fora do horário de funcionamento. Por favor, retorne entre 18h e 5h.",
-        variant: "destructive",
-      });
-      return;
-    }
     
     // Close all modals and reset selections
     setIsFlavorModalOpen(false);
