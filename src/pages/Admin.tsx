@@ -14,6 +14,7 @@ import SimplifiedAdminPedidos from '../components/admin/SimplifiedAdminPedidos';
 import ProductManager from '../components/admin/ProductManager';
 import CategoryManager from '../components/admin/CategoryManager';
 import BairroManager from '../components/admin/BairroManager';
+import { AppCounterManager } from '../components/admin/AppCounterManager';
 
 const Admin = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -87,9 +88,10 @@ const Admin = () => {
               <h1 className="text-xl sm:text-2xl font-bold text-white mb-4">Painel Administrativo</h1>
               
               <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-                <TabsList className="grid grid-cols-5 mb-4 sm:mb-8 w-full">
+                <TabsList className="grid grid-cols-6 mb-4 sm:mb-8 w-full">
                   <TabsTrigger value="pedidos" className="text-black font-medium text-xs sm:text-sm">Delivery</TabsTrigger>
                   <TabsTrigger value="balcao" className="text-black font-medium text-xs sm:text-sm">Balcão</TabsTrigger>
+                  <TabsTrigger value="contador" className="text-black font-medium text-xs sm:text-sm">Contador</TabsTrigger>
                   <TabsTrigger value="produtos" className="text-black font-medium text-xs sm:text-sm">Produtos</TabsTrigger>
                   <TabsTrigger value="categorias" className="text-black font-medium text-xs sm:text-sm">Categorias</TabsTrigger>
                   <TabsTrigger value="bairros" className="text-black font-medium text-xs sm:text-sm">Bairros</TabsTrigger>
@@ -101,6 +103,10 @@ const Admin = () => {
                 
                 <TabsContent value="balcao" className="bg-black/50 p-4 rounded-md">
                   {activeTab === "balcao" && <SimplifiedAdminPedidos filterType="balcao" title="Pedidos Balcão" />}
+                </TabsContent>
+                
+                <TabsContent value="contador" className="bg-black/50 p-4 rounded-md">
+                  {activeTab === "contador" && <AppCounterManager />}
                 </TabsContent>
                 
                 <TabsContent value="produtos" className="bg-black/50 p-4 rounded-md">
