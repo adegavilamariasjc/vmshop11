@@ -59,7 +59,7 @@ export const useOrderHandling = () => {
     }
   };
 
-const preparePedido = async (cart: Product[], form: FormData, isOpen: boolean, isBalcao: boolean) => {
+const preparePedido = async (cart: Product[], form: FormData, isOpen: boolean, isBalcao: boolean, funcionario?: string) => {
   if (cart.length === 0) return false;
   
   // Calculate total with discounts applied
@@ -87,7 +87,7 @@ const preparePedido = async (cart: Product[], form: FormData, isOpen: boolean, i
   try {
     const pedido = await savePedido({
       codigo_pedido: codigoPedido,
-      cliente_nome: isBalcao ? `BALCÃO - ${form.nome || 'Cliente'}` : (form.nome || 'Cliente'),
+      cliente_nome: isBalcao ? `BALCÃO - ${funcionario || 'Funcionário não informado'} - ${form.nome || 'Cliente'}` : (form.nome || 'Cliente'),
       cliente_endereco: isBalcao ? 'Retirada no balcão' : (form.endereco || 'Não informado'),
       cliente_numero: isBalcao ? 's/n' : (form.numero || null),
       cliente_complemento: isBalcao ? null : (form.complemento || null),
@@ -97,7 +97,7 @@ const preparePedido = async (cart: Product[], form: FormData, isOpen: boolean, i
       cliente_whatsapp: isBalcao ? 'Não informado' : (form.whatsapp || 'Não informado'),
       forma_pagamento: form.pagamento || 'Não informado',
       troco: form.troco || null,
-      observacao: isBalcao ? `[BALCÃO] ${form.observacao || ''}` : (form.observacao || null),
+      observacao: isBalcao ? `[BALCÃO - ${funcionario || 'Funcionário não informado'}] ${form.observacao || ''}` : (form.observacao || null),
       itens: cart as any,
       total: typeof total === 'number' && !isNaN(total) ? total : 0,
       status: isOpen ? 'pendente' : 'fora_horario',
@@ -183,7 +183,7 @@ const preparePedido = async (cart: Product[], form: FormData, isOpen: boolean, i
     return `https://wa.me/5512982704573?text=${mensagemEncoded}`;
   };
 
-const processOrder = async (cart: Product[], form: FormData, isOpen: boolean, options?: { balcao?: boolean }) => {
+const processOrder = async (cart: Product[], form: FormData, isOpen: boolean, options?: { balcao?: boolean; funcionario?: string }) => {
   if (cart.length === 0) {
     return;
   }
@@ -219,7 +219,7 @@ const processOrder = async (cart: Product[], form: FormData, isOpen: boolean, op
   setIsSendingOrder(true);
   
   try {
-    const success = await preparePedido(cart, form, isOpen, isBalcao);
+    const success = await preparePedido(cart, form, isOpen, isBalcao, options?.funcionario);
     
     if (!success) {
       toast({

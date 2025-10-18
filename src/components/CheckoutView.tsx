@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface CheckoutViewProps {
   cart: Product[];
@@ -18,7 +19,7 @@ interface CheckoutViewProps {
   setForm: React.Dispatch<React.SetStateAction<FormData>>;
   bairros: { nome: string; taxa: number }[];
   onBackToProducts: () => void;
-  onSubmit: (isBalcao?: boolean) => void;
+  onSubmit: (isBalcao?: boolean, funcionario?: string) => void;
   isSending?: boolean;
   isStoreOpen: boolean;
 }
@@ -76,8 +77,10 @@ const isFormValid = filteredCart.length > 0 &&
   form.pagamento !== '';
 
 const SENHA_BALCAO = 'vm11';
+const FUNCIONARIOS = ['ANDRE', 'LUCAS', 'RAMON', 'VINICIUS', 'GABRIEL'];
 const [showPasswordDialog, setShowPasswordDialog] = useState(false);
 const [senha, setSenha] = useState('');
+const [funcionario, setFuncionario] = useState('');
 const [senhaError, setSenhaError] = useState('');
   return (
     <motion.div
@@ -141,7 +144,7 @@ const [senhaError, setSenhaError] = useState('');
           {/* Botão para pedido de balcão */}
           <button
             type="button"
-            onClick={() => { setShowPasswordDialog(true); setSenha(''); setSenhaError(''); }}
+            onClick={() => { setShowPasswordDialog(true); setSenha(''); setFuncionario(''); setSenhaError(''); }}
             title="Pedido de Balcão"
             className="fixed bottom-4 left-28 bg-purple-dark/70 hover:bg-purple-dark text-white p-3 rounded-full shadow-lg transition-all duration-200"
           >
@@ -158,6 +161,21 @@ const [senhaError, setSenhaError] = useState('');
               </DialogHeader>
               <div className="space-y-4">
                 <div>
+                  <Label htmlFor="funcionario" className="text-white">Funcionário</Label>
+                  <Select value={funcionario} onValueChange={setFuncionario}>
+                    <SelectTrigger className="mt-2 bg-white/10 border-white/20 text-white">
+                      <SelectValue placeholder="Selecione o funcionário" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {FUNCIONARIOS.map((func) => (
+                        <SelectItem key={func} value={func}>
+                          {func}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
                   <Label htmlFor="senha-balcao" className="text-white">Senha de Acesso</Label>
                   <Input
                     id="senha-balcao"
@@ -166,7 +184,6 @@ const [senhaError, setSenhaError] = useState('');
                     onChange={(e) => { setSenha(e.target.value); setSenhaError(''); }}
                     placeholder="Digite a senha"
                     className="mt-2"
-                    autoFocus
                   />
                   {senhaError && <p className="text-red-400 text-sm mt-1">{senhaError}</p>}
                 </div>
@@ -177,14 +194,18 @@ const [senhaError, setSenhaError] = useState('');
                   <Button
                     className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
                     onClick={() => {
+                      if (!funcionario) {
+                        setSenhaError('Selecione um funcionário');
+                        return;
+                      }
                       if (senha === SENHA_BALCAO) {
                         setShowPasswordDialog(false);
-                        onSubmit(true);
+                        onSubmit(true, funcionario);
                       } else {
                         setSenhaError('Senha incorreta');
                       }
                     }}
-                    disabled={!senha}
+                    disabled={!senha || !funcionario}
                   >
                     Acessar
                   </Button>
