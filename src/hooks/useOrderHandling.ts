@@ -59,9 +59,14 @@ export const useOrderHandling = () => {
     }
   };
 
-const preparePedido = async (cart: Product[], form: FormData, isOpen: boolean, isBalcao: boolean, funcionario?: string) => {
+const preparePedido = async (cart: Product[], form: FormData, isBalcao: boolean, funcionario?: string) => {
   console.log('🔄 preparePedido chamado - isBalcao:', isBalcao, '- Cliente:', isBalcao ? funcionario : form.nome);
   if (cart.length === 0) return false;
+  
+  // Check if store is open based on type (balcão or delivery)
+  const now = new Date();
+  const hour = now.getHours();
+  const isOpen = isBalcao ? (hour >= 14 || hour < 6) : (hour >= 18 || hour < 6);
   
   // Calculate total with discounts applied
   const deliveryFee = isBalcao ? 0 : form.bairro.taxa;
@@ -213,12 +218,17 @@ const preparePedido = async (cart: Product[], form: FormData, isOpen: boolean, i
     return `https://wa.me/5512982704573?text=${mensagemEncoded}`;
   };
 
-const processOrder = async (cart: Product[], form: FormData, isOpen: boolean, options?: { balcao?: boolean; funcionario?: string }) => {
+const processOrder = async (cart: Product[], form: FormData, _isOpen: boolean, options?: { balcao?: boolean; funcionario?: string }) => {
   if (cart.length === 0) {
     return;
   }
 
   const isBalcao = !!options?.balcao;
+  
+  // Check if store is open based on type (balcão or delivery)
+  const now = new Date();
+  const hour = now.getHours();
+  const isOpen = isBalcao ? (hour >= 14 || hour < 6) : (hour >= 18 || hour < 6);
 
   // Validate minimum order value only for delivery orders
   if (!isBalcao) {
@@ -249,7 +259,7 @@ const processOrder = async (cart: Product[], form: FormData, isOpen: boolean, op
   setIsSendingOrder(true);
   
   try {
-    const success = await preparePedido(cart, form, isOpen, isBalcao, options?.funcionario);
+    const success = await preparePedido(cart, form, isBalcao, options?.funcionario);
     
     if (!success) {
       toast({
