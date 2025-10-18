@@ -23,7 +23,7 @@ const OrderActions: React.FC<OrderActionsProps> = ({
         <Button 
           onClick={onPrint}
           disabled={isPrinting}
-          className="w-full bg-purple-dark hover:bg-purple-600 text-black font-medium"
+          className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium"
         >
           <Printer size={16} className="mr-2" />
           Imprimir Comanda
@@ -32,7 +32,7 @@ const OrderActions: React.FC<OrderActionsProps> = ({
         <Button 
           onClick={onDelete}
           disabled={isDeleting}
-          className="w-full bg-red-600 hover:bg-red-700 text-black font-medium"
+          className="w-full bg-red-600 hover:bg-red-700 text-white font-medium"
         >
           <Trash2 size={16} className="mr-2" />
           Excluir Pedido

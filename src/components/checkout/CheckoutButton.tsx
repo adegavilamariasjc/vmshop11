@@ -1,14 +1,15 @@
 
 import React from 'react';
+import { Button } from '@/components/ui/button';
 
 const CheckoutButton: React.FC = () => {
   return (
-    <button
+    <Button
       type="submit"
-      className="w-full p-3 bg-purple-dark hover:bg-purple text-white rounded-md font-bold"
+      className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white rounded-md font-bold"
     >
       Enviar Pedido via WhatsApp
-    </button>
+    </Button>
   );
 };
 

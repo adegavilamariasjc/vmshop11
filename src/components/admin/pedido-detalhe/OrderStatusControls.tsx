@@ -15,14 +15,14 @@ const OrderStatusControls: React.FC<OrderStatusControlsProps> = ({ currentStatus
       <div className="flex gap-2 flex-wrap">
         <Button 
           variant={currentStatus === 'pendente' ? 'default' : 'outline'}
-          className={`text-black font-medium ${currentStatus === 'pendente' ? 'bg-yellow-600 hover:bg-yellow-700' : 'border-gray-600'}`}
+          className={`font-medium ${currentStatus === 'pendente' ? 'bg-yellow-600 hover:bg-yellow-700 text-black' : 'text-white'}`}
           onClick={() => onUpdateStatus('pendente')}
         >
           Pendente
         </Button>
         <Button 
           variant={currentStatus === 'preparando' ? 'default' : 'outline'}
-          className={`text-black font-medium ${currentStatus === 'preparando' ? 'bg-blue-600 hover:bg-blue-700' : 'border-gray-600'}`}
+          className={`font-medium ${currentStatus === 'preparando' ? 'bg-blue-600 hover:bg-blue-700 text-black' : 'text-white'}`}
           onClick={() => onUpdateStatus('preparando')}
         >
           <ShoppingBag size={16} className="mr-1" />
@@ -30,7 +30,7 @@ const OrderStatusControls: React.FC<OrderStatusControlsProps> = ({ currentStatus
         </Button>
         <Button 
           variant={currentStatus === 'em_deslocamento' ? 'default' : 'outline'}
-          className={`text-black font-medium ${currentStatus === 'em_deslocamento' ? 'bg-orange-600 hover:bg-orange-700' : 'border-gray-600'}`}
+          className={`font-medium ${currentStatus === 'em_deslocamento' ? 'bg-orange-600 hover:bg-orange-700 text-black' : 'text-white'}`}
           onClick={() => onUpdateStatus('em_deslocamento')}
         >
           <Truck size={16} className="mr-1" />
@@ -38,7 +38,7 @@ const OrderStatusControls: React.FC<OrderStatusControlsProps> = ({ currentStatus
         </Button>
         <Button 
           variant={currentStatus === 'entregue' ? 'default' : 'outline'}
-          className={`text-black font-medium ${currentStatus === 'entregue' ? 'bg-green-600 hover:bg-green-700' : 'border-gray-600'}`}
+          className={`font-medium ${currentStatus === 'entregue' ? 'bg-green-600 hover:bg-green-700 text-black' : 'text-white'}`}
           onClick={() => onUpdateStatus('entregue')}
         >
           <Check size={16} className="mr-1" />
@@ -46,7 +46,7 @@ const OrderStatusControls: React.FC<OrderStatusControlsProps> = ({ currentStatus
         </Button>
         <Button 
           variant={currentStatus === 'cancelado' ? 'default' : 'outline'}
-          className={`text-black font-medium ${currentStatus === 'cancelado' ? 'bg-red-600 hover:bg-red-700' : 'border-gray-600'}`}
+          className={`font-medium ${currentStatus === 'cancelado' ? 'bg-red-600 hover:bg-red-700 text-black' : 'text-white'}`}
           onClick={() => onUpdateStatus('cancelado')}
         >
           <X size={16} className="mr-1" />
