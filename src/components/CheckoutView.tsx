@@ -121,32 +121,31 @@ const [senhaError, setSenhaError] = useState('');
             bairros={bairros}
           />
           
-          <motion.button
+          <Button
             onClick={() => onSubmit(false)}
             disabled={!isFormValid || isSending}
-            className="w-full bg-green-600 hover:bg-green-700 text-white rounded-md py-3 px-4 flex justify-center items-center gap-2 mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            variant="success"
+            className="w-full py-6 mt-6"
           >
             {isSending ? (
               <>
-                <Loader2 size={18} className="animate-spin" />
+                <Loader2 size={18} className="animate-spin mr-2" />
                 <span>Enviando Pedido...</span>
               </>
             ) : (
               <>
-                <Send size={18} />
+                <Send size={18} className="mr-2" />
                 <span>{isStoreOpen ? 'Enviar Pedido via WhatsApp' : 'Registrar Pedido (Fora do Horário)'}</span>
               </>
             )}
-          </motion.button>
+          </Button>
 
           {/* Botão para pedido de balcão */}
           <button
             type="button"
             onClick={() => { setShowPasswordDialog(true); setSenha(''); setFuncionario(''); setSenhaError(''); }}
             title="Pedido de Balcão"
-            className="fixed bottom-4 left-28 bg-purple-dark/70 hover:bg-purple-dark text-white p-3 rounded-full shadow-lg transition-all duration-200"
+            className="fixed bottom-4 left-28 bg-accent-purple/70 hover:bg-accent-purple text-accent-purple-foreground p-3 rounded-full shadow-lg transition-all duration-200"
           >
             <ShoppingBag size={16} />
           </button>
@@ -196,7 +195,8 @@ const [senhaError, setSenhaError] = useState('');
                     Cancelar
                   </Button>
                   <Button
-                    className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
+                    variant="purple"
+                    className="flex-1"
                     onClick={() => {
                       if (!funcionario) {
                         setSenhaError('Selecione um funcionário');

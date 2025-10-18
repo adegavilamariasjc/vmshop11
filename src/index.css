@@ -28,6 +28,12 @@
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --accent-purple: 271 91% 65%;
+    --accent-purple-foreground: 0 0% 100%;
+
     --border: 0 0% 30%;
     --input: 0 0% 30%;
     --ring: 0 0% 100%;
@@ -75,6 +81,12 @@
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
+
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --accent-purple: 271 91% 65%;
+    --accent-purple-foreground: 0 0% 100%;
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;

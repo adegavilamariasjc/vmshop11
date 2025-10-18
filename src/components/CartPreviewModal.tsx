@@ -98,7 +98,8 @@ const CartPreviewModal: React.FC<CartPreviewModalProps> = ({
             Limpar
           </Button>
           <Button
-            className="w-full bg-purple-dark hover:bg-purple-600"
+            variant="purple"
+            className="w-full"
             onClick={handleProceed}
             disabled={filteredCart.length === 0}
           >

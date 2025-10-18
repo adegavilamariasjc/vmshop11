@@ -98,7 +98,7 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
       
       <motion.button
         onClick={handleCartClick}
-        className="fixed bottom-6 right-6 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white px-6 py-4 rounded-full shadow-2xl flex items-center gap-3 border-2 border-purple-400/30"
+        className="fixed bottom-6 right-6 bg-accent-purple hover:bg-accent-purple/90 text-accent-purple-foreground px-6 py-4 rounded-full shadow-2xl flex items-center gap-3 border-2 border-accent-purple/30"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         animate={filteredCart.length > 0 ? { y: [0, -5, 0], transition: { repeat: 2, duration: 0.6 } } : {}}
