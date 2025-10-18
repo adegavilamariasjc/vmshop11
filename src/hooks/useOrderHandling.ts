@@ -105,7 +105,35 @@ const preparePedido = async (cart: Product[], form: FormData, isOpen: boolean, i
       entregador: null
     });
     
-    // Pedido saved successfully - Telegram will be sent when deliverer is selected
+    // Send to Telegram only for delivery orders (not balcão)
+    if (pedido && !isBalcao) {
+      try {
+        await supabase.functions.invoke('send-telegram-order', {
+          body: {
+            codigoPedido: pedido.codigo_pedido,
+            clienteNome: pedido.cliente_nome,
+            clienteEndereco: pedido.cliente_endereco,
+            clienteNumero: pedido.cliente_numero,
+            clienteComplemento: pedido.cliente_complemento,
+            clienteReferencia: pedido.cliente_referencia,
+            clienteBairro: pedido.cliente_bairro,
+            taxaEntrega: pedido.taxa_entrega,
+            clienteWhatsapp: pedido.cliente_whatsapp,
+            formaPagamento: pedido.forma_pagamento,
+            troco: pedido.troco,
+            observacao: pedido.observacao,
+            itens: pedido.itens,
+            total: pedido.total,
+            discountAmount: pedido.discount_amount,
+            entregador: pedido.entregador
+          }
+        });
+        console.log('Pedido delivery enviado para Telegram:', pedido.codigo_pedido);
+      } catch (telegramError) {
+        console.error('Erro ao enviar para Telegram:', telegramError);
+        // Não bloqueia o pedido se falhar o envio para Telegram
+      }
+    }
     
     return !!pedido;
   } catch (err) {
