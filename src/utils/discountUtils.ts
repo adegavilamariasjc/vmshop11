@@ -42,8 +42,8 @@ export const calculateBeerDiscount = (product: {
     };
   }
   
-  // Apply 10% discount to units that are multiples of 12
-  const discountPercentage = 10;
+  // Apply 23% discount to units that are multiples of 12
+  const discountPercentage = 23;
   const discountedUnitPrice = product.price * (1 - discountPercentage / 100);
   
   // Calculate final price: (discounted units * discounted price) + (regular units * regular price)
