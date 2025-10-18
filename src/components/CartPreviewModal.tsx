@@ -40,14 +40,6 @@ const CartPreviewModal: React.FC<CartPreviewModalProps> = ({
   const cartTotal = filteredCart.reduce((sum, item) => sum + getProductDisplayPrice(item), 0);
 
   const handleProceed = () => {
-    if (cartTotal < 20) {
-      toast({
-        title: "Valor mínimo não atingido",
-        description: "O pedido mínimo é de R$ 20,00",
-        variant: "destructive",
-      });
-      return;
-    }
     onClose();
     onProceedToCheckout();
   };

@@ -190,6 +190,19 @@ const processOrder = async (cart: Product[], form: FormData, isOpen: boolean, op
 
   const isBalcao = !!options?.balcao;
 
+  // Validate minimum order value only for delivery orders
+  if (!isBalcao) {
+    const cartTotal = cart.reduce((sum, p) => sum + getProductDisplayPrice(p), 0);
+    if (cartTotal < 20) {
+      toast({
+        title: 'Valor mínimo não atingido',
+        description: 'O pedido mínimo para delivery é de R$ 20,00',
+        variant: 'destructive'
+      });
+      return;
+    }
+  }
+
   // Validate WhatsApp number only for delivery orders
   if (!isBalcao) {
     const cleanWhatsApp = form.whatsapp.replace(/\D/g, '');
