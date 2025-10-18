@@ -60,6 +60,7 @@ export const useOrderHandling = () => {
   };
 
 const preparePedido = async (cart: Product[], form: FormData, isOpen: boolean, isBalcao: boolean, funcionario?: string) => {
+  console.log('🔄 preparePedido chamado - isBalcao:', isBalcao, '- Cliente:', isBalcao ? funcionario : form.nome);
   if (cart.length === 0) return false;
   
   // Calculate total with discounts applied
@@ -107,6 +108,7 @@ const preparePedido = async (cart: Product[], form: FormData, isOpen: boolean, i
     
     // Send to Telegram only for delivery orders (not balcão)
     if (pedido && !isBalcao) {
+      console.log('📤 Enviando pedido para Telegram:', pedido.codigo_pedido);
       try {
         await supabase.functions.invoke('send-telegram-order', {
           body: {
