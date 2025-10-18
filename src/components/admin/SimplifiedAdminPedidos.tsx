@@ -46,11 +46,18 @@ const SimplifiedAdminPedidos: React.FC<SimplifiedAdminPedidosProps> = ({
     // Setup realtime with audio alerts
     const cleanup = setupRealtimeMonitoring((updatedPedidos) => {
       console.log('📥 Pedidos updated via realtime:', updatedPedidos.length);
-      setPedidos(updatedPedidos);
+      
+      // Apply the same filter as loadPedidos
+      const filteredPedidos = filterType === 'balcao'
+        ? updatedPedidos.filter(p => p.cliente_bairro === 'BALCAO')
+        : updatedPedidos.filter(p => p.cliente_bairro !== 'BALCAO');
+      
+      console.log('🔍 Filtered pedidos for', filterType, ':', filteredPedidos.length);
+      setPedidos(filteredPedidos);
     });
 
     return cleanup;
-  }, [setupRealtimeMonitoring]);
+  }, [setupRealtimeMonitoring, filterType]);
 
   const loadPedidos = async () => {
     setIsLoading(true);
