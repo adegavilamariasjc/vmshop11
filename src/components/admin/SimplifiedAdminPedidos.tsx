@@ -22,7 +22,15 @@ interface PedidoSimplificado {
   forma_pagamento: string;
 }
 
-const SimplifiedAdminPedidos: React.FC = () => {
+interface SimplifiedAdminPedidosProps {
+  filterType?: 'delivery' | 'balcao';
+  title?: string;
+}
+
+const SimplifiedAdminPedidos: React.FC<SimplifiedAdminPedidosProps> = ({ 
+  filterType = 'delivery',
+  title = 'Pedidos'
+}) => {
   const [pedidos, setPedidos] = useState<PedidoSimplificado[]>([]);
   const [selectedPedido, setSelectedPedido] = useState<string | null>(null);
   const [showDetalhe, setShowDetalhe] = useState(false);
@@ -47,10 +55,18 @@ const SimplifiedAdminPedidos: React.FC = () => {
   const loadPedidos = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('pedidos')
-        .select('id, codigo_pedido, cliente_nome, cliente_bairro, status, total, taxa_entrega, data_criacao, forma_pagamento')
-        .order('data_criacao', { ascending: false });
+        .select('id, codigo_pedido, cliente_nome, cliente_bairro, status, total, taxa_entrega, data_criacao, forma_pagamento');
+
+      // Apply filter based on type
+      if (filterType === 'balcao') {
+        query = query.eq('cliente_bairro', 'BALCAO');
+      } else {
+        query = query.neq('cliente_bairro', 'BALCAO');
+      }
+
+      const { data, error } = await query.order('data_criacao', { ascending: false });
 
       if (error) throw error;
       setPedidos(data || []);
@@ -177,7 +193,7 @@ const SimplifiedAdminPedidos: React.FC = () => {
   return (
     <div>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
-        <h2 className="text-lg sm:text-xl font-bold text-white">Pedidos</h2>
+        <h2 className="text-lg sm:text-xl font-bold text-white">{title}</h2>
         <Button 
           onClick={handleRefresh} 
           disabled={refreshing}

@@ -87,15 +87,20 @@ const Admin = () => {
               <h1 className="text-xl sm:text-2xl font-bold text-white mb-4">Painel Administrativo</h1>
               
               <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-                <TabsList className="grid grid-cols-4 mb-4 sm:mb-8 w-full">
-                  <TabsTrigger value="pedidos" className="text-black font-medium text-xs sm:text-sm">Pedidos</TabsTrigger>
+                <TabsList className="grid grid-cols-5 mb-4 sm:mb-8 w-full">
+                  <TabsTrigger value="pedidos" className="text-black font-medium text-xs sm:text-sm">Delivery</TabsTrigger>
+                  <TabsTrigger value="balcao" className="text-black font-medium text-xs sm:text-sm">Balcão</TabsTrigger>
                   <TabsTrigger value="produtos" className="text-black font-medium text-xs sm:text-sm">Produtos</TabsTrigger>
                   <TabsTrigger value="categorias" className="text-black font-medium text-xs sm:text-sm">Categorias</TabsTrigger>
                   <TabsTrigger value="bairros" className="text-black font-medium text-xs sm:text-sm">Bairros</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="pedidos" className="bg-black/50 p-4 rounded-md">
-                  {activeTab === "pedidos" && <SimplifiedAdminPedidos key="pedidos" />}
+                  {activeTab === "pedidos" && <SimplifiedAdminPedidos key="pedidos" filterType="delivery" title="Pedidos Delivery" />}
+                </TabsContent>
+                
+                <TabsContent value="balcao" className="bg-black/50 p-4 rounded-md">
+                  {activeTab === "balcao" && <SimplifiedAdminPedidos key="balcao" filterType="balcao" title="Pedidos Balcão" />}
                 </TabsContent>
                 
                 <TabsContent value="produtos" className="bg-black/50 p-4 rounded-md">
