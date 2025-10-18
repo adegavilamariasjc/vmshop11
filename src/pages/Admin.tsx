@@ -96,11 +96,11 @@ const Admin = () => {
                 </TabsList>
                 
                 <TabsContent value="pedidos" className="bg-black/50 p-4 rounded-md">
-                  {activeTab === "pedidos" && <SimplifiedAdminPedidos key="pedidos" filterType="delivery" title="Pedidos Delivery" />}
+                  <SimplifiedAdminPedidos key="delivery-tab" filterType="delivery" title="Pedidos Delivery" />
                 </TabsContent>
                 
                 <TabsContent value="balcao" className="bg-black/50 p-4 rounded-md">
-                  {activeTab === "balcao" && <SimplifiedAdminPedidos key="balcao" filterType="balcao" title="Pedidos Balcão" />}
+                  <SimplifiedAdminPedidos key="balcao-tab" filterType="balcao" title="Pedidos Balcão" />
                 </TabsContent>
                 
                 <TabsContent value="produtos" className="bg-black/50 p-4 rounded-md">
