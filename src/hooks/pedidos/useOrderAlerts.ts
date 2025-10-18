@@ -12,42 +12,58 @@ export const useOrderAlerts = () => {
   // Initialize delivery audio (order.mp3)
   const initializeDeliveryAudio = useCallback(() => {
     if (!deliveryAudioRef.current) {
+      console.log('🎵 Inicializando audio de delivery...');
       deliveryAudioRef.current = new Audio('/order.mp3');
       deliveryAudioRef.current.loop = true;
       deliveryAudioRef.current.volume = 0.8;
       deliveryAudioRef.current.preload = 'auto';
       
       deliveryAudioRef.current.onerror = (e) => {
-        console.error('Delivery audio loading error:', e);
+        console.error('❌ Erro ao carregar audio de delivery:', e);
+        console.error('Verifique se o arquivo /order.mp3 existe em public/');
       };
       
       deliveryAudioRef.current.oncanplaythrough = () => {
-        console.log('🔊 Audio de delivery pronto');
+        console.log('✅ Audio de delivery carregado e pronto para tocar');
       };
+
+      deliveryAudioRef.current.onloadeddata = () => {
+        console.log('📂 Dados do audio de delivery carregados');
+      };
+    } else {
+      console.log('🔄 Audio de delivery já inicializado');
     }
   }, []);
 
   // Initialize balcão audio (caixaregistradora.mp3)
   const initializeBalcaoAudio = useCallback(() => {
     if (!balcaoAudioRef.current) {
+      console.log('💰 Inicializando audio de balcão (caixa registradora)...');
       balcaoAudioRef.current = new Audio('/caixaregistradora.mp3');
       balcaoAudioRef.current.loop = false; // Toca apenas uma vez
       balcaoAudioRef.current.volume = 1.0;
       balcaoAudioRef.current.preload = 'auto';
       
       balcaoAudioRef.current.onerror = (e) => {
-        console.error('Balcão audio loading error:', e);
+        console.error('❌ Erro ao carregar audio de balcão:', e);
+        console.error('Verifique se o arquivo /caixaregistradora.mp3 existe em public/');
       };
       
       balcaoAudioRef.current.oncanplaythrough = () => {
-        console.log('🔊 Audio de balcão pronto');
+        console.log('✅ Audio de balcão carregado e pronto para tocar');
+      };
+
+      balcaoAudioRef.current.onloadeddata = () => {
+        console.log('📂 Dados do audio de balcão carregados');
       };
 
       // Quando terminar de tocar, reseta o estado
       balcaoAudioRef.current.onended = () => {
-        console.log('✅ Audio de balcão terminou');
+        console.log('✅ Audio de balcão terminou de tocar');
         isPlayingBalcaoRef.current = false;
       };
+    } else {
+      console.log('🔄 Audio de balcão já inicializado');
     }
   }, []);
 
@@ -58,24 +74,34 @@ export const useOrderAlerts = () => {
     
     // Play delivery alert
     if (deliveryOrders.length > 0 && !isPlayingDeliveryRef.current) {
-      console.log('🎵 Starting delivery audio alert');
+      console.log('🎵 Tentando iniciar alerta de delivery para', deliveryOrders.length, 'pedidos');
       initializeDeliveryAudio();
       
       if (deliveryAudioRef.current) {
+        console.log('📱 Estado do audio delivery:', {
+          paused: deliveryAudioRef.current.paused,
+          currentTime: deliveryAudioRef.current.currentTime,
+          readyState: deliveryAudioRef.current.readyState,
+          networkState: deliveryAudioRef.current.networkState
+        });
+        
         deliveryAudioRef.current.currentTime = 0;
         isPlayingDeliveryRef.current = true;
         
         deliveryAudioRef.current.play()
           .then(() => {
-            console.log('✅ Delivery alert started');
+            console.log('✅ Alerta de delivery tocando com sucesso!');
           })
           .catch(e => {
-            console.error('❌ Erro ao tocar alerta delivery:', e);
+            console.error('❌ ERRO ao tocar alerta delivery:', e);
+            console.error('Tipo de erro:', e.name, e.message);
             isPlayingDeliveryRef.current = false;
           });
+      } else {
+        console.error('❌ deliveryAudioRef.current é null!');
       }
     } else if (deliveryOrders.length === 0 && isPlayingDeliveryRef.current) {
-      // Stop delivery alert if no delivery orders
+      console.log('🔇 Parando alerta de delivery (sem pedidos pendentes)');
       if (deliveryAudioRef.current) {
         deliveryAudioRef.current.pause();
         deliveryAudioRef.current.currentTime = 0;
@@ -97,10 +123,17 @@ export const useOrderAlerts = () => {
       const newBalcaoOrders = balcaoOrders.filter(o => !playedBalcaoPedidosRef.current.has(o.id));
       
       if (newBalcaoOrders.length > 0 && !isPlayingBalcaoRef.current) {
-        console.log('🎵 Starting balcão audio alert for', newBalcaoOrders.length, 'new orders');
+        console.log('💰 Tentando tocar som de caixa registradora para', newBalcaoOrders.length, 'pedidos novos de balcão');
         initializeBalcaoAudio();
         
         if (balcaoAudioRef.current) {
+          console.log('📱 Estado do audio balcão:', {
+            paused: balcaoAudioRef.current.paused,
+            currentTime: balcaoAudioRef.current.currentTime,
+            readyState: balcaoAudioRef.current.readyState,
+            networkState: balcaoAudioRef.current.networkState
+          });
+          
           balcaoAudioRef.current.currentTime = 0;
           isPlayingBalcaoRef.current = true;
           
@@ -109,12 +142,15 @@ export const useOrderAlerts = () => {
           
           balcaoAudioRef.current.play()
             .then(() => {
-              console.log('✅ Balcão alert started');
+              console.log('✅ Som de caixa registradora tocando com sucesso!');
             })
             .catch(e => {
-              console.error('❌ Erro ao tocar alerta balcão:', e);
+              console.error('❌ ERRO ao tocar caixa registradora:', e);
+              console.error('Tipo de erro:', e.name, e.message);
               isPlayingBalcaoRef.current = false;
             });
+        } else {
+          console.error('❌ balcaoAudioRef.current é null!');
         }
       }
     } else {
