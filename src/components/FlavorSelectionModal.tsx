@@ -121,45 +121,45 @@ const FlavorSelectionModal: React.FC<FlavorSelectionModalProps> = ({
         initial={{ scale: 0.9 }}
         animate={{ scale: 1 }}
         exit={{ scale: 0.9 }}
-        className="bg-gray-900 border border-purple-dark/50 rounded-lg p-5 w-full max-w-md"
+        className="bg-gray-900 border border-purple-dark/50 rounded-lg p-4 w-full max-w-md max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-bold text-white">
-            Escolha o(s) sabor(es) de gelo para:
+        <div className="flex justify-between items-center mb-3">
+          <h2 className="text-base font-bold text-white">
+            Escolha o(s) sabor(es) de gelo
           </h2>
           <button 
             onClick={() => !isSubmitting && onClose()} 
             className="text-gray-300 hover:text-white"
             disabled={isSubmitting}
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
         
-        <h3 className="text-purple-light font-semibold mb-4">{product.name}</h3>
+        <h3 className="text-purple-light font-semibold mb-3 text-sm">{product.name}</h3>
         
-        <div className="space-y-3 mb-5">
+        <div className="space-y-2 mb-3">
           {iceFlavors.map(flavor => (
-            <div key={flavor} className="flex items-center justify-between bg-gray-800/90 rounded-md p-3">
-              <span className="text-white">{flavor}</span>
+            <div key={flavor} className="flex items-center justify-between bg-gray-800/90 rounded-md p-2">
+              <span className="text-white text-sm">{flavor}</span>
               
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => !isSubmitting && handleIceUpdate(flavor, -1)}
-                  className="w-8 h-8 flex items-center justify-center bg-gray-700 text-white rounded-full"
+                  className="w-7 h-7 flex items-center justify-center bg-gray-700 text-white rounded-full hover:bg-gray-600"
                   disabled={!selectedIce[flavor] || isSubmitting}
                 >
-                  <Minus size={16} />
+                  <Minus size={14} />
                 </button>
                 
-                <span className="text-white w-5 text-center">
+                <span className="text-white w-4 text-center text-sm font-semibold">
                   {selectedIce[flavor] || 0}
                 </span>
                 
                 <button
                   onClick={() => !isSubmitting && handleIceUpdate(flavor, 1)}
-                  className="w-8 h-8 flex items-center justify-center bg-purple-dark text-white rounded-full"
+                  className="w-7 h-7 flex items-center justify-center bg-purple-600 text-white rounded-full hover:bg-purple-500"
                   disabled={
                     isSubmitting ||
                     (flavor === 'Gelo de Água' && waterIceQuantity >= 5) ||
@@ -168,36 +168,36 @@ const FlavorSelectionModal: React.FC<FlavorSelectionModalProps> = ({
                     totalIce >= maxIce
                   }
                 >
-                  <Plus size={16} />
+                  <Plus size={14} />
                 </button>
               </div>
             </div>
           ))}
         </div>
         
-        <div className="text-sm text-gray-300 mb-4">
-          Total selecionado: {totalIce} de {maxIce} unidades
+        <div className="text-xs text-gray-300 mb-3 bg-gray-800/50 p-2 rounded">
+          <div className="font-semibold">Total: {totalIce} de {maxIce} unidades</div>
           {normalizeText(product?.category).includes('copao') && (
-            <div className="mt-2 text-purple-light font-semibold">
-              ⚠️ Copão: selecione apenas 1 gelo
+            <div className="mt-1 text-purple-light">
+              ⚠️ Copão: apenas 1 gelo
             </div>
           )}
           {normalizeText(product?.category).includes('combo') && (
-            <div className="mt-2 text-purple-light font-semibold">
-              ⚠️ Combos devem ter exatamente 5 unidades de gelo
+            <div className="mt-1 text-purple-light">
+              ⚠️ Combo: exatamente 5 gelos
             </div>
           )}
           {waterIceQuantity === 5 && (
-            <div className="mt-2 text-purple-light font-semibold">
-              5 gelos de água = 1 saco grande de gelo
+            <div className="mt-1 text-green-400">
+              ✓ 5 gelos de água = 1 saco grande
             </div>
           )}
         </div>
         
-        <div className="flex gap-3 justify-end">
+        <div className="flex gap-2 justify-end">
           <button 
             onClick={() => !isSubmitting && onClose()}
-            className="px-4 py-2 bg-gray-700 text-white rounded"
+            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded text-sm font-medium"
             disabled={isSubmitting}
           >
             Cancelar
@@ -205,12 +205,12 @@ const FlavorSelectionModal: React.FC<FlavorSelectionModalProps> = ({
           
           <button 
             onClick={handleConfirm}
-            className={`px-4 py-2 rounded ${
+            className={`px-4 py-2 rounded text-sm font-bold ${
               totalIce === 0 || isSubmitting || 
               (normalizeText(product?.category).includes('copao') && totalIce !== 1) ||
               (normalizeText(product?.category).includes('combo') && totalIce !== 5)
-                ? 'bg-gray-600 text-gray-300 cursor-not-allowed' 
-                : 'bg-purple-dark text-white'
+                ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
+                : 'bg-purple-600 hover:bg-purple-500 text-white shadow-lg'
             }`}
             disabled={
               totalIce === 0 || 
@@ -219,7 +219,7 @@ const FlavorSelectionModal: React.FC<FlavorSelectionModalProps> = ({
               (normalizeText(product?.category).includes('combo') && totalIce !== 5)
             }
           >
-            {isSubmitting ? 'Processando...' : 'Confirmar'}
+            {isSubmitting ? 'Processando...' : 'Confirmar Seleção'}
           </button>
         </div>
       </motion.div>

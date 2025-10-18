@@ -284,57 +284,57 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !isSubmitting && !open && onClose()}>
-      <DialogContent className="max-h-[85vh] overflow-y-auto z-[80] bg-gray-900 border-purple-dark/50">
-        <DialogHeader>
-          <DialogTitle className="text-lg font-bold text-white">
-            Qual energético acompanha o {productType === 'copao' ? 'copão' : 'combo'}?
+      <DialogContent className="max-h-[90vh] overflow-y-auto z-[80] bg-gray-900 border-purple-dark/50">
+        <DialogHeader className="pb-2">
+          <DialogTitle className="text-base font-bold text-white">
+            Qual energético acompanha?
           </DialogTitle>
-          <DialogDescription className="text-gray-200 text-sm">
+          <DialogDescription className="text-gray-300 text-xs">
             {productType === 'copao' 
-              ? 'Selecione 1 energético para o seu copão'
-              : 'Selecione os energéticos desejados (máx. 5 latas no total para Red Bull e Monster, 1 para os demais)'}
+              ? 'Selecione 1 energético'
+              : 'Máx. 5 latas (Red Bull/Monster) ou 1 de 2L'}
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+        <div className="space-y-2 max-h-[55vh] overflow-y-auto pr-1">
           {energyDrinkOptions.map((option) => {
             const extraCost = productType === 'copao' 
               ? (option.extraCostCopao !== undefined ? option.extraCostCopao : option.extraCost)
               : option.extraCost;
               
             return (
-              <div key={option.name} className="bg-gray-800 rounded-lg p-3 border border-gray-700">
-                <h3 className="text-purple-light font-semibold mb-2 flex items-center gap-2 text-sm">
+              <div key={option.name} className="bg-gray-800 rounded-lg p-2 border border-gray-700">
+                <h3 className="text-purple-light font-semibold mb-1.5 flex items-center gap-2 text-xs">
                   🔹 {option.name}
                   {extraCost > 0 && (
-                    <span className="text-xs text-gray-200">(+R${extraCost.toFixed(2)})</span>
+                    <span className="text-xs text-gray-300">(+R${extraCost.toFixed(2)})</span>
                   )}
                 </h3>
-                <div className="grid grid-cols-2 gap-1 text-xs">
+                <div className="grid grid-cols-2 gap-1">
                   {option.flavors.map((flavor) => {
                     const quantity = selections[option.name]?.[flavor] || 0;
                     return (
                       <div
                         key={`${option.name}-${flavor}`}
-                        className="flex items-center justify-between px-2 py-1 rounded bg-gray-700/50 text-white"
+                        className="flex items-center justify-between px-1.5 py-1 rounded bg-gray-700/50 text-white text-xs"
                       >
-                        <span>• {flavor}</span>
-                        <div className="flex items-center gap-2">
+                        <span className="truncate">• {flavor}</span>
+                        <div className="flex items-center gap-1">
                           {quantity > 0 && (
                             <>
                               <button
                                 onClick={() => handleRemoveEnergyDrink(option.name, flavor)}
-                                className="p-1 hover:bg-purple-dark/50 rounded"
+                                className="p-0.5 hover:bg-purple-600 rounded"
                                 disabled={isSubmitting}
                               >
                                 <Minus className="h-3 w-3" />
                               </button>
-                              <span className="min-w-[20px] text-center">{quantity}</span>
+                              <span className="min-w-[16px] text-center font-semibold">{quantity}</span>
                             </>
                           )}
                           <button
                             onClick={() => handleAddEnergyDrink(option.name, flavor)}
-                            className="p-1 hover:bg-purple-dark/50 rounded"
+                            className="p-0.5 hover:bg-purple-600 rounded bg-purple-700"
                             disabled={isSubmitting}
                           >
                             <Plus className="h-3 w-3" />
@@ -349,10 +349,10 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
           })}
         </div>
         
-        <div className="mt-4">
+        <div className="mt-3">
           <Button 
             onClick={handleConfirm}
-            className="w-full bg-purple-dark hover:bg-purple-600"
+            className="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold shadow-lg"
             disabled={isSubmitting}
           >
             {isSubmitting ? (
