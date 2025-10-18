@@ -697,7 +697,8 @@ export const requiresAlcoholChoice = (category: string) => {
 
 export const getMaxIce = (category: string) => {
   const normalized = normalizeText(category);
-  if (normalized.includes('copao') || normalized.includes('combo')) return 5;
+  if (normalized.includes('copao')) return 1; // Copão: apenas 1 gelo
+  if (normalized.includes('combo')) return 5; // Combo: 5 gelos obrigatórios
   return 0;
 };
 

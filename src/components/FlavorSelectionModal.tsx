@@ -42,7 +42,20 @@ const FlavorSelectionModal: React.FC<FlavorSelectionModalProps> = ({
   const hasOtherIceSelected = Object.entries(selectedIce)
     .some(([flavor, qty]) => flavor !== 'Gelo de Água' && qty > 0);
 
+  const isCopao = normalizeText(product.category || '').includes('copao');
+  const isCombo = normalizeText(product.category || '').includes('combo');
+  
   const handleIceUpdate = (flavor: string, delta: number) => {
+    // COPÃO: só pode escolher 1 gelo no total
+    if (isCopao && delta > 0 && totalIce >= 1) {
+      toast({
+        title: "Limite atingido",
+        description: "Para copão, você pode selecionar apenas 1 gelo.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     // Se está tentando adicionar gelo de água e já tem outros gelos
     if (flavor === 'Gelo de Água' && delta > 0 && hasOtherIceSelected) {
       toast({
@@ -164,6 +177,11 @@ const FlavorSelectionModal: React.FC<FlavorSelectionModalProps> = ({
         
         <div className="text-sm text-gray-300 mb-4">
           Total selecionado: {totalIce} de {maxIce} unidades
+          {normalizeText(product?.category).includes('copao') && (
+            <div className="mt-2 text-purple-light font-semibold">
+              ⚠️ Copão: selecione apenas 1 gelo
+            </div>
+          )}
           {normalizeText(product?.category).includes('combo') && (
             <div className="mt-2 text-purple-light font-semibold">
               ⚠️ Combos devem ter exatamente 5 unidades de gelo
@@ -189,11 +207,17 @@ const FlavorSelectionModal: React.FC<FlavorSelectionModalProps> = ({
             onClick={handleConfirm}
             className={`px-4 py-2 rounded ${
               totalIce === 0 || isSubmitting || 
+              (normalizeText(product?.category).includes('copao') && totalIce !== 1) ||
               (normalizeText(product?.category).includes('combo') && totalIce !== 5)
                 ? 'bg-gray-600 text-gray-300 cursor-not-allowed' 
                 : 'bg-purple-dark text-white'
             }`}
-            disabled={totalIce === 0 || isSubmitting || (normalizeText(product?.category).includes('combo') && totalIce !== 5)}
+            disabled={
+              totalIce === 0 || 
+              isSubmitting || 
+              (normalizeText(product?.category).includes('copao') && totalIce !== 1) ||
+              (normalizeText(product?.category).includes('combo') && totalIce !== 5)
+            }
           >
             {isSubmitting ? 'Processando...' : 'Confirmar'}
           </button>

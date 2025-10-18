@@ -61,6 +61,16 @@ export const useCartModals = (
       return;
     }
     
+    // Validação específica para copão (deve ter exatamente 1 gelo)
+    if (normalizeText(selectedProductForFlavor?.category).includes('copao') && totalIce !== 1) {
+      toast({
+        title: "Seleção incompleta",
+        description: "Copão deve ter exatamente 1 unidade de gelo.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     // Validação específica para combos (devem ter exatamente 5 gelos)
     if (normalizeText(selectedProductForFlavor?.category).includes('combo') && totalIce !== 5) {
       toast({
