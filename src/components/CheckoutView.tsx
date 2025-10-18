@@ -166,9 +166,13 @@ const [senhaError, setSenhaError] = useState('');
                     <SelectTrigger className="mt-2 bg-white/10 border-white/20 text-white">
                       <SelectValue placeholder="Selecione o funcionário" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-gray-900 border-white/20 z-50">
                       {FUNCIONARIOS.map((func) => (
-                        <SelectItem key={func} value={func}>
+                        <SelectItem 
+                          key={func} 
+                          value={func}
+                          className="text-white hover:bg-white/10 focus:bg-white/20 cursor-pointer"
+                        >
                           {func}
                         </SelectItem>
                       ))}
