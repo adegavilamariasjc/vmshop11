@@ -10,12 +10,14 @@ export const useCartState = () => {
   const [isAlcoholModalOpen, setIsAlcoholModalOpen] = useState(false);
   const [isBalyModalOpen, setIsBalyModalOpen] = useState(false);
   const [isEnergyDrinkModalOpen, setIsEnergyDrinkModalOpen] = useState(false);
+  const [isQuantityModalOpen, setIsQuantityModalOpen] = useState(false);
   const [selectedProductForFlavor, setSelectedProductForFlavor] = useState<Product | null>(null);
   const [selectedProductForAlcohol, setSelectedProductForAlcohol] = useState<Product | null>(null);
   const [selectedProductForBaly, setSelectedProductForBaly] = useState<Product | null>(null);
   const [selectedIce, setSelectedIce] = useState<Record<string, number>>({});
   const [selectedAlcohol, setSelectedAlcohol] = useState<AlcoholOption | null>(null);
   const [pendingProductWithIce, setPendingProductWithIce] = useState<Product | null>(null);
+  const [pendingProductForQuantity, setPendingProductForQuantity] = useState<Product | null>(null);
   const [currentProductType, setCurrentProductType] = useState<'copao' | 'combo'>('combo');
 
   return {
@@ -33,6 +35,8 @@ export const useCartState = () => {
     setIsBalyModalOpen,
     isEnergyDrinkModalOpen,
     setIsEnergyDrinkModalOpen,
+    isQuantityModalOpen,
+    setIsQuantityModalOpen,
     selectedProductForFlavor,
     setSelectedProductForFlavor,
     selectedProductForAlcohol,
@@ -45,6 +49,8 @@ export const useCartState = () => {
     setSelectedAlcohol,
     pendingProductWithIce,
     setPendingProductWithIce,
+    pendingProductForQuantity,
+    setPendingProductForQuantity,
     currentProductType,
     setCurrentProductType
   };

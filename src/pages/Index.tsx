@@ -25,9 +25,11 @@ const Index = () => {
     isAlcoholModalOpen,
     isBalyModalOpen,
     isEnergyDrinkModalOpen,
+    isQuantityModalOpen,
     selectedProductForFlavor,
     selectedProductForAlcohol,
     selectedProductForBaly,
+    pendingProductForQuantity,
     selectedIce,
     selectedAlcohol,
     currentProductType,
@@ -46,8 +48,10 @@ const Index = () => {
     setSelectedAlcohol,
     setSelectedProductForBaly,
     setIsEnergyDrinkModalOpen,
+    setIsQuantityModalOpen,
     setPendingProductWithIce,
-    handleEnergyDrinkSelection
+    handleEnergyDrinkSelection,
+    handleQuantitySelection
   } = useCart(isOpen);
 
   const {
@@ -116,10 +120,12 @@ const Index = () => {
         isAlcoholModalOpen={isAlcoholModalOpen}
         isBalyModalOpen={isBalyModalOpen}
         isEnergyDrinkModalOpen={isEnergyDrinkModalOpen}
+        isQuantityModalOpen={isQuantityModalOpen}
         showSuccessModal={showSuccessModal}
         selectedProductForFlavor={selectedProductForFlavor}
         selectedProductForAlcohol={selectedProductForAlcohol}
         selectedProductForBaly={selectedProductForBaly}
+        pendingProductForQuantity={pendingProductForQuantity}
         selectedIce={selectedIce}
         selectedAlcohol={selectedAlcohol}
         currentProductType={currentProductType}
@@ -130,6 +136,7 @@ const Index = () => {
         setIsAlcoholModalOpen={setIsAlcoholModalOpen}
         setIsBalyModalOpen={setIsBalyModalOpen}
         setIsEnergyDrinkModalOpen={setIsEnergyDrinkModalOpen}
+        setIsQuantityModalOpen={setIsQuantityModalOpen}
         setShowSuccessModal={setShowSuccessModal}
         setSelectedAlcohol={setSelectedAlcohol}
         updateIceQuantity={updateIceQuantity}
@@ -137,6 +144,7 @@ const Index = () => {
         confirmAlcoholSelection={confirmAlcoholSelection}
         confirmBalySelection={confirmBalySelection}
         handleEnergyDrinkSelection={handleEnergyDrinkSelection}
+        handleQuantitySelection={handleQuantitySelection}
         handleOrderConfirmation={handleOrderConfirmation}
         setPendingProductWithIce={setPendingProductWithIce}
       />

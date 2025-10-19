@@ -6,6 +6,8 @@ export const useEnergyDrinkSelection = (
   pendingProductWithIce: Product | null,
   setIsEnergyDrinkModalOpen: (isOpen: boolean) => void,
   setPendingProductWithIce: (product: Product | null) => void,
+  setIsQuantityModalOpen: (isOpen: boolean) => void,
+  setPendingProductForQuantity: (product: Product | null) => void,
   handleUpdateQuantity: (item: Product, delta: number) => void
 ) => {
   const { toast } = useToast();
@@ -29,13 +31,14 @@ export const useEnergyDrinkSelection = (
       price: (pendingProductWithIce.price || 0) + energyDrinks.totalExtraCost
     };
 
-    handleUpdateQuantity(finalProduct, 1);
     setIsEnergyDrinkModalOpen(false);
     setPendingProductWithIce(null);
+    setPendingProductForQuantity(finalProduct);
+    setIsQuantityModalOpen(true);
 
     toast({
       title: "Energéticos selecionados",
-      description: `${energyDrinks.selections.length} energético(s) adicionado(s) ao pedido.`,
+      description: "Agora selecione a quantidade.",
     });
   };
 

@@ -5,6 +5,8 @@ import { useToast } from '@/hooks/use-toast';
 export const useBalySelection = (
   selectedProductForBaly: Product | null,
   setIsBalyModalOpen: (isOpen: boolean) => void,
+  setIsQuantityModalOpen: (isOpen: boolean) => void,
+  setPendingProductForQuantity: (product: Product | null) => void,
   handleUpdateQuantity: (item: Product, delta: number) => void
 ) => {
   const { toast } = useToast();
@@ -17,12 +19,13 @@ export const useBalySelection = (
       balyFlavor: flavor
     };
     
-    handleUpdateQuantity(itemWithBaly, 1);
     setIsBalyModalOpen(false);
+    setPendingProductForQuantity(itemWithBaly);
+    setIsQuantityModalOpen(true);
     
     toast({
-      title: "Item adicionado",
-      description: `${selectedProductForBaly.name} com Baly ${flavor} adicionado ao pedido.`,
+      title: "Baly selecionado",
+      description: "Agora selecione a quantidade.",
     });
   };
 

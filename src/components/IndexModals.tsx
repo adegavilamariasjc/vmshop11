@@ -5,6 +5,7 @@ import FlavorSelectionModal from './FlavorSelectionModal';
 import AlcoholSelectionModal from './AlcoholSelectionModal';
 import BalyFlavorSelectionModal from './BalyFlavorSelectionModal';
 import EnergyDrinkSelectionModal from './EnergyDrinkSelectionModal';
+import { QuantitySelectionModal } from './QuantitySelectionModal';
 import OrderSuccessModal from './OrderSuccessModal';
 
 interface IndexModalsProps {
@@ -12,10 +13,12 @@ interface IndexModalsProps {
   isAlcoholModalOpen: boolean;
   isBalyModalOpen: boolean;
   isEnergyDrinkModalOpen: boolean;
+  isQuantityModalOpen: boolean;
   showSuccessModal: boolean;
   selectedProductForFlavor: Product | null;
   selectedProductForAlcohol: Product | null;
   selectedProductForBaly: Product | null;
+  pendingProductForQuantity: Product | null;
   selectedIce: Record<string, number>;
   selectedAlcohol: AlcoholOption | null;
   currentProductType: 'copao' | 'combo';
@@ -26,6 +29,7 @@ interface IndexModalsProps {
   setIsAlcoholModalOpen: (isOpen: boolean) => void;
   setIsBalyModalOpen: (isOpen: boolean) => void;
   setIsEnergyDrinkModalOpen: (isOpen: boolean) => void;
+  setIsQuantityModalOpen: (isOpen: boolean) => void;
   setShowSuccessModal: (show: boolean) => void;
   setSelectedAlcohol: (alcohol: AlcoholOption) => void;
   updateIceQuantity: (flavor: string, quantity: number) => void;
@@ -36,6 +40,7 @@ interface IndexModalsProps {
     selections: Array<{ type: string; flavor: string }>;
     totalExtraCost: number;
   }) => void;
+  handleQuantitySelection: (quantity: number) => void;
   handleOrderConfirmation: () => void;
   setPendingProductWithIce: (product: Product | null) => void;
 }
@@ -45,10 +50,12 @@ const IndexModals: React.FC<IndexModalsProps> = ({
   isAlcoholModalOpen,
   isBalyModalOpen,
   isEnergyDrinkModalOpen,
+  isQuantityModalOpen,
   showSuccessModal,
   selectedProductForFlavor,
   selectedProductForAlcohol,
   selectedProductForBaly,
+  pendingProductForQuantity,
   selectedIce,
   selectedAlcohol,
   currentProductType,
@@ -59,6 +66,7 @@ const IndexModals: React.FC<IndexModalsProps> = ({
   setIsAlcoholModalOpen,
   setIsBalyModalOpen,
   setIsEnergyDrinkModalOpen,
+  setIsQuantityModalOpen,
   setShowSuccessModal,
   setSelectedAlcohol,
   updateIceQuantity,
@@ -66,6 +74,7 @@ const IndexModals: React.FC<IndexModalsProps> = ({
   confirmAlcoholSelection,
   confirmBalySelection,
   handleEnergyDrinkSelection,
+  handleQuantitySelection,
   handleOrderConfirmation,
   setPendingProductWithIce
 }) => {
@@ -104,6 +113,13 @@ const IndexModals: React.FC<IndexModalsProps> = ({
         }}
         onConfirm={handleEnergyDrinkSelection}
         productType={currentProductType}
+      />
+      
+      <QuantitySelectionModal
+        isOpen={isQuantityModalOpen}
+        onClose={() => setIsQuantityModalOpen(false)}
+        onConfirm={handleQuantitySelection}
+        productName={pendingProductForQuantity?.name || ''}
       />
       
       <OrderSuccessModal

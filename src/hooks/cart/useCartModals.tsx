@@ -16,6 +16,8 @@ export const useCartModals = (
   setIsFlavorModalOpen: (isOpen: boolean) => void,
   setIsEnergyDrinkModalOpen: (isOpen: boolean) => void,
   setIsBalyModalOpen: (isOpen: boolean) => void,
+  setIsQuantityModalOpen: (isOpen: boolean) => void,
+  setPendingProductForQuantity: (product: Product | null) => void,
   setSelectedProductForBaly: (product: Product | null) => void,
   handleUpdateQuantity: (item: Product, delta: number) => void
 ) => {
@@ -108,11 +110,12 @@ export const useCartModals = (
       setSelectedProductForBaly(itemWithIce);
       setIsBalyModalOpen(true);
     } else {
-      handleUpdateQuantity(itemWithIce, 1);
+      setPendingProductForQuantity(itemWithIce);
+      setIsQuantityModalOpen(true);
       
       toast({
-        title: "Item adicionado",
-        description: `${selectedProductForFlavor.name} adicionado ao pedido.`,
+        title: "Gelo adicionado",
+        description: "Agora selecione a quantidade.",
       });
     }
   };

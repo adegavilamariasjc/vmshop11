@@ -30,6 +30,8 @@ export const useCart = (isStoreOpen: boolean = true) => {
     setIsBalyModalOpen,
     isEnergyDrinkModalOpen,
     setIsEnergyDrinkModalOpen,
+    isQuantityModalOpen,
+    setIsQuantityModalOpen,
     selectedProductForFlavor,
     setSelectedProductForFlavor,
     selectedProductForAlcohol,
@@ -42,6 +44,8 @@ export const useCart = (isStoreOpen: boolean = true) => {
     setSelectedAlcohol,
     pendingProductWithIce,
     setPendingProductWithIce,
+    pendingProductForQuantity,
+    setPendingProductForQuantity,
     currentProductType,
     setCurrentProductType
   } = useCartState();
@@ -81,6 +85,8 @@ export const useCart = (isStoreOpen: boolean = true) => {
     setIsFlavorModalOpen,
     setIsEnergyDrinkModalOpen,
     setIsBalyModalOpen,
+    setIsQuantityModalOpen,
+    setPendingProductForQuantity,
     setSelectedProductForBaly,
     handleUpdateQuantity
   );
@@ -99,6 +105,8 @@ export const useCart = (isStoreOpen: boolean = true) => {
   const { confirmBalySelection } = useBalySelection(
     selectedProductForBaly,
     setIsBalyModalOpen,
+    setIsQuantityModalOpen,
+    setPendingProductForQuantity,
     handleUpdateQuantity
   );
 
@@ -107,6 +115,8 @@ export const useCart = (isStoreOpen: boolean = true) => {
     pendingProductWithIce,
     setIsEnergyDrinkModalOpen,
     setPendingProductWithIce,
+    setIsQuantityModalOpen,
+    setPendingProductForQuantity,
     handleUpdateQuantity
   );
 
@@ -141,6 +151,18 @@ export const useCart = (isStoreOpen: boolean = true) => {
     });
   }, [isFlavorModalOpen, isAlcoholModalOpen, isBalyModalOpen, isEnergyDrinkModalOpen, pendingProductWithIce, selectedProductForFlavor, currentProductType]);
 
+  // Get quantity selection functionality
+  const handleQuantitySelection = (quantity: number) => {
+    if (!pendingProductForQuantity) return;
+    
+    for (let i = 0; i < quantity; i++) {
+      handleUpdateQuantity(pendingProductForQuantity, 1);
+    }
+    
+    setIsQuantityModalOpen(false);
+    setPendingProductForQuantity(null);
+  };
+
   // Export all the needed values and functions
   return {
     cart,
@@ -150,12 +172,14 @@ export const useCart = (isStoreOpen: boolean = true) => {
     isAlcoholModalOpen,
     isBalyModalOpen,
     isEnergyDrinkModalOpen,
+    isQuantityModalOpen,
     selectedProductForFlavor,
     selectedProductForAlcohol,
     selectedProductForBaly,
     selectedIce,
     selectedAlcohol,
     pendingProductWithIce,
+    pendingProductForQuantity,
     currentProductType,
     setShowSummary,
     handleSelectCategory,
@@ -172,8 +196,11 @@ export const useCart = (isStoreOpen: boolean = true) => {
     setSelectedAlcohol,
     setSelectedProductForBaly,
     setIsEnergyDrinkModalOpen,
+    setIsQuantityModalOpen,
     setPendingProductWithIce,
-    handleEnergyDrinkSelection
+    setPendingProductForQuantity,
+    handleEnergyDrinkSelection,
+    handleQuantitySelection
   };
 };
 
