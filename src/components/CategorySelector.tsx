@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
+import { getProductIcon } from '@/utils/productIcons';
 
 interface CategorySelectorProps {
   activeCategory: string | null;
@@ -73,21 +74,25 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ activeCategory, onS
   return (
     <div className="mb-6 overflow-x-auto pb-2 -mx-4 px-4">
       <div className="flex space-x-2 min-w-max">
-        {categories.map((category) => (
-          <motion.button
-            key={category}
-            className={`py-2 px-4 rounded-full text-sm font-medium whitespace-nowrap ${
-              activeCategory === category
-                ? "bg-[hsl(291_68%_38%)] text-white"
-                : "bg-gray-700 text-gray-200"
-            }`}
-            onClick={() => onSelectCategory(category)}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            {category}
-          </motion.button>
-        ))}
+        {categories.map((category) => {
+          const CategoryIcon = getProductIcon('', category);
+          return (
+            <motion.button
+              key={category}
+              className={`py-2 px-4 rounded-full text-sm font-medium whitespace-nowrap flex items-center gap-2 ${
+                activeCategory === category
+                  ? "bg-[hsl(291_68%_38%)] text-white"
+                  : "bg-gray-700 text-gray-200"
+              }`}
+              onClick={() => onSelectCategory(category)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <CategoryIcon size={16} />
+              {category}
+            </motion.button>
+          );
+        })}
       </div>
     </div>
   );
