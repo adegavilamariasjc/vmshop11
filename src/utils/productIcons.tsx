@@ -18,6 +18,8 @@ import {
   Beef,
   Baby,
   Pizza,
+  UtensilsCrossed,
+  Popcorn,
   LucideIcon
 } from 'lucide-react';
 
@@ -36,6 +38,8 @@ const keywordIconMap: ProductIconMap = {
   // Batidas (drinks com álcool)
   'batida': Martini,
   'batidas': Martini,
+  'drink': Martini,
+  'drinks': Martini,
   
   // Batidas Kids (sem álcool)
   'batida de': Martini,
@@ -55,8 +59,8 @@ const keywordIconMap: ProductIconMap = {
   'caipi ice': Snowflake,
   
   // Caipirinhas
-  'caipirinha': CupSoda,
-  'caipirinhas': CupSoda,
+  'caipirinha': Martini,
+  'caipirinhas': Martini,
   
   // Cervejas
   'cerveja': Beer,
@@ -93,11 +97,10 @@ const keywordIconMap: ProductIconMap = {
   'dunhill': Cigarette,
   'eight': Cigarette,
   
-  // Copão/Drinks
-  'copao': CupSoda,
-  'copão': CupSoda,
-  'drink': CupSoda,
-  'coquetel': CupSoda,
+  // Copão
+  'copao': GlassWater,
+  'copão': GlassWater,
+  'coquetel': Martini,
   
   // Doces/Balas
   'bala': Candy,
@@ -154,16 +157,17 @@ const keywordIconMap: ProductIconMap = {
   'kuat': CupSoda,
   
   // Salgadinhos/Snacks
-  'salgadinho': Package,
-  'snack': Package,
-  'chips': Package,
-  'doritos': Package,
-  'ruffles': Package,
-  'cheetos': Package,
-  'elma': Package,
-  'fandangos': Package,
-  'torcida': Package,
-  'baconzitos': Package,
+  'salgadinho': Popcorn,
+  'salgadinhos': Popcorn,
+  'snack': Popcorn,
+  'chips': Popcorn,
+  'doritos': Popcorn,
+  'ruffles': Popcorn,
+  'cheetos': Popcorn,
+  'elma': Popcorn,
+  'fandangos': Popcorn,
+  'torcida': Popcorn,
+  'baconzitos': Popcorn,
   
   // Sorvetes
   'sorvete': IceCream,
@@ -198,6 +202,16 @@ const keywordIconMap: ProductIconMap = {
   'miojo': Soup,
   'nissin': Soup,
   'carne': Beef,
+  
+  // Gelos
+  'gelo': Snowflake,
+  'gelos': Snowflake,
+  'ice': Snowflake,
+  'balde': Snowflake,
+  
+  // Tabacaria (categoria)
+  'tabacaria': Cigarette,
+  'tabaco': Cigarette,
 };
 
 export const getProductIcon = (productName: string, categoryName?: string): LucideIcon => {
