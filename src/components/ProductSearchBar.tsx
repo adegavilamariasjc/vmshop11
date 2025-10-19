@@ -37,8 +37,19 @@ const ProductSearchBar: React.FC<ProductSearchBarProps> = ({
       }
     };
 
+    const handleScroll = () => {
+      setShowSuggestions(false);
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('scroll', handleScroll, true);
+    document.addEventListener('touchstart', handleClickOutside);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('scroll', handleScroll, true);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
   }, []);
 
   useEffect(() => {
@@ -74,11 +85,12 @@ const ProductSearchBar: React.FC<ProductSearchBarProps> = ({
   }, [searchQuery]);
 
   const handleSuggestionClick = (suggestion: SearchSuggestion) => {
+    setShowSuggestions(false);
+    setSuggestions([]);
     onSearchChange(suggestion.name);
     if (onSelectSuggestion) {
       onSelectSuggestion(suggestion.name);
     }
-    setShowSuggestions(false);
   };
 
   return (
@@ -106,7 +118,7 @@ const ProductSearchBar: React.FC<ProductSearchBarProps> = ({
       )}
       
       {showSuggestions && suggestions.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-md shadow-lg z-50 max-h-96 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-md shadow-lg z-[100] max-h-96 overflow-y-auto">
           {suggestions.map((suggestion) => {
             const ProductIcon = getProductIcon(suggestion.name, suggestion.category_name);
             return (
@@ -143,7 +155,7 @@ const ProductSearchBar: React.FC<ProductSearchBarProps> = ({
       )}
       
       {isLoading && searchQuery.trim().length >= 2 && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-md shadow-lg p-4 z-50">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-background border border-border rounded-md shadow-lg p-4 z-[100]">
           <div className="flex items-center justify-center text-muted-foreground">
             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
             <span className="ml-2">Buscando...</span>
