@@ -3,13 +3,15 @@ const TelegramBot = require('node-telegram-bot-api');
 // Seu token do bot
 const token = '8256668487:AAHwhFCR_2RGsAE7Cv6TdeEbWZKgpFTr6Og';
 
-// URL do seu webhook Supabase (substitua pela URL real da sua função)
+// URL do seu webhook Supabase
 const WEBHOOK_URL = 'https://zdtuvslyqayjedjsfvwa.supabase.co/functions/v1/telegram-webhook';
 
 // Cria o bot em modo polling
 const bot = new TelegramBot(token, { polling: true });
 
-console.log('Bot rodando! Envie uma mensagem no chat ou grupo.');
+console.log('🤖 Bot Telegram rodando!');
+console.log('📋 Processando callbacks de botões');
+console.log('⚠️  Envio de pedidos feito via Edge Function (não duplicado)');
 
 // Captura qualquer mensagem recebida
 bot.on('message', (msg) => {
