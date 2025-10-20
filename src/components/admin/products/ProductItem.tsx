@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { TableCell } from '@/components/ui/table';
@@ -22,6 +22,14 @@ export const ProductItem: React.FC<ProductItemProps> = ({ product, onUpdate, onD
     name: product.name,
     price: product.price
   });
+  const priceInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editMode && priceInputRef.current) {
+      priceInputRef.current.focus();
+      priceInputRef.current.select();
+    }
+  }, [editMode]);
 
   const handleSaveEdit = async () => {
     if (!editedProduct.name || editedProduct.price <= 0) {
@@ -143,9 +151,12 @@ export const ProductItem: React.FC<ProductItemProps> = ({ product, onUpdate, onD
       <TableCell className="text-right">
         {editMode ? (
           <Input
+            ref={priceInputRef}
             type="number"
+            step="0.01"
             value={editedProduct.price}
             onChange={e => setEditedProduct({...editedProduct, price: parseFloat(e.target.value) || 0})}
+            onFocus={e => e.target.select()}
             className="bg-gray-800 border-gray-700 text-white w-24 ml-auto"
             disabled={isSaving}
           />
