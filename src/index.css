@@ -4,26 +4,26 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 10%;
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
+    --card: 0 0% 0%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
+    --popover: 0 0% 0%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 0 0% 10%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 0 0% 100%;
+    --primary-foreground: 0 0% 0%;
 
-    --secondary: 0 0% 95%;
-    --secondary-foreground: 0 0% 10%;
+    --secondary: 0 0% 20%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 0 0% 95%;
-    --muted-foreground: 0 0% 40%;
+    --muted: 0 0% 20%;
+    --muted-foreground: 0 0% 70%;
 
-    --accent: 0 0% 95%;
-    --accent-foreground: 0 0% 10%;
+    --accent: 0 0% 20%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
@@ -34,9 +34,9 @@
     --accent-purple: 271 91% 65%;
     --accent-purple-foreground: 0 0% 100%;
 
-    --border: 0 0% 85%;
-    --input: 0 0% 85%;
-    --ring: 0 0% 10%;
+    --border: 0 0% 30%;
+    --input: 0 0% 30%;
+    --ring: 0 0% 100%;
 
     --radius: 0.5rem;
 
@@ -113,6 +113,7 @@
 
   body {
     @apply bg-background text-foreground;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
     width: 100vw;
     overflow-x: hidden;
     max-width: 100%;
@@ -121,3 +122,46 @@
   }
 }
 
+@layer utilities {
+  .text-shadow-dark {
+    text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+  }
+  
+  .text-shadow-light {
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  }
+}
+
+/* Updated background opacity for components */
+.bg-card, .bg-popover, .bg-dialog, .bg-alert, .bg-toast, .bg-sheet, .bg-drawer, .bg-hover-card {
+  background-color: rgba(0, 0, 0, 0.50) !important;
+  border-color: transparent !important;
+}
+
+/* Make all dialog and overlay elements have 50% opacity */
+[data-radix-popper-content-wrapper], 
+[role="dialog"],
+[role="alertdialog"],
+[role="menu"], 
+[role="tooltip"], 
+[role="popover"] {
+  background-color: rgba(0, 0, 0, 0.50) !important;
+  border-color: transparent !important;
+}
+
+/* Ensure any dynamically created components have consistent 50% opacity */
+.shadcn-component {
+  background-color: rgba(0, 0, 0, 0.50) !important;
+  border-color: transparent !important;
+}
+
+/* Keep text visible */
+.shadcn-component-text {
+  color: white !important;
+}
+
+/* Additional global transparency */
+.bg-transparent,
+.absolute-transparent {
+  background-color: transparent !important;
+}
