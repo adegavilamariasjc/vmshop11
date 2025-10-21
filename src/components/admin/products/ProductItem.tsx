@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { TableCell } from '@/components/ui/table';
 import { Pencil, Save, Trash, PauseCircle, PlayCircle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -20,7 +21,8 @@ export const ProductItem: React.FC<ProductItemProps> = ({ product, onUpdate, onD
   const [editMode, setEditMode] = useState(false);
   const [editedProduct, setEditedProduct] = useState({
     name: product.name,
-    price: product.price
+    price: product.price,
+    description: product.description || ''
   });
   const priceInputRef = useRef<HTMLInputElement>(null);
 
@@ -44,7 +46,8 @@ export const ProductItem: React.FC<ProductItemProps> = ({ product, onUpdate, onD
     try {
       const success = await updateProduct(product.id, {
         name: editedProduct.name,
-        price: editedProduct.price
+        price: editedProduct.price,
+        description: editedProduct.description
       });
 
       if (success) {
@@ -138,14 +141,29 @@ export const ProductItem: React.FC<ProductItemProps> = ({ product, onUpdate, onD
     <>
       <TableCell className="font-medium">
         {editMode ? (
-          <Input
-            value={editedProduct.name}
-            onChange={e => setEditedProduct({...editedProduct, name: e.target.value})}
-            className="bg-gray-800 border-gray-700 text-white"
-            disabled={isSaving}
-          />
+          <div className="space-y-2">
+            <Input
+              value={editedProduct.name}
+              onChange={e => setEditedProduct({...editedProduct, name: e.target.value})}
+              className="bg-gray-800 border-gray-700 text-white"
+              disabled={isSaving}
+              placeholder="Nome do produto"
+            />
+            <Textarea
+              value={editedProduct.description}
+              onChange={e => setEditedProduct({...editedProduct, description: e.target.value})}
+              className="bg-gray-800 border-gray-700 text-white min-h-[80px]"
+              disabled={isSaving}
+              placeholder="Descrição do produto"
+            />
+          </div>
         ) : (
-          <span>{product.name}</span>
+          <div>
+            <div className="font-medium">{product.name}</div>
+            <div className="text-xs text-gray-400 mt-1 line-clamp-2">
+              {product.description || 'Sem descrição'}
+            </div>
+          </div>
         )}
       </TableCell>
       <TableCell className="text-right">

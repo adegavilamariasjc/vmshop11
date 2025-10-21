@@ -352,6 +352,7 @@ export type Database = {
       products: {
         Row: {
           category_id: number | null
+          description: string
           id: number
           is_paused: boolean
           name: string
@@ -361,6 +362,7 @@ export type Database = {
         }
         Insert: {
           category_id?: number | null
+          description?: string
           id?: number
           is_paused?: boolean
           name: string
@@ -370,6 +372,7 @@ export type Database = {
         }
         Update: {
           category_id?: number | null
+          description?: string
           id?: number
           is_paused?: boolean
           name?: string

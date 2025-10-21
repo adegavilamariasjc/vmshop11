@@ -71,7 +71,7 @@ export const addProduct = async (product: Omit<SupabaseProduct, 'id' | 'order_in
 };
 
 // Update an existing product
-export const updateProduct = async (id: number, updates: Partial<Omit<SupabaseProduct, 'id' | 'order_index'>>): Promise<boolean> => {
+export const updateProduct = async (id: number, updates: Partial<Omit<SupabaseProduct, 'id' | 'order_index' | 'updated_at'>>): Promise<boolean> => {
   const { error } = await supabase
     .from('products')
     .update(updates)

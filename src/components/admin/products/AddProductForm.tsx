@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Plus, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { addProduct } from '@/lib/supabase';
@@ -15,9 +16,10 @@ interface AddProductFormProps {
 export const AddProductForm: React.FC<AddProductFormProps> = ({ selectedCategoryId, onProductAdded }) => {
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
-  const [newProduct, setNewProduct] = useState<{name: string; price: number}>({
+  const [newProduct, setNewProduct] = useState<{name: string; price: number; description: string}>({
     name: "",
-    price: 0
+    price: 0,
+    description: "Produto de qualidade"
   });
 
   const handleAddProduct = async () => {
@@ -45,6 +47,7 @@ export const AddProductForm: React.FC<AddProductFormProps> = ({ selectedCategory
       const addedProduct = await addProduct({
         name: newProduct.name,
         price: newProduct.price,
+        description: newProduct.description,
         category_id: selectedCategoryId,
         is_paused: false,
         updated_at: new Date().toISOString()
@@ -52,7 +55,7 @@ export const AddProductForm: React.FC<AddProductFormProps> = ({ selectedCategory
 
       if (addedProduct) {
         onProductAdded(addedProduct);
-        setNewProduct({ name: "", price: 0 });
+        setNewProduct({ name: "", price: 0, description: "Produto de qualidade" });
         
         toast({
           title: "Produto adicionado",
@@ -80,20 +83,29 @@ export const AddProductForm: React.FC<AddProductFormProps> = ({ selectedCategory
   return (
     <div className="bg-gray-900/50 p-4 rounded-md mb-6">
       <h3 className="text-lg font-semibold text-white mb-3">Adicionar Produto</h3>
-      <div className="flex flex-col md:flex-row gap-3">
-        <Input
-          placeholder="Nome do produto"
-          value={newProduct.name}
-          onChange={e => setNewProduct({...newProduct, name: e.target.value})}
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col md:flex-row gap-3">
+          <Input
+            placeholder="Nome do produto"
+            value={newProduct.name}
+            onChange={e => setNewProduct({...newProduct, name: e.target.value})}
+            className="bg-gray-800 border-gray-700 text-white"
+            disabled={!selectedCategoryId || isSaving}
+          />
+          <Input
+            type="number"
+            placeholder="Preço"
+            value={newProduct.price || ''}
+            onChange={e => setNewProduct({...newProduct, price: parseFloat(e.target.value) || 0})}
+            className="bg-gray-800 border-gray-700 text-white md:w-32"
+            disabled={!selectedCategoryId || isSaving}
+          />
+        </div>
+        <Textarea
+          placeholder="Descrição do produto"
+          value={newProduct.description}
+          onChange={e => setNewProduct({...newProduct, description: e.target.value})}
           className="bg-gray-800 border-gray-700 text-white"
-          disabled={!selectedCategoryId || isSaving}
-        />
-        <Input
-          type="number"
-          placeholder="Preço"
-          value={newProduct.price || ''}
-          onChange={e => setNewProduct({...newProduct, price: parseFloat(e.target.value) || 0})}
-          className="bg-gray-800 border-gray-700 text-white md:w-32"
           disabled={!selectedCategoryId || isSaving}
         />
         <Button 

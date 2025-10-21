@@ -5,6 +5,7 @@ import { Plus, Minus, Loader2 } from 'lucide-react';
 import { Product } from '../types';
 import { supabase } from '@/integrations/supabase/client';
 import { getProductIcon } from '@/utils/productIcons';
+import { ProductDescriptionModal } from './ProductDescriptionModal';
 
 interface ProductListProps {
   category: string;
@@ -15,9 +16,10 @@ interface ProductListProps {
 }
 
 const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct, onUpdateQuantity, isStoreOpen }) => {
-  const [products, setProducts] = useState<{id: number; name: string; price: number; is_paused?: boolean; order_index?: number}[]>([]);
+  const [products, setProducts] = useState<{id: number; name: string; price: number; description?: string; is_paused?: boolean; order_index?: number}[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<{name: string; description: string; price: number} | null>(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -118,9 +120,16 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
             key={`${item.id}-${item.name}`} 
             className="flex items-center gap-3 border-b border-gray-600 py-3"
           >
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-purple-600/20 rounded-lg">
+            <button
+              onClick={() => setSelectedProduct({
+                name: item.name,
+                description: item.description || 'Produto de qualidade',
+                price: item.price
+              })}
+              className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-purple-600/20 rounded-lg hover:bg-purple-600/30 transition-colors cursor-pointer"
+            >
               <ProductIcon size={20} className="text-purple-300" />
-            </div>
+            </button>
             
             <div className="text-white flex-1 min-w-0">
               <p className="font-medium truncate">{item.name}</p>
@@ -154,6 +163,16 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
           </div>
         );
       })}
+      
+      {selectedProduct && (
+        <ProductDescriptionModal
+          isOpen={!!selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+          productName={selectedProduct.name}
+          productDescription={selectedProduct.description}
+          productPrice={selectedProduct.price}
+        />
+      )}
     </div>
   );
 };

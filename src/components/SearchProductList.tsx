@@ -4,6 +4,7 @@ import { Plus, Minus, Loader2, TrendingUp } from 'lucide-react';
 import { Product } from '../types';
 import { searchProductsEnhanced, trackProductView } from '@/lib/supabase/productStats';
 import { getProductIcon } from '@/utils/productIcons';
+import { ProductDescriptionModal } from './ProductDescriptionModal';
 
 interface SearchProductListProps {
   searchQuery: string;
@@ -16,6 +17,7 @@ interface SearchResult {
   id: number;
   name: string;
   price: number;
+  description?: string;
   category_id: number;
   category_name: string;
   is_paused: boolean;
@@ -33,6 +35,7 @@ const SearchProductList: React.FC<SearchProductListProps> = ({
 }) => {
   const [products, setProducts] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<{name: string; description: string; price: number} | null>(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -108,9 +111,16 @@ const SearchProductList: React.FC<SearchProductListProps> = ({
             key={`${item.id}-${item.category_id}`} 
             className="flex items-center gap-3 border-b border-border py-3 hover:bg-accent/50 transition-colors px-2 rounded"
           >
-            <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-primary/10 rounded-lg">
+            <button
+              onClick={() => setSelectedProduct({
+                name: item.name,
+                description: item.description || 'Produto de qualidade',
+                price: item.price
+              })}
+              className="flex-shrink-0 w-10 h-10 flex items-center justify-center bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors cursor-pointer"
+            >
               <ProductIcon size={20} className="text-primary" />
-            </div>
+            </button>
             
             <div className="text-foreground flex-1 min-w-0">
               <div className="flex items-center gap-2">
@@ -160,6 +170,16 @@ const SearchProductList: React.FC<SearchProductListProps> = ({
           </div>
         );
       })}
+      
+      {selectedProduct && (
+        <ProductDescriptionModal
+          isOpen={!!selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+          productName={selectedProduct.name}
+          productDescription={selectedProduct.description}
+          productPrice={selectedProduct.price}
+        />
+      )}
     </div>
   );
 };
