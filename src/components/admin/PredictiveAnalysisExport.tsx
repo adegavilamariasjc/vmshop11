@@ -91,8 +91,13 @@ export const PredictiveAnalysisExport = () => {
       neighborhoods[neighborhood] = (neighborhoods[neighborhood] || 0) + 1;
 
       // Analyze order type (delivery vs balcão)
+      // Considera balcão se: não tem endereço OU bairro é "Balcão" OU taxa de entrega é 0
       const hasAddress = order.cliente_endereco && order.cliente_endereco.trim() !== '';
-      const orderType = hasAddress ? 'Delivery' : 'Balcão';
+      const isBalcao = !hasAddress || 
+                       order.cliente_bairro?.toLowerCase().includes('balc') ||
+                       order.cliente_bairro?.toLowerCase().includes('retirada') ||
+                       Number(order.taxa_entrega || 0) === 0;
+      const orderType = isBalcao ? 'Balcão' : 'Delivery';
       const typeData = orderTypeMap.get(orderType) || { count: 0, revenue: 0 };
       orderTypeMap.set(orderType, {
         count: typeData.count + 1,
