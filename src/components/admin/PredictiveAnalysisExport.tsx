@@ -18,6 +18,25 @@ interface ProductSales {
   frequency: number;
 }
 
+interface CategorySales {
+  category: string;
+  totalQty: number;
+  totalRevenue: number;
+  productCount: number;
+}
+
+interface OrderTypeAnalysis {
+  type: string;
+  count: number;
+  totalRevenue: number;
+  avgTicket: number;
+}
+
+interface ProductCombo {
+  products: string[];
+  frequency: number;
+}
+
 interface PeriodAnalysis {
   startDate: Date;
   endDate: Date;
@@ -30,6 +49,11 @@ interface PeriodAnalysis {
   dayOfWeek: Record<string, number>;
   hourDistribution: Record<string, number>;
   statusDistribution: Record<string, number>;
+  categorySales: CategorySales[];
+  orderTypes: OrderTypeAnalysis[];
+  peakHours: Array<{ hour: string; orders: number; revenue: number }>;
+  productCombos: ProductCombo[];
+  paymentMethodRevenue: Record<string, number>;
 }
 
 export const PredictiveAnalysisExport = () => {
@@ -40,43 +64,75 @@ export const PredictiveAnalysisExport = () => {
 
   const analyzeOrders = (orders: any[]): PeriodAnalysis => {
     const productMap = new Map<string, ProductSales>();
+    const categoryMap = new Map<string, CategorySales>();
     const paymentMethods: Record<string, number> = {};
+    const paymentMethodRevenue: Record<string, number> = {};
     const neighborhoods: Record<string, number> = {};
     const dayOfWeek: Record<string, number> = {};
     const hourDistribution: Record<string, number> = {};
     const statusDistribution: Record<string, number> = {};
+    const orderTypeMap = new Map<string, { count: number; revenue: number }>();
+    const hourRevenueMap = new Map<string, { orders: number; revenue: number }>();
+    const productCombosMap = new Map<string, number>();
     
     let totalRevenue = 0;
 
     orders.forEach(order => {
-      totalRevenue += Number(order.total || 0);
+      const orderTotal = Number(order.total || 0);
+      totalRevenue += orderTotal;
 
       // Analyze payment methods
       const payment = order.forma_pagamento || 'Não especificado';
       paymentMethods[payment] = (paymentMethods[payment] || 0) + 1;
+      paymentMethodRevenue[payment] = (paymentMethodRevenue[payment] || 0) + orderTotal;
 
       // Analyze neighborhoods
       const neighborhood = order.cliente_bairro || 'Não especificado';
       neighborhoods[neighborhood] = (neighborhoods[neighborhood] || 0) + 1;
+
+      // Analyze order type (delivery vs balcão)
+      const hasAddress = order.cliente_endereco && order.cliente_endereco.trim() !== '';
+      const orderType = hasAddress ? 'Delivery' : 'Balcão';
+      const typeData = orderTypeMap.get(orderType) || { count: 0, revenue: 0 };
+      orderTypeMap.set(orderType, {
+        count: typeData.count + 1,
+        revenue: typeData.revenue + orderTotal
+      });
 
       // Analyze day of week
       const orderDate = new Date(order.data_criacao);
       const dayName = orderDate.toLocaleDateString('pt-BR', { weekday: 'long' });
       dayOfWeek[dayName] = (dayOfWeek[dayName] || 0) + 1;
 
-      // Analyze hour distribution
+      // Analyze hour distribution with revenue
       const hour = orderDate.getHours();
       const hourRange = `${hour}:00-${hour}:59`;
       hourDistribution[hourRange] = (hourDistribution[hourRange] || 0) + 1;
+      const hourData = hourRevenueMap.get(hourRange) || { orders: 0, revenue: 0 };
+      hourRevenueMap.set(hourRange, {
+        orders: hourData.orders + 1,
+        revenue: hourData.revenue + orderTotal
+      });
 
       // Analyze status
       const status = order.status || 'Não especificado';
       statusDistribution[status] = (statusDistribution[status] || 0) + 1;
 
-      // Analyze products
+      // Analyze products and categories
       const items = order.itens as any[];
       if (Array.isArray(items)) {
+        // Product combos
+        if (items.length > 1) {
+          const productNames = items.map(i => i.name).sort().join(' + ');
+          productCombosMap.set(productNames, (productCombosMap.get(productNames) || 0) + 1);
+        }
+
         items.forEach(item => {
+          const itemQty = Number(item.qty || 0);
+          const itemPrice = Number(item.price || 0);
+          const itemRevenue = itemPrice * itemQty;
+          
+          // Product analysis
           const existing = productMap.get(item.name) || {
             name: item.name,
             totalQty: 0,
@@ -86,16 +142,29 @@ export const PredictiveAnalysisExport = () => {
             frequency: 0
           };
 
-          const itemQty = Number(item.qty || 0);
-          const itemPrice = Number(item.price || 0);
-          
           productMap.set(item.name, {
             name: item.name,
             totalQty: existing.totalQty + itemQty,
-            totalRevenue: existing.totalRevenue + (itemPrice * itemQty),
+            totalRevenue: existing.totalRevenue + itemRevenue,
             avgPrice: itemPrice,
             orderCount: existing.orderCount + 1,
             frequency: 0
+          });
+
+          // Category analysis
+          const category = item.category || 'Sem Categoria';
+          const catExisting = categoryMap.get(category) || {
+            category,
+            totalQty: 0,
+            totalRevenue: 0,
+            productCount: 0
+          };
+
+          categoryMap.set(category, {
+            category,
+            totalQty: catExisting.totalQty + itemQty,
+            totalRevenue: catExisting.totalRevenue + itemRevenue,
+            productCount: catExisting.productCount + 1
           });
         });
       }
@@ -106,6 +175,33 @@ export const PredictiveAnalysisExport = () => {
       ...product,
       frequency: (product.orderCount / orders.length) * 100
     })).sort((a, b) => b.totalQty - a.totalQty);
+
+    // Process categories
+    const categorySales = Array.from(categoryMap.values())
+      .sort((a, b) => b.totalRevenue - a.totalRevenue);
+
+    // Process order types
+    const orderTypes: OrderTypeAnalysis[] = Array.from(orderTypeMap.entries()).map(([type, data]) => ({
+      type,
+      count: data.count,
+      totalRevenue: data.revenue,
+      avgTicket: data.revenue / data.count
+    }));
+
+    // Process peak hours
+    const peakHours = Array.from(hourRevenueMap.entries())
+      .map(([hour, data]) => ({ hour, ...data }))
+      .sort((a, b) => b.orders - a.orders)
+      .slice(0, 10);
+
+    // Process product combos
+    const productCombos = Array.from(productCombosMap.entries())
+      .map(([products, frequency]) => ({
+        products: products.split(' + '),
+        frequency
+      }))
+      .sort((a, b) => b.frequency - a.frequency)
+      .slice(0, 15);
 
     return {
       startDate: startDate!,
@@ -118,7 +214,12 @@ export const PredictiveAnalysisExport = () => {
       neighborhoods,
       dayOfWeek,
       hourDistribution,
-      statusDistribution
+      statusDistribution,
+      categorySales,
+      orderTypes,
+      peakHours,
+      productCombos,
+      paymentMethodRevenue
     };
   };
 
@@ -190,6 +291,55 @@ export const PredictiveAnalysisExport = () => {
     });
     yPos += 5;
 
+    // Order Types (Delivery vs Balcão)
+    checkPageBreak(40);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Análise por Tipo de Pedido', 20, yPos);
+    yPos += lineHeight + 2;
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    analysis.orderTypes.forEach(orderType => {
+      checkPageBreak();
+      const percentage = ((orderType.count / analysis.totalOrders) * 100).toFixed(1);
+      doc.text(`${orderType.type}:`, 20, yPos);
+      yPos += lineHeight;
+      doc.text(`  Pedidos: ${orderType.count} (${percentage}%)`, 25, yPos);
+      yPos += lineHeight;
+      doc.text(`  Faturamento: R$ ${orderType.totalRevenue.toFixed(2)}`, 25, yPos);
+      yPos += lineHeight;
+      doc.text(`  Ticket Médio: R$ ${orderType.avgTicket.toFixed(2)}`, 25, yPos);
+      yPos += lineHeight + 2;
+    });
+    yPos += 5;
+
+    // Category Sales
+    checkPageBreak(40);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Vendas por Categoria', 20, yPos);
+    yPos += lineHeight + 2;
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Categoria', 20, yPos);
+    doc.text('Qtd Total', 100, yPos);
+    doc.text('Faturamento', 140, yPos);
+    doc.text('Produtos', 180, yPos);
+    yPos += lineHeight;
+
+    doc.setFont('helvetica', 'normal');
+    analysis.categorySales.forEach(cat => {
+      checkPageBreak();
+      doc.text(cat.category.substring(0, 30), 20, yPos);
+      doc.text(cat.totalQty.toString(), 100, yPos);
+      doc.text(`R$ ${cat.totalRevenue.toFixed(2)}`, 140, yPos);
+      doc.text(cat.productCount.toString(), 180, yPos);
+      yPos += lineHeight;
+    });
+    yPos += 5;
+
     // Payment Methods
     checkPageBreak(30);
     doc.setFontSize(14);
@@ -204,8 +354,16 @@ export const PredictiveAnalysisExport = () => {
       .forEach(([method, count]) => {
         checkPageBreak();
         const percentage = ((count / analysis.totalOrders) * 100).toFixed(1);
-        doc.text(`${method}: ${count} pedidos (${percentage}%)`, 20, yPos);
+        const revenue = analysis.paymentMethodRevenue[method] || 0;
+        const avgTicket = revenue / count;
+        doc.text(`${method}:`, 20, yPos);
         yPos += lineHeight;
+        doc.text(`  Pedidos: ${count} (${percentage}%)`, 25, yPos);
+        yPos += lineHeight;
+        doc.text(`  Faturamento: R$ ${revenue.toFixed(2)}`, 25, yPos);
+        yPos += lineHeight;
+        doc.text(`  Ticket Médio: R$ ${avgTicket.toFixed(2)}`, 25, yPos);
+        yPos += lineHeight + 2;
       });
     yPos += 5;
 
@@ -272,6 +430,53 @@ export const PredictiveAnalysisExport = () => {
         yPos += lineHeight;
       });
     yPos += 5;
+
+    // Peak Hours
+    checkPageBreak(40);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Horários de Pico (Top 10)', 20, yPos);
+    yPos += lineHeight + 2;
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Horário', 20, yPos);
+    doc.text('Pedidos', 80, yPos);
+    doc.text('Faturamento', 130, yPos);
+    doc.text('Ticket Médio', 175, yPos);
+    yPos += lineHeight;
+
+    doc.setFont('helvetica', 'normal');
+    analysis.peakHours.forEach(peak => {
+      checkPageBreak();
+      const avgTicket = peak.revenue / peak.orders;
+      doc.text(peak.hour, 20, yPos);
+      doc.text(peak.orders.toString(), 80, yPos);
+      doc.text(`R$ ${peak.revenue.toFixed(2)}`, 130, yPos);
+      doc.text(`R$ ${avgTicket.toFixed(2)}`, 175, yPos);
+      yPos += lineHeight;
+    });
+    yPos += 5;
+
+    // Product Combos
+    if (analysis.productCombos.length > 0) {
+      checkPageBreak(40);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Produtos Comprados Juntos (Top 15)', 20, yPos);
+      yPos += lineHeight + 2;
+
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      analysis.productCombos.forEach(combo => {
+        checkPageBreak();
+        const comboText = combo.products.join(' + ');
+        const displayText = comboText.length > 70 ? comboText.substring(0, 67) + '...' : comboText;
+        doc.text(`${displayText} (${combo.frequency}x)`, 20, yPos);
+        yPos += lineHeight;
+      });
+      yPos += 5;
+    }
 
     // Status Distribution
     checkPageBreak(30);
