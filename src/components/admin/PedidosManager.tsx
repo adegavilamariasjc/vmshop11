@@ -43,6 +43,7 @@ const PedidosManager = () => {
         onAtualizarStatus={handleAtualizarStatus}
         onExcluirPedido={handleExcluirPedido}
         formatDateTime={formatDateTime}
+        onRefresh={handleRefresh}
       />
       
       {showDetalhe && selectedPedido && (

@@ -10,11 +10,13 @@ export interface Pedido {
   codigo_pedido: string;
   cliente_nome: string;
   cliente_bairro: string;
+  cliente_endereco?: string;
   status: string;
   total: number;
   data_criacao: string;
   timeInProduction?: number;
   forma_pagamento?: string;
+  taxa_entrega?: number;
 }
 
 export const usePedidosManager = () => {

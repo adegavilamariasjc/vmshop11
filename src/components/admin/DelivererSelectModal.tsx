@@ -22,7 +22,9 @@ const DelivererSelectModal: React.FC<DelivererSelectModalProps> = ({
   onOpenChange,
   onConfirm
 }) => {
-  const [selectedDeliverer, setSelectedDeliverer] = React.useState('Motoboy 1');
+  const [selectedDeliverer, setSelectedDeliverer] = React.useState('Adrian');
+  
+  const deliverers = ['Adrian', 'Cristian', 'Mobymil', 'Xicão', 'Paulinho', 'Freelance'];
   
   const handleConfirm = () => {
     onConfirm(selectedDeliverer);
@@ -42,26 +44,14 @@ const DelivererSelectModal: React.FC<DelivererSelectModalProps> = ({
             onValueChange={setSelectedDeliverer}
             className="space-y-3"
           >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem id="motoboy1" value="Motoboy 1" />
-              <Label htmlFor="motoboy1" className="font-medium text-white">Motoboy 1</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem id="motoboy2" value="Motoboy 2" />
-              <Label htmlFor="motoboy2" className="font-medium text-white">Motoboy 2</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem id="motoboy3" value="Motoboy 3" />
-              <Label htmlFor="motoboy3" className="font-medium text-white">Motoboy 3</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem id="motoboy4" value="Motoboy 4" />
-              <Label htmlFor="motoboy4" className="font-medium text-white">Motoboy 4</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem id="motoboy5" value="Motoboy 5" />
-              <Label htmlFor="motoboy5" className="font-medium text-white">Motoboy 5</Label>
-            </div>
+            {deliverers.map((deliverer) => (
+              <div key={deliverer} className="flex items-center space-x-2">
+                <RadioGroupItem id={deliverer} value={deliverer} />
+                <Label htmlFor={deliverer} className="font-medium text-white cursor-pointer">
+                  {deliverer}
+                </Label>
+              </div>
+            ))}
           </RadioGroup>
         </div>
         

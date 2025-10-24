@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Printer, Eye, Check, Truck, ShoppingBag, Trash2, Clock } from 'lucide-react';
+import { Printer, Eye, Check, Truck, ShoppingBag, Trash2, Clock, UserPlus, Bell } from 'lucide-react';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import PedidoStatusBadge from './PedidoStatusBadge';
 import { Pedido } from '@/hooks/usePedidosManager';
+import DelivererSelectModal from './DelivererSelectModal';
+import { supabase } from '@/lib/supabase';
+import { useToast } from '@/hooks/use-toast';
 
 interface PedidosTableProps {
   pedidos: Pedido[];
@@ -13,6 +16,7 @@ interface PedidosTableProps {
   onAtualizarStatus: (id: string, status: string) => void;
   onExcluirPedido: (id: string, codigo: string) => void;
   formatDateTime: (dateString: string) => string;
+  onRefresh?: () => void;
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -22,10 +26,14 @@ const PedidosTable: React.FC<PedidosTableProps> = ({
   onVisualizarPedido,
   onAtualizarStatus,
   onExcluirPedido,
-  formatDateTime
+  formatDateTime,
+  onRefresh
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [delivererModalOpen, setDelivererModalOpen] = useState(false);
+  const [selectedPedidoId, setSelectedPedidoId] = useState<string | null>(null);
+  const { toast } = useToast();
   
   const totalPages = Math.ceil(pedidos.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -51,6 +59,73 @@ const PedidosTable: React.FC<PedidosTableProps> = ({
     if (currentPage > 1) {
       setCurrentPage(prev => prev - 1);
     }
+  };
+
+  const handleAssignDeliverer = (pedidoId: string) => {
+    setSelectedPedidoId(pedidoId);
+    setDelivererModalOpen(true);
+  };
+
+  const handleConfirmDeliverer = async (deliverer: string) => {
+    if (!selectedPedidoId) return;
+
+    try {
+      const { error } = await supabase
+        .from('pedidos')
+        .update({ entregador: deliverer })
+        .eq('id', selectedPedidoId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Motoboy atribuído',
+        description: `${deliverer} foi atribuído ao pedido com sucesso.`,
+      });
+
+      if (onRefresh) {
+        onRefresh();
+      }
+    } catch (error) {
+      console.error('Erro ao atribuir motoboy:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível atribuir o motoboy.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handlePlayAlert = async () => {
+    try {
+      // Send alert notification via Supabase channel
+      const channel = supabase.channel('motoboy-alerts');
+      await channel.send({
+        type: 'broadcast',
+        event: 'play-alert',
+        payload: { timestamp: new Date().toISOString() }
+      });
+
+      toast({
+        title: 'Alerta enviado',
+        description: 'O alerta foi tocado para os motoboys.',
+      });
+    } catch (error) {
+      console.error('Erro ao tocar alerta:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível tocar o alerta.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const isDeliveryOrder = (pedido: Pedido) => {
+    const hasAddress = pedido.cliente_endereco && pedido.cliente_endereco.trim() !== '';
+    const isBalcao = !hasAddress || 
+                     pedido.cliente_bairro?.toLowerCase().includes('balc') ||
+                     pedido.cliente_bairro?.toLowerCase().includes('retirada') ||
+                     Number(pedido.taxa_entrega || 0) === 0;
+    return !isBalcao;
   };
   
   const renderProductionTime = (pedido: Pedido) => {
@@ -117,6 +192,18 @@ const PedidosTable: React.FC<PedidosTableProps> = ({
                     <Eye size={16} className="mr-1" />
                     Detalhes
                   </Button>
+                  
+                  {isDeliveryOrder(pedido) && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleAssignDeliverer(pedido.id)}
+                      className="text-purple-500 hover:text-purple-400 hover:bg-gray-700"
+                    >
+                      <UserPlus size={16} className="mr-1" />
+                      Motoboy
+                    </Button>
+                  )}
                   
                   {pedido.status === 'pendente' && (
                     <Button 
@@ -194,8 +281,26 @@ const PedidosTable: React.FC<PedidosTableProps> = ({
   }
 
   return (
-    <div className="rounded-md border border-gray-700 w-full">
-      <ScrollArea className="max-h-[calc(100vh-280px)]">
+    <>
+      <DelivererSelectModal 
+        open={delivererModalOpen}
+        onOpenChange={setDelivererModalOpen}
+        onConfirm={handleConfirmDeliverer}
+      />
+      
+      <div className="rounded-md border border-gray-700 w-full">
+        <div className="p-3 bg-gray-800 border-b border-gray-700 flex justify-end">
+          <Button 
+            onClick={handlePlayAlert}
+            size="sm"
+            className="bg-orange-600 hover:bg-orange-700 text-white"
+          >
+            <Bell size={16} className="mr-2" />
+            Tocar Alerta para Motoboys
+          </Button>
+        </div>
+        
+        <ScrollArea className="max-h-[calc(100vh-280px)]">
         <Table className="w-full table-fixed">
           <TableHeader className="bg-gray-800 sticky top-0 z-10">
             <TableRow>
@@ -247,6 +352,18 @@ const PedidosTable: React.FC<PedidosTableProps> = ({
                     >
                       <Eye size={18} />
                     </Button>
+                    
+                    {isDeliveryOrder(pedido) && (
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => handleAssignDeliverer(pedido.id)}
+                        className="text-purple-500 hover:text-purple-400 hover:bg-gray-700"
+                        title="Atribuir motoboy"
+                      >
+                        <UserPlus size={18} />
+                      </Button>
+                    )}
                     {pedido.status === 'pendente' && (
                       <Button 
                         variant="ghost" 
@@ -335,7 +452,8 @@ const PedidosTable: React.FC<PedidosTableProps> = ({
           </PaginationContent>
         </Pagination>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

@@ -43,6 +43,12 @@ const MotoboyPedidosListModal: React.FC<MotoboyPedidosListModalProps> = ({
   const [selectedPedido, setSelectedPedido] = useState<Pedido | null>(null);
   const { toast } = useToast();
 
+  // Play alert sound
+  const playAlertSound = () => {
+    const audio = new Audio('/order.mp3');
+    audio.play().catch(err => console.error('Erro ao tocar alerta:', err));
+  };
+
   const loadPedidos = async () => {
     setLoading(true);
     try {
@@ -71,7 +77,7 @@ const MotoboyPedidosListModal: React.FC<MotoboyPedidosListModalProps> = ({
     if (isOpen) {
       loadPedidos();
 
-      const channel = supabase
+      const pedidosChannel = supabase
         .channel('motoboy-pedidos')
         .on('postgres_changes', 
           { event: '*', schema: 'public', table: 'pedidos' },
@@ -79,8 +85,20 @@ const MotoboyPedidosListModal: React.FC<MotoboyPedidosListModalProps> = ({
         )
         .subscribe();
 
+      const alertChannel = supabase
+        .channel('motoboy-alerts')
+        .on('broadcast', { event: 'play-alert' }, () => {
+          playAlertSound();
+          toast({
+            title: 'Novo alerta!',
+            description: 'Verifique os pedidos disponíveis',
+          });
+        })
+        .subscribe();
+
       return () => {
-        supabase.removeChannel(channel);
+        supabase.removeChannel(pedidosChannel);
+        supabase.removeChannel(alertChannel);
       };
     }
   }, [isOpen]);
