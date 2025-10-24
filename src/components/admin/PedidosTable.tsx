@@ -120,11 +120,14 @@ const PedidosTable: React.FC<PedidosTableProps> = ({
   };
 
   const isDeliveryOrder = (pedido: Pedido) => {
-    const hasAddress = pedido.cliente_endereco && pedido.cliente_endereco.trim() !== '';
-    const isBalcao = !hasAddress || 
-                     pedido.cliente_bairro?.toLowerCase().includes('balc') ||
-                     pedido.cliente_bairro?.toLowerCase().includes('retirada') ||
-                     Number(pedido.taxa_entrega || 0) === 0;
+    // Considera delivery se o bairro NÃO for "BALCAO" e NÃO incluir "retirada"
+    const bairro = pedido.cliente_bairro?.toLowerCase() || '';
+    const isBalcao = bairro === 'balcao' || 
+                     bairro.includes('balc') || 
+                     bairro.includes('retirada') ||
+                     bairro === 'selecione um bairro';
+    
+    // Se não é balcão, é delivery
     return !isBalcao;
   };
   
