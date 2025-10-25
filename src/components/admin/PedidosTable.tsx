@@ -120,10 +120,13 @@ const PedidosTable: React.FC<PedidosTableProps> = ({
   };
 
   const isDeliveryOrder = (pedido: Pedido) => {
-    // Considera "Balcão" somente quando explicitamente indicado no bairro
-    const bairro = (pedido.cliente_bairro || '').toLowerCase();
-    const normalized = bairro.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // remove acentos
-    const isBalcao = normalized.includes('balcao') || normalized.includes('retirada');
+    // Um pedido é de delivery se o bairro não for "BALCAO" (case insensitive)
+    const bairro = (pedido.cliente_bairro || '').trim().toUpperCase();
+    const isBalcao = bairro === 'BALCAO' || bairro === 'BALCÃO' || bairro.includes('RETIRADA');
+    
+    // Log para debug - remover depois
+    console.log('Verificando pedido:', pedido.codigo_pedido, 'Bairro:', pedido.cliente_bairro, 'É Balcão?', isBalcao);
+    
     return !isBalcao;
   };
   

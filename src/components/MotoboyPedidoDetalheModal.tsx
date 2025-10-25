@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ArrowLeft, User, MapPin, Phone, DollarSign, Package } from 'lucide-react';
+import { ArrowLeft, User, MapPin, Phone, DollarSign, Package, CheckCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -40,56 +39,35 @@ const MotoboyPedidoDetalheModal: React.FC<MotoboyPedidoDetalheModalProps> = ({
   onClose,
   onUpdate
 }) => {
-  const [motoboyName, setMotoboyName] = useState(pedido.entregador || '');
-  const [saving, setSaving] = useState(false);
+  const [confirmingDelivery, setConfirmingDelivery] = useState(false);
   const { toast } = useToast();
 
-  const handleSaveEntregador = async () => {
-    const trimmedName = motoboyName.trim();
-    
-    if (!trimmedName) {
-      toast({
-        title: "Nome obrigatório",
-        description: "Digite seu nome para registrar a entrega",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (trimmedName.length < 2) {
-      toast({
-        title: "Nome muito curto",
-        description: "Digite seu nome completo",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setSaving(true);
+  const handleConfirmDelivery = async () => {
+    setConfirmingDelivery(true);
     try {
       const { error } = await supabase
         .from('pedidos')
-        .update({ entregador: trimmedName })
+        .update({ status: 'entregue' })
         .eq('id', pedido.id);
 
       if (error) throw error;
 
       toast({
-        title: "Entregador registrado!",
-        description: `${trimmedName} foi atribuído ao pedido #${pedido.codigo_pedido}`,
+        title: "Entrega confirmada!",
+        description: `Pedido #${pedido.codigo_pedido} foi marcado como entregue.`,
       });
       
       onUpdate();
       onClose();
     } catch (error) {
-      console.error('Erro ao salvar entregador:', error);
+      console.error('Erro ao confirmar entrega:', error);
       toast({
-        title: "Erro ao salvar",
+        title: "Erro ao confirmar entrega",
         description: "Tente novamente",
         variant: "destructive",
       });
     } finally {
-      setSaving(false);
+      setConfirmingDelivery(false);
     }
   };
 
@@ -218,32 +196,26 @@ const MotoboyPedidoDetalheModal: React.FC<MotoboyPedidoDetalheModalProps> = ({
               </div>
             </div>
 
-            {/* Registrar Entregador */}
-            <div className="bg-purple-600/20 border border-purple-600 p-4 rounded-lg space-y-3">
-              <h3 className="font-bold text-base sm:text-lg">Registrar Entregador</h3>
-              <div className="flex flex-col sm:flex-row gap-2">
-                <Input
-                  placeholder="Digite seu nome completo"
-                  value={motoboyName}
-                  onChange={(e) => setMotoboyName(e.target.value)}
-                  className="bg-gray-800 border-gray-600 text-white"
-                  disabled={saving}
-                  required
-                />
-                <Button
-                  onClick={handleSaveEntregador}
-                  disabled={saving || !motoboyName.trim()}
-                  className="bg-purple-600 hover:bg-purple-700 w-full sm:w-auto"
-                >
-                  {saving ? 'Salvando...' : 'Salvar'}
-                </Button>
-              </div>
-              {pedido.entregador && (
-                <div className="text-sm text-gray-400">
-                  Entregador atual: <strong className="text-white">{pedido.entregador}</strong>
+            {/* Informações do Entregador */}
+            {pedido.entregador && (
+              <div className="bg-purple-600/20 border border-purple-600 p-4 rounded-lg">
+                <h3 className="font-bold text-base sm:text-lg mb-2">Entregador Responsável</h3>
+                <div className="text-lg">
+                  <strong className="text-white">{pedido.entregador}</strong>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
+
+            {/* Botão Confirmar Entrega */}
+            <Button
+              onClick={handleConfirmDelivery}
+              disabled={confirmingDelivery}
+              className="w-full bg-green-600 hover:bg-green-700 text-white py-6 text-lg font-bold"
+              size="lg"
+            >
+              <CheckCircle size={24} className="mr-2" />
+              {confirmingDelivery ? 'Confirmando...' : 'Confirmar Entrega'}
+            </Button>
           </div>
         </ScrollArea>
       </DialogContent>
