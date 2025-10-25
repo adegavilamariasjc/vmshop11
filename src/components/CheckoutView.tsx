@@ -124,8 +124,7 @@ const [senhaError, setSenhaError] = useState('');
           <Button
             onClick={() => onSubmit(false)}
             disabled={!isFormValid || isSending}
-            variant="success"
-            className="w-full py-6 mt-6"
+            className="w-full py-6 mt-6 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold text-lg shadow-[0_0_20px_rgba(34,197,94,0.5)] hover:shadow-[0_0_30px_rgba(34,197,94,0.7)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
           >
             {isSending ? (
               <>
@@ -145,7 +144,7 @@ const [senhaError, setSenhaError] = useState('');
             type="button"
             onClick={() => { setShowPasswordDialog(true); setSenha(''); setFuncionario(''); setSenhaError(''); }}
             title="Pedido de Balcão"
-            className="fixed bottom-4 left-28 bg-accent-purple/70 hover:bg-accent-purple text-accent-purple-foreground p-3 rounded-full shadow-lg transition-all duration-200"
+            className="fixed bottom-28 left-4 bg-accent-purple/70 hover:bg-accent-purple text-accent-purple-foreground p-3 rounded-full shadow-lg transition-all duration-200 z-50"
           >
             <ShoppingBag size={16} />
           </button>
