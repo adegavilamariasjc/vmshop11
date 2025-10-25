@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Printer, Eye, Check, Truck, ShoppingBag, Trash2, Clock, UserPlus } from 'lucide-react';
+import { Printer, Eye, Check, Truck, ShoppingBag, Trash2, Clock, UserPlus, Bell } from 'lucide-react';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -77,9 +77,6 @@ const PedidosTable: React.FC<PedidosTableProps> = ({
 
       if (error) throw error;
 
-      // Som de notificação será tocado automaticamente na tela do motoboy
-      // quando ele detectar o novo pedido atribuído via realtime
-      
       toast({
         title: 'Motoboy atribuído',
         description: `${deliverer} foi atribuído ao pedido com sucesso.`,
@@ -98,10 +95,37 @@ const PedidosTable: React.FC<PedidosTableProps> = ({
     }
   };
 
+  const handlePlayAlert = async () => {
+    try {
+      // Send alert notification via Supabase channel
+      const channel = supabase.channel('motoboy-alerts');
+      await channel.send({
+        type: 'broadcast',
+        event: 'play-alert',
+        payload: { timestamp: new Date().toISOString() }
+      });
+
+      toast({
+        title: 'Alerta enviado',
+        description: 'O alerta foi tocado para os motoboys.',
+      });
+    } catch (error) {
+      console.error('Erro ao tocar alerta:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível tocar o alerta.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const isDeliveryOrder = (pedido: Pedido) => {
     // Um pedido é de delivery se o bairro não for "BALCAO" (case insensitive)
     const bairro = (pedido.cliente_bairro || '').trim().toUpperCase();
     const isBalcao = bairro === 'BALCAO' || bairro === 'BALCÃO' || bairro.includes('RETIRADA');
+    
+    // Log para debug - remover depois
+    console.log('Verificando pedido:', pedido.codigo_pedido, 'Bairro:', pedido.cliente_bairro, 'É Balcão?', isBalcao);
     
     return !isBalcao;
   };
@@ -267,6 +291,17 @@ const PedidosTable: React.FC<PedidosTableProps> = ({
       />
       
       <div className="rounded-md border border-gray-700 w-full">
+        <div className="p-3 bg-gray-800 border-b border-gray-700 flex justify-end">
+          <Button 
+            onClick={handlePlayAlert}
+            size="sm"
+            className="bg-orange-600 hover:bg-orange-700 text-white"
+          >
+            <Bell size={16} className="mr-2" />
+            Tocar Alerta para Motoboys
+          </Button>
+        </div>
+        
         <ScrollArea className="max-h-[calc(100vh-280px)]">
         <Table className="w-full table-fixed">
           <TableHeader className="bg-gray-800 sticky top-0 z-10">

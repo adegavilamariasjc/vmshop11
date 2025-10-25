@@ -17,32 +17,18 @@ const MotoboyLoginModal: React.FC<MotoboyLoginModalProps> = ({
   onLoginSuccess
 }) => {
   const [password, setPassword] = useState('');
-  const [motoboyName, setMotoboyName] = useState('');
   const { toast } = useToast();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!motoboyName.trim()) {
-      toast({
-        title: "Nome obrigatório",
-        description: "Digite seu nome para continuar",
-        variant: "destructive",
-      });
-      return;
-    }
-    
     if (password === 'motocas11') {
-      // Armazena o nome do motoboy no localStorage
-      localStorage.setItem('motoboy_name', motoboyName.trim());
-      
       toast({
         title: "Login realizado!",
-        description: `Bem-vindo, ${motoboyName}!`,
+        description: "Bem-vindo ao painel de entregas",
       });
       onLoginSuccess();
       setPassword('');
-      setMotoboyName('');
     } else {
       toast({
         title: "Senha incorreta",
@@ -66,25 +52,13 @@ const MotoboyLoginModal: React.FC<MotoboyLoginModalProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           <div>
-            <label className="text-sm text-gray-400 mb-1 block">Nome do Motoboy</label>
-            <Input
-              type="text"
-              placeholder="Digite seu nome"
-              value={motoboyName}
-              onChange={(e) => setMotoboyName(e.target.value)}
-              className="bg-gray-800 border-gray-600 text-white"
-              autoFocus
-            />
-          </div>
-          
-          <div>
-            <label className="text-sm text-gray-400 mb-1 block">Senha</label>
             <Input
               type="password"
               placeholder="Digite a senha"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="bg-gray-800 border-gray-600 text-white"
+              autoFocus
             />
           </div>
 

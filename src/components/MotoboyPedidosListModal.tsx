@@ -41,16 +41,7 @@ const MotoboyPedidosListModal: React.FC<MotoboyPedidosListModalProps> = ({
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedPedido, setSelectedPedido] = useState<Pedido | null>(null);
-  const [motoboyName, setMotoboyName] = useState<string>('');
   const { toast } = useToast();
-
-  // Armazena nome do motoboy logado
-  useEffect(() => {
-    const savedName = localStorage.getItem('motoboy_name');
-    if (savedName) {
-      setMotoboyName(savedName);
-    }
-  }, []);
 
   // Play alert sound
   const playAlertSound = () => {
@@ -59,38 +50,16 @@ const MotoboyPedidosListModal: React.FC<MotoboyPedidosListModalProps> = ({
   };
 
   const loadPedidos = async () => {
-    if (!motoboyName) return;
-    
     setLoading(true);
     try {
-      // Data limite: 24 de outubro de 2023 às 18h
-      const dataLimite = '2023-10-24T18:00:00';
-      
       const { data, error } = await supabase
         .from('pedidos')
         .select('*')
-        .eq('entregador', motoboyName) // Só pedidos deste motoboy
-        .neq('status', 'entregue') // Exclui pedidos entregues
-        .gte('data_criacao', dataLimite) // Só pedidos após 24/10/2023 18h
+        .in('status', ['aceito', 'preparando', 'pronto', 'saiu_entrega'])
+        .neq('cliente_bairro', 'BALCAO')
         .order('data_criacao', { ascending: false });
 
       if (error) throw error;
-      
-      // Detecta novos pedidos atribuídos e toca som
-      if (data && data.length > pedidos.length) {
-        const newPedidos = data.filter(
-          newP => !pedidos.find(oldP => oldP.id === newP.id)
-        );
-        
-        if (newPedidos.length > 0 && pedidos.length > 0) {
-          playAlertSound();
-          toast({
-            title: 'Novo pedido atribuído!',
-            description: `Você tem ${newPedidos.length} novo(s) pedido(s)`,
-          });
-        }
-      }
-      
       setPedidos(data || []);
     } catch (error) {
       console.error('Erro ao carregar pedidos:', error);
@@ -105,27 +74,34 @@ const MotoboyPedidosListModal: React.FC<MotoboyPedidosListModalProps> = ({
   };
 
   useEffect(() => {
-    if (isOpen && motoboyName) {
+    if (isOpen) {
       loadPedidos();
 
       const pedidosChannel = supabase
         .channel('motoboy-pedidos')
         .on('postgres_changes', 
           { event: '*', schema: 'public', table: 'pedidos' },
-          (payload) => {
-            // Recarrega apenas se for uma mudança relevante para este motoboy
-            if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
-              loadPedidos();
-            }
-          }
+          () => loadPedidos()
         )
+        .subscribe();
+
+      const alertChannel = supabase
+        .channel('motoboy-alerts')
+        .on('broadcast', { event: 'play-alert' }, () => {
+          playAlertSound();
+          toast({
+            title: 'Novo alerta!',
+            description: 'Verifique os pedidos disponíveis',
+          });
+        })
         .subscribe();
 
       return () => {
         supabase.removeChannel(pedidosChannel);
+        supabase.removeChannel(alertChannel);
       };
     }
-  }, [isOpen, motoboyName, pedidos.length]);
+  }, [isOpen]);
 
   const getStatusBadge = (status: string) => {
     const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
@@ -139,11 +115,6 @@ const MotoboyPedidosListModal: React.FC<MotoboyPedidosListModalProps> = ({
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
-  // Se não tiver nome do motoboy, não mostra nada
-  if (!motoboyName) {
-    return null;
-  }
-
   return (
     <>
       <Dialog open={isOpen && !selectedPedido} onOpenChange={onClose}>
@@ -152,7 +123,7 @@ const MotoboyPedidosListModal: React.FC<MotoboyPedidosListModalProps> = ({
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
               <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
                 <Package size={20} className="sm:w-6 sm:h-6" />
-                Meus Pedidos - {motoboyName}
+                Pedidos para Entrega
               </DialogTitle>
               <div className="flex gap-2 w-full sm:w-auto">
                 <Button
@@ -181,7 +152,7 @@ const MotoboyPedidosListModal: React.FC<MotoboyPedidosListModalProps> = ({
             <div className="space-y-3">
               {pedidos.length === 0 ? (
                 <div className="text-center text-gray-400 py-8">
-                  Nenhum pedido atribuído para você
+                  Nenhum pedido disponível
                 </div>
               ) : (
                 pedidos.map((pedido) => (
