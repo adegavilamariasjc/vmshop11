@@ -160,7 +160,14 @@ const MotoboyPedidoDetalheModal: React.FC<MotoboyPedidoDetalheModalProps> = ({
                     <div key={index} className="flex justify-between text-sm border-b border-gray-700 pb-2">
                       <div>
                         <div>{qty}x {item.name}</div>
-                        {item.ice && <div className="text-gray-400 text-xs">Gelo: {item.ice}</div>}
+                        {item.ice && typeof item.ice === 'object' && Object.entries(item.ice).some(([_, qty]) => Number(qty) > 0) && (
+                          <div className="text-gray-400 text-xs">
+                            Gelo: {Object.entries(item.ice)
+                              .filter(([_, qty]) => Number(qty) > 0)
+                              .map(([flavor, qty]) => `${flavor} x${qty}`)
+                              .join(", ")}
+                          </div>
+                        )}
                         {item.alcohol && <div className="text-gray-400 text-xs">Bebida: {item.alcohol}</div>}
                       </div>
                       <div className="text-green-400">R$ {itemTotal.toFixed(2)}</div>
