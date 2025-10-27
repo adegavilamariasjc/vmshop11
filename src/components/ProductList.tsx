@@ -17,7 +17,7 @@ interface ProductListProps {
 }
 
 const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct, onUpdateQuantity, isStoreOpen, productRefs }) => {
-  const [products, setProducts] = useState<{id: number; name: string; price: number; description?: string; is_paused?: boolean; order_index?: number; category_name?: string; purchases?: number}[]>([]);
+  const [products, setProducts] = useState<{id: number; name: string; price: number; description?: string; is_paused?: boolean; order_index?: number; category_name?: string; cart_additions?: number}[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<{name: string; description: string; price: number} | null>(null);
@@ -70,7 +70,7 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
               is_paused: stat.products.is_paused,
               order_index: stat.products.order_index,
               category_name: stat.products.categories?.name,
-              purchases: stat.purchases
+              cart_additions: stat.cart_additions
             }));
 
           setProducts(popularProducts);
@@ -186,7 +186,7 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
             <div className="text-white flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <p className="font-medium truncate">{item.name}</p>
-                {category === 'Mais Pedidos' && item.purchases && item.purchases > 0 && (
+                {category === 'Mais Pedidos' && item.cart_additions && item.cart_additions > 0 && (
                   <span className="inline-flex items-center gap-1 text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full flex-shrink-0 border border-green-500/30">
                     <TrendingUp size={12} />
                     Em Alta
@@ -198,9 +198,9 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
               )}
               <div className="flex items-center gap-2">
                 <p className="text-sm opacity-90">R$ {item.price.toFixed(2)}</p>
-                {category === 'Mais Pedidos' && item.purchases && item.purchases > 0 && (
+                {category === 'Mais Pedidos' && item.cart_additions && item.cart_additions > 0 && (
                   <span className="text-xs text-green-400 font-semibold">
-                    {item.purchases}x pedido{item.purchases > 1 ? 's' : ''}
+                    {item.cart_additions}x pedido{item.cart_additions > 1 ? 's' : ''}
                   </span>
                 )}
               </div>
