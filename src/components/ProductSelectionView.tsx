@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { ShoppingBag } from 'lucide-react';
 import CategorySelector from './CategorySelector';
@@ -30,6 +30,7 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
 }) => {
   const [isCartModalOpen, setIsCartModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const productRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   
   // Filter cart items with zero quantity
   const filteredCart = cart.filter(item => (item.qty || 0) > 0);
@@ -57,6 +58,27 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
     onAddProduct(item);
   };
 
+  const handleProductSelect = useCallback((productName: string, categoryName: string) => {
+    // Clear search
+    setSearchQuery('');
+    
+    // Navigate to category
+    onSelectCategory(categoryName);
+    
+    // Scroll to product after a brief delay to ensure it's rendered
+    setTimeout(() => {
+      const key = `${productName}-${categoryName}`;
+      const element = productRefs.current[key];
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        element.classList.add('bg-accent/30');
+        setTimeout(() => {
+          element.classList.remove('bg-accent/30');
+        }, 2000);
+      }
+    }, 300);
+  }, [onSelectCategory]);
+
   return (
     <motion.div
       key="product-selection"
@@ -76,6 +98,7 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
           cart={cart}
           onAddProduct={handleAddToCart}
           onUpdateQuantity={onUpdateQuantity}
+          onProductSelect={handleProductSelect}
         />
       ) : (
         <>
@@ -91,6 +114,7 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
               onAddProduct={handleAddToCart}
               onUpdateQuantity={onUpdateQuantity}
               isStoreOpen={isStoreOpen}
+              productRefs={productRefs}
             />
           )}
         </>

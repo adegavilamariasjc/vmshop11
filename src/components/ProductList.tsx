@@ -12,11 +12,12 @@ interface ProductListProps {
   cart: Product[];
   onAddProduct: (item: Product) => void;
   onUpdateQuantity: (item: Product, delta: number) => void;
-  isStoreOpen: boolean; // Added this prop to match what's being passed in ProductSelectionView
+  isStoreOpen: boolean;
+  productRefs?: React.MutableRefObject<{ [key: string]: HTMLDivElement | null }>;
 }
 
-const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct, onUpdateQuantity, isStoreOpen }) => {
-  const [products, setProducts] = useState<{id: number; name: string; price: number; description?: string; is_paused?: boolean; order_index?: number}[]>([]);
+const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct, onUpdateQuantity, isStoreOpen, productRefs }) => {
+  const [products, setProducts] = useState<{id: number; name: string; price: number; description?: string; is_paused?: boolean; order_index?: number; category_name?: string}[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<{name: string; description: string; price: number} | null>(null);
@@ -27,7 +28,56 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
       setError(null);
 
       try {
-        // First get category id by name
+        // Special case for "Mais Pedidos" category
+        if (category === 'Mais Pedidos') {
+          const { data: statsData, error: statsError } = await supabase
+            .from('product_stats')
+            .select(`
+              product_id,
+              purchases,
+              cart_additions,
+              products (
+                id,
+                name,
+                price,
+                description,
+                is_paused,
+                order_index,
+                category_id,
+                categories (
+                  name
+                )
+              )
+            `)
+            .order('purchases', { ascending: false })
+            .order('cart_additions', { ascending: false })
+            .limit(20);
+
+          if (statsError) {
+            console.error('Error fetching popular products:', statsError);
+            setError('Erro ao carregar produtos populares');
+            setIsLoading(false);
+            return;
+          }
+
+          const popularProducts = statsData
+            .filter(stat => stat.products && !stat.products.is_paused && (stat.purchases > 0 || stat.cart_additions > 0))
+            .map(stat => ({
+              id: stat.products.id,
+              name: stat.products.name,
+              price: stat.products.price,
+              description: stat.products.description,
+              is_paused: stat.products.is_paused,
+              order_index: stat.products.order_index,
+              category_name: stat.products.categories?.name
+            }));
+
+          setProducts(popularProducts);
+          setIsLoading(false);
+          return;
+        }
+
+        // Regular category logic
         const { data: categoryData, error: categoryError } = await supabase
           .from('categories')
           .select('id')
@@ -41,10 +91,9 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
           return;
         }
 
-        // Then fetch products for that category with ordering
         const { data: productsData, error: productsError } = await supabase
           .from('products')
-          .select('*')  // Select all fields including order_index
+          .select('*')
           .eq('category_id', categoryData.id)
           .order('order_index', { ascending: true })
           .order('name');
@@ -106,18 +155,20 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
           return null;
         }
 
+        const actualCategory = item.category_name || category;
         const cartItem = cart.find(p => 
           p.name === item.name && 
-          p.category === category &&
+          p.category === actualCategory &&
           !p.ice && !p.alcohol
         );
         
         const quantity = cartItem?.qty || 0;
-        const ProductIcon = getProductIcon(item.name, category);
+        const ProductIcon = getProductIcon(item.name, actualCategory);
         
         return (
           <div 
             key={`${item.id}-${item.name}`} 
+            ref={(el) => productRefs && (productRefs.current[`${item.name}-${actualCategory}`] = el)}
             className="flex items-center gap-3 border-b border-gray-600 py-3"
           >
             <button
@@ -133,12 +184,15 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
             
             <div className="text-white flex-1 min-w-0">
               <p className="font-medium truncate">{item.name}</p>
+              {category === 'Mais Pedidos' && item.category_name && (
+                <p className="text-xs opacity-70">{item.category_name}</p>
+              )}
               <p className="text-sm opacity-90">R$ {item.price.toFixed(2)}</p>
             </div>
             
             <div className="flex items-center gap-2 flex-shrink-0">
               <button
-                onClick={() => onUpdateQuantity({ id: item.id, ...item, category }, -1)}
+                onClick={() => onUpdateQuantity({ id: item.id, ...item, category: actualCategory }, -1)}
                 className="w-8 h-8 flex items-center justify-center bg-gray-200 text-black rounded-full"
                 disabled={quantity === 0}
               >
@@ -154,7 +208,7 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
               </motion.span>
               
               <button
-                onClick={() => onAddProduct({ id: item.id, ...item, category })}
+                onClick={() => onAddProduct({ id: item.id, ...item, category: actualCategory })}
                 className="w-8 h-8 flex items-center justify-center bg-purple-dark text-white rounded-full"
               >
                 <Plus size={16} />

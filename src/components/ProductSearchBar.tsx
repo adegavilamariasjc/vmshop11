@@ -85,9 +85,9 @@ const ProductSearchBar: React.FC<ProductSearchBarProps> = ({
   }, [searchQuery]);
 
   const handleSuggestionClick = (suggestion: SearchSuggestion) => {
+    onSearchChange('');
     setShowSuggestions(false);
     setSuggestions([]);
-    onSearchChange(suggestion.name);
     if (onSelectSuggestion) {
       onSelectSuggestion(suggestion.name);
     }

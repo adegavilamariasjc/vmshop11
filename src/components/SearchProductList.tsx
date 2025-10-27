@@ -11,6 +11,7 @@ interface SearchProductListProps {
   cart: Product[];
   onAddProduct: (item: Product) => void;
   onUpdateQuantity: (item: Product, delta: number) => void;
+  onProductSelect?: (productName: string, categoryName: string) => void;
 }
 
 interface SearchResult {
@@ -31,7 +32,8 @@ const SearchProductList: React.FC<SearchProductListProps> = ({
   searchQuery, 
   cart, 
   onAddProduct, 
-  onUpdateQuantity 
+  onUpdateQuantity,
+  onProductSelect
 }) => {
   const [products, setProducts] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -122,7 +124,10 @@ const SearchProductList: React.FC<SearchProductListProps> = ({
               <ProductIcon size={20} className="text-primary" />
             </button>
             
-            <div className="text-foreground flex-1 min-w-0">
+            <button
+              onClick={() => onProductSelect?.(item.name, item.category_name)}
+              className="text-foreground flex-1 min-w-0 text-left"
+            >
               <div className="flex items-center gap-2">
                 <p className="font-medium truncate">{item.name}</p>
                 {isPopular && (
@@ -141,7 +146,7 @@ const SearchProductList: React.FC<SearchProductListProps> = ({
                   </span>
                 )}
               </div>
-            </div>
+            </button>
             
             <div className="flex items-center gap-2">
               <button
