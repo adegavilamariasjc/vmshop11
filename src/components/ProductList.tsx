@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Minus, Loader2 } from 'lucide-react';
+import { Plus, Minus, Loader2, TrendingUp } from 'lucide-react';
 import { Product } from '../types';
 import { supabase } from '@/integrations/supabase/client';
 import { getProductIcon } from '@/utils/productIcons';
@@ -17,7 +17,7 @@ interface ProductListProps {
 }
 
 const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct, onUpdateQuantity, isStoreOpen, productRefs }) => {
-  const [products, setProducts] = useState<{id: number; name: string; price: number; description?: string; is_paused?: boolean; order_index?: number; category_name?: string}[]>([]);
+  const [products, setProducts] = useState<{id: number; name: string; price: number; description?: string; is_paused?: boolean; order_index?: number; category_name?: string; purchases?: number}[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<{name: string; description: string; price: number} | null>(null);
@@ -69,7 +69,8 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
               description: stat.products.description,
               is_paused: stat.products.is_paused,
               order_index: stat.products.order_index,
-              category_name: stat.products.categories?.name
+              category_name: stat.products.categories?.name,
+              purchases: stat.purchases
             }));
 
           setProducts(popularProducts);
@@ -183,11 +184,26 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
             </button>
             
             <div className="text-white flex-1 min-w-0">
-              <p className="font-medium truncate">{item.name}</p>
+              <div className="flex items-center gap-2">
+                <p className="font-medium truncate">{item.name}</p>
+                {category === 'Mais Pedidos' && item.purchases && item.purchases > 0 && (
+                  <span className="inline-flex items-center gap-1 text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full flex-shrink-0 border border-green-500/30">
+                    <TrendingUp size={12} />
+                    Em Alta
+                  </span>
+                )}
+              </div>
               {category === 'Mais Pedidos' && item.category_name && (
                 <p className="text-xs opacity-70">{item.category_name}</p>
               )}
-              <p className="text-sm opacity-90">R$ {item.price.toFixed(2)}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm opacity-90">R$ {item.price.toFixed(2)}</p>
+                {category === 'Mais Pedidos' && item.purchases && item.purchases > 0 && (
+                  <span className="text-xs text-green-400 font-semibold">
+                    {item.purchases}x pedido{item.purchases > 1 ? 's' : ''}
+                  </span>
+                )}
+              </div>
             </div>
             
             <div className="flex items-center gap-2 flex-shrink-0">
