@@ -7,8 +7,10 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import React, { useEffect } from 'react';
 import Index from "./pages/Index";
 import Admin from "./pages/Admin";
+import EntregasDashboard from "./pages/EntregasDashboard";
 import NotFound from "./pages/NotFound";
 import { setupGlobalTracking, trackPageVisit } from "./utils/trackPageVisit";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 // Create the QueryClient outside of the component
 const queryClient = new QueryClient();
@@ -34,19 +36,22 @@ const App = () => {
   return (
     <React.StrictMode>
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <RouteTracker />
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/admin" element={<Admin />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <RouteTracker />
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/admin" element={<Admin />} />
+                <Route path="/entregas" element={<EntregasDashboard />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthProvider>
       </QueryClientProvider>
     </React.StrictMode>
   );

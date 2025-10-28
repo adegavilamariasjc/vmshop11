@@ -1,11 +1,12 @@
-import React, { useState, useCallback, useMemo, Suspense } from 'react';
+import React, { useState, useCallback, useMemo, Suspense, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import AdminLogin from '../components/admin/AdminLogin';
+import { LogOut } from 'lucide-react';
 import TrafficIndicator from '../components/admin/TrafficIndicator';
 import Logo from '../components/Logo';
+import LoadingIndicator from '../components/LoadingIndicator';
 import BackgroundVideoPlayer from '../components/BackgroundVideoPlayer';
 import { getVideoUrls } from '@/utils/videoUrls';
 
@@ -18,42 +19,38 @@ import { AppCounterManager } from '../components/admin/AppCounterManager';
 import { PredictiveAnalysisExport } from '../components/admin/PredictiveAnalysisExport';
 
 const Admin = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { user, role, loading, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState("pedidos");
-  const { toast } = useToast();
   const navigate = useNavigate();
   
   const videoUrls = useMemo(() => getVideoUrls(), []);
 
-  const handleLogin = useCallback((password: string) => {
-    if (password === "adega123") {
-      setIsAuthenticated(true);
-      setActiveTab("pedidos");
-      toast({
-        title: "Login realizado com sucesso",
-        description: "Bem-vindo ao painel administrativo",
-      });
-    } else {
-      toast({
-        title: "Erro de autenticação",
-        description: "Senha incorreta",
-        variant: "destructive",
-      });
+  useEffect(() => {
+    if (!loading && (!user || role !== 'admin')) {
+      navigate('/');
     }
-  }, [toast]);
+  }, [loading, user, role, navigate]);
 
-  const handleLogout = useCallback(() => {
-    setIsAuthenticated(false);
-    setActiveTab("pedidos");
-    toast({
-      title: "Logout realizado",
-      description: "Você saiu do painel",
-    });
-  }, [toast]);
+  const handleLogout = useCallback(async () => {
+    await signOut();
+    navigate('/');
+  }, [signOut, navigate]);
 
   const handleTabChange = useCallback((value: string) => {
     setActiveTab(value);
   }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingIndicator />
+      </div>
+    );
+  }
+
+  if (!user || role !== 'admin') {
+    return null;
+  }
 
   return (
     <div className="min-h-screen w-full relative overflow-x-hidden">
@@ -64,21 +61,21 @@ const Admin = () => {
       />
       
       <div className="relative z-10 w-full lg:max-w-6xl mx-auto min-h-screen bg-black/70 p-2 sm:p-4 content-overlay">
-        {isAuthenticated ? (
-          <>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-              <div className="w-32 sm:w-40">
-                <Logo />
-              </div>
-              <Button 
-                variant="destructive" 
-                onClick={handleLogout}
-                className="text-black font-medium w-full sm:w-auto"
-                size="sm"
-              >
-                Sair
-              </Button>
+        <>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div className="w-32 sm:w-40">
+              <Logo />
             </div>
+            <Button 
+              variant="outline" 
+              onClick={handleLogout}
+              className="gap-2 w-full sm:w-auto"
+              size="sm"
+            >
+              <LogOut size={16} />
+              Sair
+            </Button>
+          </div>
             
             {/* Monitor de tráfego compacto no topo */}
             <div className="mt-3">
@@ -128,15 +125,7 @@ const Admin = () => {
                 </TabsContent>
               </Tabs>
             </div>
-          </>
-        ) : (
-          <div className="flex flex-col items-center justify-center min-h-screen">
-            <div className="w-full max-w-[200px] mb-6">
-              <Logo />
-            </div>
-            <AdminLogin onLogin={handleLogin} />
-          </div>
-        )}
+        </>
       </div>
     </div>
   );

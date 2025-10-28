@@ -5,8 +5,6 @@ import { AnimatePresence } from 'framer-motion';
 import PageLayout from '../components/PageLayout';
 import ProductSelectionView from '../components/ProductSelectionView';
 import CheckoutView from '../components/CheckoutView';
-import AdminLink from '../components/AdminLink';
-import MotoboyLink from '../components/MotoboyLink';
 import { useStoreStatus } from '@/hooks/useStoreStatus';
 import LoadingIndicator from '../components/LoadingIndicator';
 import IndexModals from '../components/IndexModals';
@@ -148,9 +146,6 @@ const Index = () => {
         handleOrderConfirmation={handleOrderConfirmation}
         setPendingProductWithIce={setPendingProductWithIce}
       />
-      
-      <MotoboyLink />
-      <AdminLink />
     </PageLayout>
   );
 };

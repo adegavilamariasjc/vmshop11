@@ -4,7 +4,7 @@ import Logo from './Logo';
 import VideoBackground from './VideoBackground';
 import AudioPlayer from './AudioPlayer';
 import StoreStatus from './StoreStatus';
-import AdminLink from './AdminLink';
+import UnifiedLoginButton from './UnifiedLoginButton';
 import { useStoreStatus } from '@/hooks/useStoreStatus';
 import { getVideoUrls } from '@/utils/videoUrls';
 
@@ -29,7 +29,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
           <div className="mb-4 mt-2">
             <StoreStatus />
           </div>
-          <AdminLink />
+          <UnifiedLoginButton />
           {children}
         </div>
       </div>
