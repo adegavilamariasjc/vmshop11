@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
@@ -21,8 +21,7 @@ const UnifiedLoginModal: React.FC<UnifiedLoginModalProps> = ({
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [awaitingRedirect, setAwaitingRedirect] = useState(false);
-  const { signIn, role } = useAuth();
+  const { signIn } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,11 +34,13 @@ const UnifiedLoginModal: React.FC<UnifiedLoginModalProps> = ({
       const email = raw.includes('@') ? raw : `${raw}@sistema.local`;
       await signIn(email.toLowerCase(), password);
       
-      onClose();
       setUsername('');
       setPassword('');
+      onClose();
       
-      setAwaitingRedirect(true);
+      // Redirecionar baseado na aba ativa
+      const redirectPath = activeTab === 'admin' ? '/admin' : '/entregas';
+      navigate(redirectPath);
     } catch (error) {
       // Erro já é tratado no contexto de Auth com toast
       console.error('Login failed:', error);
@@ -53,34 +54,6 @@ const UnifiedLoginModal: React.FC<UnifiedLoginModalProps> = ({
     setUsername('');
     setPassword('');
   };
-
-  // Navegar quando o papel (role) estiver resolvido após o login
-  useEffect(() => {
-    if (awaitingRedirect && role !== null) {
-      if (role === 'admin') {
-        navigate('/admin');
-      } else {
-        navigate('/entregas');
-      }
-      setAwaitingRedirect(false);
-      onClose();
-    }
-  }, [awaitingRedirect, role, navigate, onClose]);
-
-  // Fallback: se o papel não carregar a tempo, navega após timeout
-  useEffect(() => {
-    if (!awaitingRedirect) return;
-    const t = setTimeout(() => {
-      if (activeTab === 'admin') {
-        navigate('/admin');
-      } else {
-        navigate('/entregas');
-      }
-      setAwaitingRedirect(false);
-      onClose();
-    }, 3000);
-    return () => clearTimeout(t);
-  }, [awaitingRedirect, activeTab, navigate, onClose]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
