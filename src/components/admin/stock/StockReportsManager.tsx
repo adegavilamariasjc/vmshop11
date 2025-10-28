@@ -2,83 +2,137 @@ import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { useStockReports } from '@/hooks/useStockReports';
-import { Loader2, Package, TrendingUp, AlertTriangle, DollarSign } from 'lucide-react';
+import { Loader2, Package, TrendingUp, AlertTriangle, DollarSign, RefreshCw, AlertCircle } from 'lucide-react';
 import { StockStatusBadge } from './StockStatusBadge';
 import { ProfitMarginBadge } from './ProfitMarginBadge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export const StockReportsManager = () => {
-  const { stockReport, topSelling, alerts, financialSummary, isLoading } = useStockReports();
+  const { stockReport, topSelling, alerts, financialSummary, isLoading, errorMessage, lastRunMs, refreshReports } = useStockReports();
   const [activeTab, setActiveTab] = useState('resumo');
-
-  if (isLoading) {
-    return (
-      <div className="p-12 flex justify-center items-center">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        <span className="ml-3 text-muted-foreground">Carregando relatórios...</span>
-      </div>
-    );
-  }
 
   const hasData = stockReport.length > 0;
 
   return (
     <div className="space-y-4">
+      {/* Banner de Erro */}
+      {errorMessage && (
+        <Alert variant="destructive" className="bg-red-900/20 border-red-500">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription className="flex items-center justify-between">
+            <span>{errorMessage}</span>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => refreshReports()}
+              disabled={isLoading}
+              className="ml-4"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+              Tentar Novamente
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Cards de Resumo */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="bg-gray-800 border-gray-700 p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-blue-500/20 rounded-lg">
-              <Package className="h-6 w-6 text-blue-400" />
+          {isLoading ? (
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-12 w-12 rounded-lg" />
+              <div className="space-y-2 flex-1">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-8 w-32" />
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-gray-400">Total Investido</p>
-              <p className="text-2xl font-bold text-white">
-                R$ {financialSummary.totalInvestido.toFixed(2)}
-              </p>
+          ) : (
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-blue-500/20 rounded-lg">
+                <Package className="h-6 w-6 text-blue-400" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-400">Total Investido</p>
+                <p className="text-2xl font-bold text-white">
+                  R$ {financialSummary.totalInvestido.toFixed(2)}
+                </p>
+              </div>
             </div>
-          </div>
+          )}
         </Card>
 
         <Card className="bg-gray-800 border-gray-700 p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-green-500/20 rounded-lg">
-              <DollarSign className="h-6 w-6 text-green-400" />
+          {isLoading ? (
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-12 w-12 rounded-lg" />
+              <div className="space-y-2 flex-1">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-8 w-32" />
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-gray-400">Valor Potencial</p>
-              <p className="text-2xl font-bold text-white">
-                R$ {financialSummary.valorPotencial.toFixed(2)}
-              </p>
+          ) : (
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-green-500/20 rounded-lg">
+                <DollarSign className="h-6 w-6 text-green-400" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-400">Valor Potencial</p>
+                <p className="text-2xl font-bold text-white">
+                  R$ {financialSummary.valorPotencial.toFixed(2)}
+                </p>
+              </div>
             </div>
-          </div>
+          )}
         </Card>
 
         <Card className="bg-gray-800 border-gray-700 p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-purple-500/20 rounded-lg">
-              <TrendingUp className="h-6 w-6 text-purple-400" />
+          {isLoading ? (
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-12 w-12 rounded-lg" />
+              <div className="space-y-2 flex-1">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-8 w-32" />
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-gray-400">Lucro Estimado</p>
-              <p className="text-2xl font-bold text-white">
-                R$ {financialSummary.lucroEstimado.toFixed(2)}
-              </p>
+          ) : (
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-purple-500/20 rounded-lg">
+                <TrendingUp className="h-6 w-6 text-purple-400" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-400">Lucro Estimado</p>
+                <p className="text-2xl font-bold text-white">
+                  R$ {financialSummary.lucroEstimado.toFixed(2)}
+                </p>
+              </div>
             </div>
-          </div>
+          )}
         </Card>
 
         <Card className="bg-gray-800 border-gray-700 p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-red-500/20 rounded-lg">
-              <AlertTriangle className="h-6 w-6 text-red-400" />
+          {isLoading ? (
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-12 w-12 rounded-lg" />
+              <div className="space-y-2 flex-1">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-8 w-32" />
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-gray-400">Alertas de Estoque</p>
-              <p className="text-2xl font-bold text-white">{alerts.length}</p>
+          ) : (
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-red-500/20 rounded-lg">
+                <AlertTriangle className="h-6 w-6 text-red-400" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-400">Alertas de Estoque</p>
+                <p className="text-2xl font-bold text-white">{alerts.length}</p>
+              </div>
             </div>
-          </div>
+          )}
         </Card>
       </div>
 
@@ -93,8 +147,25 @@ export const StockReportsManager = () => {
         <TabsContent value="resumo" className="mt-4">
           <Card className="bg-gray-800 border-gray-700">
             <div className="p-4">
-              <h3 className="text-lg font-semibold text-white mb-4">Estoque Atual por Produto</h3>
-              {!hasData ? (
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-white">Estoque Atual por Produto</h3>
+                {lastRunMs > 0 && !isLoading && (
+                  <span className="text-xs text-gray-500">
+                    Carregado em {lastRunMs}ms
+                  </span>
+                )}
+              </div>
+              {isLoading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="flex gap-4">
+                      <Skeleton className="h-12 flex-1" />
+                      <Skeleton className="h-12 w-24" />
+                      <Skeleton className="h-12 w-24" />
+                    </div>
+                  ))}
+                </div>
+              ) : !hasData ? (
                 <div className="text-center text-gray-400 py-12">
                   <Package className="h-12 w-12 mx-auto mb-4 text-gray-600" />
                   <p className="text-lg mb-2">Nenhum produto com controle de estoque ativo</p>
@@ -154,7 +225,17 @@ export const StockReportsManager = () => {
           <Card className="bg-gray-800 border-gray-700">
             <div className="p-4">
               <h3 className="text-lg font-semibold text-white mb-4">Top 20 Produtos Mais Vendidos (últimos 30 dias)</h3>
-              {topSelling.length === 0 ? (
+              {isLoading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="flex gap-4">
+                      <Skeleton className="h-12 w-12" />
+                      <Skeleton className="h-12 flex-1" />
+                      <Skeleton className="h-12 w-24" />
+                    </div>
+                  ))}
+                </div>
+              ) : topSelling.length === 0 ? (
                 <div className="text-center text-gray-400 py-12">
                   <TrendingUp className="h-12 w-12 mx-auto mb-4 text-gray-600" />
                   <p className="text-lg mb-2">Nenhuma venda registrada nos últimos 30 dias</p>
@@ -200,7 +281,17 @@ export const StockReportsManager = () => {
           <Card className="bg-gray-800 border-gray-700">
             <div className="p-4">
               <h3 className="text-lg font-semibold text-white mb-4">Alertas de Estoque Baixo</h3>
-              {alerts.length === 0 ? (
+              {isLoading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex gap-4">
+                      <Skeleton className="h-12 flex-1" />
+                      <Skeleton className="h-12 w-24" />
+                      <Skeleton className="h-12 w-24" />
+                    </div>
+                  ))}
+                </div>
+              ) : alerts.length === 0 ? (
                 <div className="text-center text-gray-400 py-8">
                   Nenhum alerta no momento. Todos os estoques estão OK! 🎉
                 </div>
