@@ -28,28 +28,49 @@ export const useStockReports = () => {
 
   const loadAllReports = async (days: number = 30) => {
     setIsLoading(true);
-    
-    const [
-      stockData,
-      topSellingData,
-      turnoverData,
-      alertsData,
-      financialData
-    ] = await Promise.all([
-      getStockReport(),
-      getTopSellingProducts(days),
-      getStockTurnover(days),
-      getStockAlerts(),
-      getStockFinancialSummary()
-    ]);
+    try {
+      const [
+        stockData,
+        topSellingData,
+        turnoverData,
+        alertsData,
+        financialData
+      ] = await Promise.all([
+        getStockReport(),
+        getTopSellingProducts(days),
+        getStockTurnover(days),
+        getStockAlerts(),
+        getStockFinancialSummary()
+      ]);
 
-    setStockReport(stockData);
-    setTopSelling(topSellingData);
-    setStockTurnover(turnoverData);
-    setAlerts(alertsData);
-    setFinancialSummary(financialData);
-    
-    setIsLoading(false);
+      setStockReport(stockData ?? []);
+      setTopSelling(topSellingData ?? []);
+      setStockTurnover(turnoverData ?? []);
+      setAlerts(alertsData ?? []);
+      setFinancialSummary(
+        financialData ?? {
+          totalInvestido: 0,
+          valorPotencial: 0,
+          lucroEstimado: 0,
+          margemMedia: 0,
+        }
+      );
+    } catch (error) {
+      console.error('Erro ao carregar relatórios de estoque:', error);
+      // Garantir estados seguros para renderização
+      setStockReport([]);
+      setTopSelling([]);
+      setStockTurnover([]);
+      setAlerts([]);
+      setFinancialSummary({
+        totalInvestido: 0,
+        valorPotencial: 0,
+        lucroEstimado: 0,
+        margemMedia: 0,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
