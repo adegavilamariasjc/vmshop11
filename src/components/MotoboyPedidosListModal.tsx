@@ -52,12 +52,17 @@ const MotoboyPedidosListModal: React.FC<MotoboyPedidosListModalProps> = ({
   const loadPedidos = async () => {
     setLoading(true);
     try {
+      // Filter only recent orders (last 12 hours) that have a deliverer assigned
+      const twelveHoursAgo = new Date();
+      twelveHoursAgo.setHours(twelveHoursAgo.getHours() - 12);
+
       const { data, error } = await supabase
         .from('pedidos')
         .select('*')
         .in('status', ['aceito', 'preparando', 'pronto', 'saiu_entrega'])
         .neq('cliente_bairro', 'BALCAO')
         .not('entregador', 'is', null)
+        .gte('data_criacao', twelveHoursAgo.toISOString())
         .order('data_criacao', { ascending: false });
 
       if (error) throw error;
