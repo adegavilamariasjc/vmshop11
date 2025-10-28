@@ -152,39 +152,52 @@ const ProductManager: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold text-white mb-4">Gerenciar Produtos</h2>
-      
-      <CategorySelector
-        categories={categories}
-        selectedCategoryId={selectedCategoryId}
-        onCategoryChange={setSelectedCategoryId}
-        isLoading={isLoading}
-      />
-      
-      <AddProductForm
-        selectedCategoryId={selectedCategoryId}
-        onProductAdded={handleProductAdded}
-      />
-      
-      <div className="bg-gray-900/50 p-4 rounded-md">
-        <ProductPDFExport />
-      </div>
-      
-      <div className="space-y-2">
-        <h3 className="text-lg font-semibold text-white">Lista de Produtos</h3>
-        
-        <div className="bg-gray-900/50 rounded-md overflow-hidden">
-          <ProductList
-            products={productsList}
-            isLoading={isLoading}
-            isSaving={isSaving}
+      <Tabs defaultValue="gerenciar" className="w-full">
+        <TabsList className="bg-gray-800">
+          <TabsTrigger value="gerenciar">Gerenciar</TabsTrigger>
+          <TabsTrigger value="relatorios">Relatórios</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="gerenciar" className="space-y-4">
+          <h2 className="text-xl font-bold text-white mb-4">Gerenciar Produtos</h2>
+
+          <CategorySelector
+            categories={categories}
             selectedCategoryId={selectedCategoryId}
-            onProductsReorder={handleProductsReorder}
-            onProductUpdate={handleProductUpdate}
-            onProductDelete={handleProductDelete}
+            onCategoryChange={setSelectedCategoryId}
+            isLoading={isLoading}
           />
-        </div>
-      </div>
+
+          <AddProductForm
+            selectedCategoryId={selectedCategoryId}
+            onProductAdded={handleProductAdded}
+          />
+
+          <div className="bg-gray-900/50 p-4 rounded-md">
+            <ProductPDFExport />
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold text-white">Lista de Produtos</h3>
+
+            <div className="bg-gray-900/50 rounded-md overflow-hidden">
+              <ProductList
+                products={productsList}
+                isLoading={isLoading}
+                isSaving={isSaving}
+                selectedCategoryId={selectedCategoryId}
+                onProductsReorder={handleProductsReorder}
+                onProductUpdate={handleProductUpdate}
+                onProductDelete={handleProductDelete}
+              />
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="relatorios" className="mt-4">
+          <StockReportsManager />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
