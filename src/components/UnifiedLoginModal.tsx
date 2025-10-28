@@ -34,16 +34,18 @@ const UnifiedLoginModal: React.FC<UnifiedLoginModalProps> = ({
       const email = raw.includes('@') ? raw : `${raw}@sistema.local`;
       await signIn(email.toLowerCase(), password);
       
-      // Redirecionar baseado no tipo de usuário
-      if (activeTab === 'admin') {
-        navigate('/admin');
-      } else {
-        navigate('/entregas');
-      }
-      
       onClose();
       setUsername('');
       setPassword('');
+      
+      // Aguardar role ser carregado antes de redirecionar
+      setTimeout(() => {
+        if (activeTab === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/entregas');
+        }
+      }, 400);
     } catch (error) {
       // Erro já é tratado no contexto de Auth com toast
       console.error('Login failed:', error);
