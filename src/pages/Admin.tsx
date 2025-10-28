@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, Suspense, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -17,11 +17,14 @@ import CategoryManager from '../components/admin/CategoryManager';
 import BairroManager from '../components/admin/BairroManager';
 import { AppCounterManager } from '../components/admin/AppCounterManager';
 import { PredictiveAnalysisExport } from '../components/admin/PredictiveAnalysisExport';
+import { AuthDiagnostics } from '../components/admin/AuthDiagnostics';
 
 const Admin = () => {
   const { user, role, loading, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState("pedidos");
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const showDebug = searchParams.get('debug') === '1';
   
   const videoUrls = useMemo(() => getVideoUrls(), []);
 
@@ -77,9 +80,10 @@ const Admin = () => {
             </Button>
           </div>
             
-            {/* Monitor de tráfego compacto no topo */}
-            <div className="mt-3">
+            {/* Monitor de tráfego compacto no topo + Diagnóstico (debug=1) */}
+            <div className="mt-3 space-y-3">
               <TrafficIndicator />
+              {showDebug && <AuthDiagnostics />}
             </div>
             
             <div className="mt-4 sm:mt-6">

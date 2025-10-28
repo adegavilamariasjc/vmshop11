@@ -33,15 +33,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           .from('user_roles')
           .select('role')
           .eq('user_id', userId)
-          .single();
+          .maybeSingle();
         
-        if (mounted) {
-          if (error) {
-            console.error('Error fetching role:', error);
-            setRole(null);
-          } else {
-            setRole(data?.role as UserRole);
-          }
+        if (!mounted) return;
+        if (error) {
+          console.error('Error fetching role:', error);
+          setRole(null);
+        } else {
+          setRole((data?.role as UserRole) ?? null);
         }
       } catch (err) {
         console.error('Error in role fetch:', err);
@@ -49,23 +48,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
-        
-        if (mounted) {
-          setSession(session);
-          setUser(session?.user ?? null);
-          
-          if (session?.user) {
-            await fetchUserRole(session.user.id);
-          } else {
-            setRole(null);
-          }
-          setLoading(false);
-        }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, session?.user?.email);
+      if (!mounted) return;
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        setTimeout(() => fetchUserRole(session.user!.id), 0);
+      } else {
+        setRole(null);
       }
-    );
+      setLoading(false);
+    });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (mounted) {

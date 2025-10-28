@@ -29,9 +29,10 @@ const UnifiedLoginModal: React.FC<UnifiedLoginModalProps> = ({
     setLoading(true);
 
     try {
-      // Converter username para email no formato sistema.local
-      const email = `${username}@sistema.local`;
-      await signIn(email, password);
+      // Aceita tanto usuário simples quanto email completo
+      const raw = username.trim();
+      const email = raw.includes('@') ? raw : `${raw}@sistema.local`;
+      await signIn(email.toLowerCase(), password);
       
       // Redirecionar baseado no tipo de usuário
       if (activeTab === 'admin') {
