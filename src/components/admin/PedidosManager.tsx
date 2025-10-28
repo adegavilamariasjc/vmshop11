@@ -29,7 +29,7 @@ const PedidosManager = () => {
           <Button 
             onClick={handleRefresh} 
             disabled={refreshing}
-            className="bg-purple-dark hover:bg-purple-600 text-black font-medium"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
             Atualizar

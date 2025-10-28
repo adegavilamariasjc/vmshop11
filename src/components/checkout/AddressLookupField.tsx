@@ -80,7 +80,7 @@ const AddressLookupField: React.FC<AddressLookupFieldProps> = ({
           onClick={searchAddressByZipcode}
           disabled={isSearching || cep.length !== 8}
           className={`flex items-center justify-center px-3 rounded-r-md ${
-            isSearching ? 'bg-gray-700' : 'bg-purple-dark hover:bg-purple-600'
+            isSearching ? 'bg-gray-700' : 'bg-primary hover:bg-primary/90'
           }`}
         >
           <Search size={20} />

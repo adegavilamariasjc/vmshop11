@@ -74,7 +74,7 @@ export const AddBairroForm: React.FC<AddBairroFormProps> = ({ onBairroAdded, bai
         </div>
         <Button 
           onClick={handleAddBairro}
-          className="bg-purple-dark hover:bg-purple-600"
+          className="bg-primary hover:bg-primary/90"
         >
           <PlusCircle className="mr-2 h-4 w-4" />
           Adicionar

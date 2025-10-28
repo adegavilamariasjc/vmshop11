@@ -225,7 +225,7 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
               
               <button
                 onClick={() => onAddProduct({ id: item.id, ...item, category: actualCategory })}
-                className="w-8 h-8 flex items-center justify-center bg-purple-dark text-white rounded-full"
+                className="w-8 h-8 flex items-center justify-center bg-primary text-primary-foreground rounded-full"
               >
                 <Plus size={16} />
               </button>

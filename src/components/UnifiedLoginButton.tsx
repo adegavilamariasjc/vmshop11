@@ -9,7 +9,7 @@ const UnifiedLoginButton: React.FC = () => {
     <>
       <button
         onClick={() => setShowModal(true)}
-        className="fixed bottom-16 left-4 bg-purple-dark/70 hover:bg-purple-dark text-white p-3 rounded-full shadow-lg transition-all duration-200 z-50"
+        className="fixed bottom-16 left-4 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white p-3 rounded-full shadow-lg border border-white/20 transition-all duration-200 z-50"
         title="Acessar Sistema"
       >
         <Settings size={16} />

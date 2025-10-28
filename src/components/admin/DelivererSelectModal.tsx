@@ -58,7 +58,7 @@ const DelivererSelectModal: React.FC<DelivererSelectModalProps> = ({
         <AlertDialogFooter>
           <AlertDialogAction
             onClick={handleConfirm}
-            className="bg-purple-dark hover:bg-purple-600 text-black font-medium"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             Confirmar
           </AlertDialogAction>

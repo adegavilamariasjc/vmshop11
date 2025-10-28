@@ -41,7 +41,7 @@ const BalyFlavorSelectionModal: React.FC<BalyFlavorSelectionModalProps> = ({
         initial={{ scale: 0.9 }}
         animate={{ scale: 1 }}
         exit={{ scale: 0.9 }}
-        className="bg-gray-900 border border-purple-dark/50 rounded-lg p-4 w-full max-w-md"
+        className="bg-gray-900 border border-white/20 rounded-lg p-4 w-full max-w-md"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-3">

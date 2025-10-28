@@ -284,7 +284,7 @@ const EnergyDrinkSelectionModal: React.FC<EnergyDrinkSelectionModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !isSubmitting && !open && onClose()}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto z-[80] bg-gray-900 border-purple-dark/50">
+      <DialogContent className="max-h-[90vh] overflow-y-auto z-[80] bg-gray-900 border-white/20">
         <DialogHeader className="pb-2">
           <DialogTitle className="text-base font-bold text-white">
             Qual energético acompanha?

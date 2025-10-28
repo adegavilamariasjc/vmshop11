@@ -294,7 +294,7 @@ const SimplifiedAdminPedidos: React.FC<SimplifiedAdminPedidosProps> = ({
         <Button 
           onClick={handleRefresh} 
           disabled={refreshing}
-          className="bg-purple-dark hover:bg-purple-600 text-white w-full sm:w-auto"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto"
           size="sm"
         >
           <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
