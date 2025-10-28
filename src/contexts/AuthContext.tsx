@@ -25,49 +25,64 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
 
   useEffect(() => {
-    // 1. Configurar listener PRIMEIRO
+    let mounted = true;
+
+    const fetchUserRole = async (userId: string) => {
+      try {
+        const { data, error } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', userId)
+          .single();
+        
+        if (mounted) {
+          if (error) {
+            console.error('Error fetching role:', error);
+            setRole(null);
+          } else {
+            setRole(data?.role as UserRole);
+          }
+        }
+      } catch (err) {
+        console.error('Error in role fetch:', err);
+        if (mounted) setRole(null);
+      }
+    };
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
         
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        // 2. Buscar role do usuário (usar setTimeout para evitar deadlock)
-        if (session?.user) {
-          setTimeout(async () => {
-            try {
-              const { data, error } = await supabase
-                .from('user_roles')
-                .select('role')
-                .eq('user_id', session.user.id)
-                .single();
-              
-              if (error) {
-                console.error('Error fetching role:', error);
-                setRole(null);
-              } else {
-                setRole(data?.role as UserRole);
-              }
-            } catch (err) {
-              console.error('Error in role fetch:', err);
-              setRole(null);
-            }
-          }, 0);
-        } else {
-          setRole(null);
+        if (mounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          
+          if (session?.user) {
+            await fetchUserRole(session.user.id);
+          } else {
+            setRole(null);
+          }
+          setLoading(false);
         }
       }
     );
 
-    // 3. DEPOIS verificar sessão existente
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
+      if (mounted) {
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          fetchUserRole(session.user.id);
+        }
+        setLoading(false);
+      }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
