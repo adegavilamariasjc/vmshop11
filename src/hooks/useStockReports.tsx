@@ -53,7 +53,19 @@ export const useStockReports = () => {
   };
 
   useEffect(() => {
-    loadAllReports();
+    let mounted = true;
+    
+    const load = async () => {
+      if (mounted) {
+        await loadAllReports();
+      }
+    };
+    
+    load();
+    
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   return {
