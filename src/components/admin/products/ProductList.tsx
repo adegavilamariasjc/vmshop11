@@ -63,9 +63,12 @@ export const ProductList: React.FC<ProductListProps> = ({
             <Table className="w-full text-white">
               <TableHeader className="bg-gray-800">
                 <TableRow>
-                  <TableHead className="w-1/2 text-left">Nome</TableHead>
-                  <TableHead className="w-1/4 text-right">Preço</TableHead>
-                  <TableHead className="w-1/4 text-right">Ações</TableHead>
+                  <TableHead className="w-1/3 text-left">Nome</TableHead>
+                  <TableHead className="w-24 text-center">Estoque</TableHead>
+                  <TableHead className="w-24 text-right">Custo</TableHead>
+                  <TableHead className="w-24 text-right">Preço</TableHead>
+                  <TableHead className="w-20 text-center">Margem</TableHead>
+                  <TableHead className="w-32 text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

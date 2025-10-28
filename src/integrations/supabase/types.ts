@@ -171,6 +171,69 @@ export type Database = {
           },
         ]
       }
+      movimentacoes_estoque: {
+        Row: {
+          custo_unitario: number | null
+          data_movimentacao: string
+          id: string
+          motivo: string | null
+          observacao: string | null
+          pedido_id: string | null
+          produto_id: number
+          quantidade: number
+          quantidade_anterior: number
+          quantidade_nova: number
+          tipo_movimentacao: string
+          usuario_id: string | null
+          valor_total: number | null
+        }
+        Insert: {
+          custo_unitario?: number | null
+          data_movimentacao?: string
+          id?: string
+          motivo?: string | null
+          observacao?: string | null
+          pedido_id?: string | null
+          produto_id: number
+          quantidade: number
+          quantidade_anterior: number
+          quantidade_nova: number
+          tipo_movimentacao: string
+          usuario_id?: string | null
+          valor_total?: number | null
+        }
+        Update: {
+          custo_unitario?: number | null
+          data_movimentacao?: string
+          id?: string
+          motivo?: string | null
+          observacao?: string | null
+          pedido_id?: string | null
+          produto_id?: number
+          quantidade?: number
+          quantidade_anterior?: number
+          quantidade_nova?: number
+          tipo_movimentacao?: string
+          usuario_id?: string | null
+          valor_total?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "movimentacoes_estoque_pedido_id_fkey"
+            columns: ["pedido_id"]
+            isOneToOne: false
+            referencedRelation: "pedidos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimentacoes_estoque_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       page_visits: {
         Row: {
           acao: string
@@ -352,32 +415,50 @@ export type Database = {
       products: {
         Row: {
           category_id: number | null
+          controlar_estoque: boolean
+          custo_compra: number
           description: string
+          estoque_minimo: number
           id: number
           is_paused: boolean
+          margem_lucro: number
           name: string
           order_index: number | null
           price: number
+          quantidade_estoque: number
+          unidade_medida: string
           updated_at: string | null
         }
         Insert: {
           category_id?: number | null
+          controlar_estoque?: boolean
+          custo_compra?: number
           description?: string
+          estoque_minimo?: number
           id?: number
           is_paused?: boolean
+          margem_lucro?: number
           name: string
           order_index?: number | null
           price: number
+          quantidade_estoque?: number
+          unidade_medida?: string
           updated_at?: string | null
         }
         Update: {
           category_id?: number | null
+          controlar_estoque?: boolean
+          custo_compra?: number
           description?: string
+          estoque_minimo?: number
           id?: number
           is_paused?: boolean
+          margem_lucro?: number
           name?: string
           order_index?: number | null
           price?: number
+          quantidade_estoque?: number
+          unidade_medida?: string
           updated_at?: string | null
         }
         Relationships: [
@@ -461,6 +542,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_stock_turnover: {
+        Args: { days?: number }
+        Returns: {
+          estoque_atual: number
+          giro: number
+          produto_id: number
+          produto_nome: string
+          vendas_periodo: number
+        }[]
+      }
+      get_top_selling_products: {
+        Args: { days?: number }
+        Returns: {
+          produto_id: number
+          produto_nome: string
+          quantidade_pedidos: number
+          receita_total: number
+          total_vendido: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

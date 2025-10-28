@@ -5,6 +5,8 @@ import { CategorySelector } from './products/CategorySelector';
 import { AddProductForm } from './products/AddProductForm';
 import { ProductList } from './products/ProductList';
 import { ProductPDFExport } from './ProductPDFExport';
+import { StockReportsManager } from './stock/StockReportsManager';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { SupabaseCategory, SupabaseProduct } from '@/lib/supabase/types';
 
 const ProductManager: React.FC = () => {

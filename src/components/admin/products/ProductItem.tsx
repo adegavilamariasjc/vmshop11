@@ -4,10 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { TableCell } from '@/components/ui/table';
-import { Pencil, Save, Trash, PauseCircle, PlayCircle, Loader2 } from 'lucide-react';
+import { Pencil, Save, Trash, PauseCircle, PlayCircle, Loader2, Package } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { updateProduct, deleteProduct, toggleProductPause } from '@/lib/supabase';
 import type { SupabaseProduct } from '@/lib/supabase/types';
+import { StockStatusBadge } from '../stock/StockStatusBadge';
+import { ProfitMarginBadge } from '../stock/ProfitMarginBadge';
+import { StockAdjustmentModal } from '../stock/StockAdjustmentModal';
 
 interface ProductItemProps {
   product: SupabaseProduct;
@@ -22,8 +25,14 @@ export const ProductItem: React.FC<ProductItemProps> = ({ product, onUpdate, onD
   const [editedProduct, setEditedProduct] = useState({
     name: product.name,
     price: product.price,
-    description: product.description || ''
+    description: product.description || '',
+    quantidade_estoque: product.quantidade_estoque || 0,
+    estoque_minimo: product.estoque_minimo || 0,
+    custo_compra: product.custo_compra || 0,
+    unidade_medida: product.unidade_medida || 'un',
+    controlar_estoque: product.controlar_estoque ?? true
   });
+  const [showStockModal, setShowStockModal] = useState(false);
   const priceInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -47,7 +56,12 @@ export const ProductItem: React.FC<ProductItemProps> = ({ product, onUpdate, onD
       const success = await updateProduct(product.id, {
         name: editedProduct.name,
         price: editedProduct.price,
-        description: editedProduct.description
+        description: editedProduct.description,
+        quantidade_estoque: editedProduct.quantidade_estoque,
+        estoque_minimo: editedProduct.estoque_minimo,
+        custo_compra: editedProduct.custo_compra,
+        unidade_medida: editedProduct.unidade_medida,
+        controlar_estoque: editedProduct.controlar_estoque
       });
 
       if (success) {
@@ -139,6 +153,14 @@ export const ProductItem: React.FC<ProductItemProps> = ({ product, onUpdate, onD
 
   return (
     <>
+      <StockAdjustmentModal
+        isOpen={showStockModal}
+        onClose={() => setShowStockModal(false)}
+        produto={product}
+        onSuccess={() => {
+          onUpdate({ ...product });
+        }}
+      />
       <TableCell className="font-medium">
         {editMode ? (
           <div className="space-y-2">
@@ -156,6 +178,24 @@ export const ProductItem: React.FC<ProductItemProps> = ({ product, onUpdate, onD
               disabled={isSaving}
               placeholder="Descrição do produto"
             />
+            <div className="flex gap-2">
+              <Input
+                type="number"
+                value={editedProduct.estoque_minimo}
+                onChange={e => setEditedProduct({...editedProduct, estoque_minimo: parseInt(e.target.value) || 0})}
+                className="bg-gray-800 border-gray-700 text-white"
+                disabled={isSaving}
+                placeholder="Estoque mín."
+              />
+              <Input
+                type="text"
+                value={editedProduct.unidade_medida}
+                onChange={e => setEditedProduct({...editedProduct, unidade_medida: e.target.value})}
+                className="bg-gray-800 border-gray-700 text-white w-20"
+                disabled={isSaving}
+                placeholder="Un"
+              />
+            </div>
           </div>
         ) : (
           <div>
@@ -164,6 +204,37 @@ export const ProductItem: React.FC<ProductItemProps> = ({ product, onUpdate, onD
               {product.description || 'Sem descrição'}
             </div>
           </div>
+        )}
+      </TableCell>
+      <TableCell className="text-center">
+        {editMode ? (
+          <Input
+            type="number"
+            value={editedProduct.quantidade_estoque}
+            onChange={e => setEditedProduct({...editedProduct, quantidade_estoque: parseInt(e.target.value) || 0})}
+            className="bg-gray-800 border-gray-700 text-white w-20 mx-auto"
+            disabled={isSaving}
+          />
+        ) : (
+          <StockStatusBadge 
+            quantidade={product.quantidade_estoque || 0}
+            estoqueMinimo={product.estoque_minimo || 0}
+            unidade={product.unidade_medida || 'un'}
+          />
+        )}
+      </TableCell>
+      <TableCell className="text-right">
+        {editMode ? (
+          <Input
+            type="number"
+            step="0.01"
+            value={editedProduct.custo_compra}
+            onChange={e => setEditedProduct({...editedProduct, custo_compra: parseFloat(e.target.value) || 0})}
+            className="bg-gray-800 border-gray-700 text-white w-24 ml-auto"
+            disabled={isSaving}
+          />
+        ) : (
+          <span className="font-mono">R$ {(product.custo_compra || 0).toFixed(2)}</span>
         )}
       </TableCell>
       <TableCell className="text-right">
@@ -179,11 +250,14 @@ export const ProductItem: React.FC<ProductItemProps> = ({ product, onUpdate, onD
             disabled={isSaving}
           />
         ) : (
-          <span>R$ {product.price.toFixed(2)}</span>
+          <span className="font-mono">R$ {product.price.toFixed(2)}</span>
         )}
       </TableCell>
+      <TableCell className="text-center">
+        {!editMode && <ProfitMarginBadge margem={product.margem_lucro || 0} />}
+      </TableCell>
       <TableCell className="text-right">
-        <div className="flex gap-2 justify-end">
+        <div className="flex gap-1 justify-end">
           {editMode ? (
             <Button 
               onClick={handleSaveEdit}
@@ -198,14 +272,25 @@ export const ProductItem: React.FC<ProductItemProps> = ({ product, onUpdate, onD
               )}
             </Button>
           ) : (
-            <Button 
-              onClick={() => setEditMode(true)}
-              size="sm"
-              className="bg-blue-600 hover:bg-blue-700"
-              disabled={isSaving}
-            >
-              <Pencil size={16} />
-            </Button>
+            <>
+              <Button 
+                onClick={() => setShowStockModal(true)}
+                size="sm"
+                className="bg-purple-600 hover:bg-purple-700"
+                disabled={isSaving}
+                title="Ajustar Estoque"
+              >
+                <Package size={16} />
+              </Button>
+              <Button 
+                onClick={() => setEditMode(true)}
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700"
+                disabled={isSaving}
+              >
+                <Pencil size={16} />
+              </Button>
+            </>
           )}
           <Button 
             onClick={handleTogglePause}
