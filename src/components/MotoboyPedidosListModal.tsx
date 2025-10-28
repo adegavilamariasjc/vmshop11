@@ -123,8 +123,8 @@ const MotoboyPedidosListModal: React.FC<MotoboyPedidosListModalProps> = ({
 
   return (
     <>
-      <Dialog open={isOpen && !selectedPedido} onOpenChange={onClose}>
-        <DialogContent className="bg-gray-900 border-gray-700 text-white w-[95vw] max-w-4xl h-[90vh] max-h-[90vh] p-4 sm:p-6">
+      <Dialog open={isOpen && !selectedPedido}>
+        <DialogContent className="bg-gray-900 border-gray-700 text-white w-[95vw] max-w-4xl h-[90vh] max-h-[90vh] p-4 sm:p-6" hideClose>
           <DialogHeader>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
               <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
