@@ -160,6 +160,10 @@ const SimplifiedAdminPedidos: React.FC<SimplifiedAdminPedidosProps> = ({
   const handleConfirmDeliverer = async (deliverer: string) => {
     if (!selectedPedidoForDeliverer) return;
 
+    // Find the full pedido object
+    const pedidoData = pedidos.find(p => p.id === selectedPedidoForDeliverer);
+    if (!pedidoData) return;
+
     try {
       const { error } = await supabase
         .from('pedidos')
@@ -168,6 +172,7 @@ const SimplifiedAdminPedidos: React.FC<SimplifiedAdminPedidosProps> = ({
 
       if (error) throw error;
 
+      // Update local state
       setPedidos(prev => prev.map(p => 
         p.id === selectedPedidoForDeliverer ? { ...p, entregador: deliverer } : p
       ));
@@ -176,6 +181,49 @@ const SimplifiedAdminPedidos: React.FC<SimplifiedAdminPedidosProps> = ({
         title: "Entregador atribuído",
         description: `Pedido atribuído para ${deliverer}`,
       });
+
+      // Send to Telegram with deliverer info
+      try {
+        console.log('📤 Enviando pedido para Telegram com entregador:', deliverer);
+        await supabase.functions.invoke('send-telegram-order', {
+          body: {
+            codigoPedido: pedidoData.codigo_pedido,
+            clienteNome: pedidoData.cliente_nome,
+            clienteEndereco: pedidoData.cliente_endereco,
+            clienteNumero: pedidoData.cliente_numero,
+            clienteComplemento: pedidoData.cliente_complemento,
+            clienteReferencia: pedidoData.cliente_referencia,
+            clienteBairro: pedidoData.cliente_bairro,
+            taxaEntrega: pedidoData.taxa_entrega,
+            clienteWhatsapp: pedidoData.cliente_whatsapp,
+            formaPagamento: pedidoData.forma_pagamento,
+            troco: pedidoData.troco,
+            observacao: null,
+            itens: pedidoData.itens,
+            total: pedidoData.total,
+            discountAmount: 0,
+            entregador: deliverer
+          }
+        });
+        console.log('✅ Pedido enviado para Telegram');
+      } catch (telegramError) {
+        console.error('❌ Erro ao enviar para Telegram:', telegramError);
+      }
+
+      // Broadcast alert to motoboys
+      try {
+        console.log('🔔 Enviando alerta para motoboys');
+        const channel = supabase.channel('motoboy-alerts');
+        await channel.send({
+          type: 'broadcast',
+          event: 'play-alert',
+          payload: { pedidoId: selectedPedidoForDeliverer, entregador: deliverer }
+        });
+        console.log('✅ Alerta enviado para motoboys');
+      } catch (broadcastError) {
+        console.error('❌ Erro ao enviar alerta:', broadcastError);
+      }
+
     } catch (error) {
       console.error('Error assigning deliverer:', error);
       toast({
