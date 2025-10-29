@@ -55,24 +55,25 @@ export const usePedidosManager = () => {
   }, [setPedidos]);
 
   useEffect(() => {
+    let cleanupFn: (() => void) | null = null;
+
     const initializeManager = async () => {
-      const cleanupRealtime = setupRealtimeMonitoring(handleOrderChange);
+      console.log('🚀 Initializing pedidos manager...');
+      
+      cleanupFn = setupRealtimeMonitoring(handleOrderChange);
       await fetchPedidosData();
       startProductionTimer();
-
-      return () => {
-        cleanupRealtime();
-        stopProductionTimer();
-        stopAlert();
-      };
     };
 
-    const cleanup = initializeManager();
+    initializeManager();
 
     return () => {
-      cleanup.then(cleanupFn => cleanupFn?.());
+      console.log('🧹 Cleaning up pedidos manager...');
+      if (cleanupFn) cleanupFn();
+      stopProductionTimer();
+      stopAlert();
     };
-  }, [setupRealtimeMonitoring, handleOrderChange, fetchPedidosData, startProductionTimer, stopProductionTimer, stopAlert]);
+  }, []); // Empty deps - only run once on mount
 
   return {
     pedidos,

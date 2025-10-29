@@ -31,64 +31,81 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const fetchUserRole = async (userId: string) => {
       try {
-        setRoleLoading(true);
+        console.log('🔍 Fetching role for user:', userId);
         const { data, error } = await supabase
           .from('user_roles')
           .select('role')
           .eq('user_id', userId)
           .maybeSingle();
         
-        if (!mounted) return;
+        if (!mounted) {
+          console.log('⚠️ Component unmounted, skipping role update');
+          return;
+        }
+        
         if (error) {
-          console.error('Error fetching role:', error);
+          console.error('❌ Error fetching role:', error);
           setRole(null);
         } else {
-          setRole((data?.role as UserRole) ?? null);
+          const userRole = (data?.role as UserRole) ?? null;
+          console.log('✅ Role fetched:', userRole);
+          setRole(userRole);
         }
       } catch (err) {
-        console.error('Error in role fetch:', err);
+        console.error('❌ Exception in role fetch:', err);
         if (mounted) setRole(null);
       } finally {
-        if (mounted) setRoleLoading(false);
+        if (mounted) {
+          setRoleLoading(false);
+          setLoading(false);
+          console.log('✅ Auth loading complete');
+        }
       }
     };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', event, session?.user?.email);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('🔐 Auth state changed:', event, session?.user?.email);
+      
       if (!mounted) return;
+      
       setSession(session);
       setUser(session?.user ?? null);
+      
       if (session?.user) {
-        // Set roleLoading to true BEFORE setLoading(false) to prevent race condition
         setRoleLoading(true);
-        // Defer Supabase calls to avoid deadlocks in the callback
-        setTimeout(() => fetchUserRole(session.user!.id), 0);
+        // Call directly without setTimeout - await the role fetch
+        await fetchUserRole(session.user.id);
       } else {
         setRole(null);
         setRoleLoading(false);
-      }
-      setLoading(false);
-    });
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (mounted) {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          // Set roleLoading to true BEFORE setLoading(false) to prevent race condition
-          setRoleLoading(true);
-          // Defer role fetch to avoid deadlocks
-          setTimeout(() => fetchUserRole(session.user!.id), 0);
-        } else {
-          setRole(null);
-          setRoleLoading(false);
-        }
         setLoading(false);
       }
     });
 
+    // Initial session check
+    const initAuth = async () => {
+      console.log('🚀 Initializing auth...');
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!mounted) return;
+      
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        setRoleLoading(true);
+        await fetchUserRole(session.user.id);
+      } else {
+        setRole(null);
+        setRoleLoading(false);
+        setLoading(false);
+      }
+    };
+
+    initAuth();
+
     return () => {
+      console.log('🧹 Cleaning up auth subscription');
       mounted = false;
       subscription.unsubscribe();
     };

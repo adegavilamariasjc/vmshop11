@@ -100,8 +100,8 @@ const MotoboyPedidosListModal: React.FC<MotoboyPedidosListModalProps> = ({
           { event: '*', schema: 'public', table: 'pedidos' },
           (payload) => {
             console.log('📦 Real-time pedido change:', payload.eventType, payload.new);
-            // Small delay to ensure DB is fully updated
-            setTimeout(() => loadPedidos(), 200);
+            // Reload immediately without delays - real-time is instant
+            loadPedidos();
           }
         )
         .subscribe();
@@ -115,15 +115,8 @@ const MotoboyPedidosListModal: React.FC<MotoboyPedidosListModalProps> = ({
             title: 'Novo alerta!',
             description: 'Verifique os pedidos disponíveis',
           });
-          // Reload multiple times to catch DB updates
-          setTimeout(() => {
-            console.log('🔄 First reload after alert...');
-            loadPedidos();
-          }, 300);
-          setTimeout(() => {
-            console.log('🔄 Second reload after alert...');
-            loadPedidos();
-          }, 1000);
+          // Reload once when alert is received
+          loadPedidos();
         })
         .subscribe();
 

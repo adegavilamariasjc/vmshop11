@@ -61,20 +61,58 @@
 
 ## ✅ PLANO DE CORREÇÃO (ORDEM DE EXECUÇÃO)
 
-### FASE 1: Corrigir AuthContext (CRÍTICO)
-1. Remover todos os `setTimeout`
-2. Fazer `fetchUserRole` aguardar completion
-3. Garantir ordem: loading → role → redirect
+### ✅ FASE 1: Corrigir AuthContext (CONCLUÍDO)
+1. ✅ Removidos todos os `setTimeout`
+2. ✅ `fetchUserRole` aguarda completion
+3. ✅ Garantida ordem: loading → role → redirect
+4. ✅ Logs detalhados adicionados
 
-### FASE 2: Simplificar Real-time
-1. Remover delays desnecessários
-2. Verificar RLS policies de `pedidos`
-3. Testar subscription real-time
+### ✅ FASE 2: Simplificar Real-time (CONCLUÍDO)
+1. ✅ Removidos delays desnecessários (200ms, 300ms, 1000ms)
+2. ✅ Real-time reload imediato sem timeouts
+3. ✅ Logs de debug mantidos
 
-### FASE 3: Otimizar usePedidosManager
-1. Reduzir dependências do useEffect
-2. Corrigir cleanup functions
-3. Remover re-renders desnecessários
+### ✅ FASE 3: Otimizar usePedidosManager (CONCLUÍDO)
+1. ✅ Corrigido cleanup functions
+2. ✅ Dependências vazias (executa apenas no mount)
+3. ✅ Removidos re-renders desnecessários
+
+---
+
+## 🧪 TESTES NECESSÁRIOS
+
+### Teste 1: Autenticação Admin
+```
+1. Fazer login como admin
+2. Verificar se painel carrega sem loading infinito
+3. Verificar se role é carregada corretamente
+4. Testar logout e re-login
+```
+
+### Teste 2: Autenticação Motoboy
+```
+1. Fazer login como motoboy
+2. Verificar se permanece logado na tela
+3. Testar se não é redirecionado involuntariamente
+4. Testar logout
+```
+
+### Teste 3: Real-time Pedidos (Admin)
+```
+1. Admin logado no painel
+2. Criar novo pedido (simulação ou real)
+3. Verificar se pedido aparece instantaneamente
+4. Verificar console para erros
+```
+
+### Teste 4: Real-time Pedidos (Motoboy)
+```
+1. Motoboy logado
+2. Admin atribui pedido ao motoboy
+3. Verificar se som toca
+4. Verificar se pedido aparece IMEDIATAMENTE
+5. Verificar se não há reloads múltiplos
+```
 
 ---
 
