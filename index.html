@@ -23,10 +23,18 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     
-    <!-- Cache Control - Force no cache -->
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <!-- Cache Control - ULTRA AGRESSIVO -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
+    
+    <!-- Versão do app - muda a cada deploy para forçar reload -->
+    <meta name="app-version" content="2.0.0-<?php echo time(); ?>" />
+    
+    <!-- Prevenir cache do navegador completamente -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="prefetch" href="" />
+    <link rel="preload" href="" />
     
     <style>
       /* Global reset for all elements */

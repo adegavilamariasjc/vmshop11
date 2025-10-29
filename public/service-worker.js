@@ -1,5 +1,6 @@
-// Service Worker para limpar cache automaticamente
-const CACHE_VERSION = 'v' + Date.now();
+// Service Worker ULTRA AGRESSIVO para limpar cache
+// Versão única por deploy para forçar atualização
+const CACHE_VERSION = 'v' + Date.now() + '-' + Math.random();
 const CACHE_NAME = 'adega-vm-cache-' + CACHE_VERSION;
 
 // Limpar todos os caches antigos na instalação
@@ -37,14 +38,26 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Sempre buscar da rede (sem cache)
+// Sempre buscar da rede (sem cache) - MODO ULTRA AGRESSIVO
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(event.request, {
-      cache: 'no-store'
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
     }).catch((error) => {
       console.error('Fetch failed:', error);
       throw error;
     })
   );
+});
+
+// Mensagem para forçar atualização imediata
+self.addEventListener('message', (event) => {
+  if (event.data === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
