@@ -10,6 +10,7 @@ interface AuthContextType {
   session: Session | null;
   role: UserRole;
   loading: boolean;
+  roleLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   hasRole: (role: 'admin' | 'motoboy') => boolean;
@@ -22,6 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<UserRole>(null);
   const [loading, setLoading] = useState(true);
+  const [roleLoading, setRoleLoading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -29,6 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const fetchUserRole = async (userId: string) => {
       try {
+        setRoleLoading(true);
         const { data, error } = await supabase
           .from('user_roles')
           .select('role')
@@ -45,29 +48,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (err) {
         console.error('Error in role fetch:', err);
         if (mounted) setRole(null);
+      } finally {
+        if (mounted) setRoleLoading(false);
       }
     };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event, session?.user?.email);
       if (!mounted) return;
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        setTimeout(() => fetchUserRole(session.user!.id), 0);
+        await fetchUserRole(session.user.id);
       } else {
         setRole(null);
+        setRoleLoading(false);
       }
       setLoading(false);
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (mounted) {
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          fetchUserRole(session.user.id);
+          await fetchUserRole(session.user.id);
         }
         setLoading(false);
       }
@@ -137,6 +143,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       session, 
       role, 
       loading, 
+      roleLoading,
       signIn, 
       signOut, 
       hasRole 

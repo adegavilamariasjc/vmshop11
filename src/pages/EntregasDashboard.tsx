@@ -10,16 +10,18 @@ import Logo from '@/components/Logo';
 import { getVideoUrls } from '@/utils/videoUrls';
 
 const EntregasDashboard = () => {
-  const { user, role, loading, signOut } = useAuth();
+  const { user, role, loading, roleLoading, signOut } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && (!user || role !== 'motoboy')) {
+    // Only redirect if we're done loading AND done loading role
+    if (!loading && !roleLoading && (!user || role !== 'motoboy')) {
+      console.log('Motoboy redirect triggered:', { user: !!user, role, loading, roleLoading });
       navigate('/');
     }
-  }, [loading, user, role, navigate]);
+  }, [loading, roleLoading, user, role, navigate]);
 
-  if (loading) {
+  if (loading || roleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <LoadingIndicator />

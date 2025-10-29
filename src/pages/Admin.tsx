@@ -20,7 +20,7 @@ import { PredictiveAnalysisExport } from '../components/admin/PredictiveAnalysis
 import { AuthDiagnostics } from '../components/admin/AuthDiagnostics';
 
 const Admin = () => {
-  const { user, role, loading, signOut } = useAuth();
+  const { user, role, loading, roleLoading, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState("pedidos");
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -29,10 +29,12 @@ const Admin = () => {
   const videoUrls = useMemo(() => getVideoUrls(), []);
 
   useEffect(() => {
-    if (!loading && (!user || role !== 'admin')) {
+    // Only redirect if we're done loading AND done loading role
+    if (!loading && !roleLoading && (!user || role !== 'admin')) {
+      console.log('Admin redirect triggered:', { user: !!user, role, loading, roleLoading });
       navigate('/');
     }
-  }, [loading, user, role, navigate]);
+  }, [loading, roleLoading, user, role, navigate]);
 
   const handleLogout = useCallback(async () => {
     await signOut();
@@ -43,7 +45,7 @@ const Admin = () => {
     setActiveTab(value);
   }, []);
 
-  if (loading) {
+  if (loading || roleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <LoadingIndicator />
