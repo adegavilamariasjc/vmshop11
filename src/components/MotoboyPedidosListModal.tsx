@@ -191,11 +191,17 @@ const MotoboyPedidosListModal: React.FC<MotoboyPedidosListModalProps> = ({
                         <span className="text-green-400 font-bold">
                           R$ {(Number(pedido.total) || 0).toFixed(2)}
                         </span>
-                        {pedido.entregador && (
-                          <Badge variant="outline" className="bg-purple-600/20 border-purple-600">
-                            {pedido.entregador}
-                          </Badge>
-                        )}
+                        <div className="flex flex-col items-end gap-1">
+                          {pedido.entregador ? (
+                            <Badge variant="outline" className="bg-purple-600/30 border-purple-500 text-purple-200 font-bold">
+                              🏍️ {pedido.entregador}
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="bg-yellow-600/20 border-yellow-600 text-yellow-300 text-xs">
+                              Sem entregador
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
