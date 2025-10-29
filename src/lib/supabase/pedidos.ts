@@ -2,6 +2,8 @@
 import { supabase } from './client';
 import { SupabasePedido } from './types';
 
+export let lastPedidoError: string | null = null;
+
 // Fetch all pedidos
 export const fetchPedidos = async (): Promise<SupabasePedido[]> => {
   try {
@@ -116,20 +118,24 @@ export const savePedido = async (pedido: Omit<SupabasePedido, 'id' | 'data_criac
         : Number((pedido as any).discount_amount ?? 0)
     };
 
+    lastPedidoError = null;
     const { data, error } = await supabase
       .from('pedidos')
       .insert([payload])
       .select()
       .single();
-    
+
     if (error) {
-      console.error('Erro ao salvar pedido:', { message: (error as any).message, details: (error as any).details, hint: (error as any).hint });
+      const errObj = { message: (error as any).message, details: (error as any).details, hint: (error as any).hint };
+      console.error('Erro ao salvar pedido:', errObj);
+      lastPedidoError = JSON.stringify(errObj, null, 2);
       return null;
     }
     
     return data as SupabasePedido;
-  } catch (err) {
+  } catch (err: any) {
     console.error('Erro ao salvar pedido:', err);
+    lastPedidoError = err?.message ? err.message : JSON.stringify(err);
     return null;
   }
 };

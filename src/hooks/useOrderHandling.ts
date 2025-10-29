@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
-import { savePedido } from '@/lib/supabase';
+import { savePedido, lastPedidoError } from '@/lib/supabase';
 import { formatWhatsAppMessage } from '../utils/formatWhatsApp';
 import { FormData, Product } from '../types';
 import { gerarCodigoPedido } from '../data/products';
@@ -117,6 +117,9 @@ const preparePedido = async (cart: Product[], form: FormData, isBalcao: boolean,
     if (!pedido) {
       await new Promise((r) => setTimeout(r, 600));
       pedido = await savePedido(payload as any);
+      if (!pedido) {
+        throw new Error(lastPedidoError || 'Falha ao salvar pedido no Supabase');
+      }
     }
     
     // Send to Telegram only for delivery orders (not balcão)
@@ -309,8 +312,8 @@ const processOrder = async (cart: Product[], form: FormData, _isOpen: boolean, o
     
     if (!success) {
       toast({
-        title: 'Erro',
-        description: 'Não foi possível registrar o pedido. Tente novamente.',
+        title: 'Erro ao registrar pedido',
+        description: lastPedidoError ? `Detalhes:\n${lastPedidoError}` : 'Não foi possível registrar o pedido. Tente novamente.',
         variant: 'destructive'
       });
       setIsSendingOrder(false);
@@ -325,11 +328,12 @@ const processOrder = async (cart: Product[], form: FormData, _isOpen: boolean, o
     
     setShowSuccessModal(true);
     
-  } catch (err) {
+  } catch (err: any) {
     console.error('Erro ao enviar pedido:', err);
+    const msg = (err && err.message) ? err.message : (lastPedidoError || 'Ocorreu um erro ao enviar o pedido. Tente novamente.');
     toast({
-      title: 'Erro',
-      description: 'Ocorreu um erro ao enviar o pedido. Tente novamente.',
+      title: 'Erro ao enviar pedido',
+      description: msg,
       variant: 'destructive'
     });
   } finally {
