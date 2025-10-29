@@ -53,13 +53,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('Auth state changed:', event, session?.user?.email);
       if (!mounted) return;
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        await fetchUserRole(session.user.id);
+        // Defer Supabase calls to avoid deadlocks in the callback
+        setTimeout(() => fetchUserRole(session.user!.id), 0);
       } else {
         setRole(null);
         setRoleLoading(false);
@@ -67,13 +68,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (mounted) {
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          await fetchUserRole(session.user.id);
+          // Defer role fetch to avoid deadlocks
+          setTimeout(() => fetchUserRole(session.user!.id), 0);
+        } else {
+          setRole(null);
+          setRoleLoading(false);
         }
         setLoading(false);
       }
