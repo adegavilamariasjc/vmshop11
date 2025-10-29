@@ -36,43 +36,8 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// Limpar apenas dados de cache, PRESERVANDO autenticação Supabase
-const clearOldCache = () => {
-  const lastClear = localStorage.getItem('lastCacheClear');
-  const now = Date.now();
-  
-  // Limpar a cada 6 horas (mais agressivo)
-  if (!lastClear || now - parseInt(lastClear) > 6 * 60 * 60 * 1000) {
-    console.log('🧹 Limpando cache antigo...');
-    
-    // Salvar dados importantes do Supabase antes de limpar
-    const supabaseKeys = Object.keys(localStorage).filter(key => 
-      key.startsWith('sb-') || key.includes('supabase')
-    );
-    const supabaseData: Record<string, string> = {};
-    supabaseKeys.forEach(key => {
-      supabaseData[key] = localStorage.getItem(key) || '';
-    });
-    
-    // Limpar tudo
-    localStorage.clear();
-    sessionStorage.clear();
-    
-    // Restaurar dados do Supabase
-    Object.entries(supabaseData).forEach(([key, value]) => {
-      localStorage.setItem(key, value);
-    });
-    
-    localStorage.setItem('lastCacheClear', now.toString());
-    console.log('✅ Cache limpo, autenticação preservada');
-  }
-};
-
-clearOldCache();
-
-// Forçar reload do service worker em toda visita
-if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-  navigator.serviceWorker.controller.postMessage('SKIP_WAITING');
-}
+// Service Worker cuida do cache de arquivos
+// NÃO limpar localStorage pois pode quebrar autenticação do Supabase
+console.log('✅ Cache de arquivos gerenciado pelo Service Worker');
 
 createRoot(document.getElementById("root")!).render(<App />);
