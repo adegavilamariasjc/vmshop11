@@ -11,20 +11,31 @@ if ('serviceWorker' in navigator) {
       .register('/service-worker.js')
       .then((registration) => {
         console.log('Service Worker registrado:', registration.scope);
-        
-        // Verificar atualizações a cada 5 minutos
+
+        // Forçar ativação imediata de SWs em "espera" e ouvir troca de controlador
+        if (registration.waiting) {
+          registration.waiting.postMessage('SKIP_WAITING');
+        }
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          // Recarrega automaticamente quando o novo SW assumir o controle
+          console.log('Controller change detectado, recarregando...');
+          window.location.reload();
+        });
+
+        // Verificar e buscar atualizações imediatamente e a cada 5 minutos
+        registration.update();
         setInterval(() => {
           registration.update();
         }, 5 * 60 * 1000);
-        
-        // Forçar reload quando nova versão estiver disponível
+
+        // Forçar update/ativação quando uma nova versão for encontrada
         registration.addEventListener('updatefound', () => {
           const newWorker = registration.installing;
           if (newWorker) {
             newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'activated' && navigator.serviceWorker.controller) {
-                console.log('Nova versão disponível, recarregando...');
-                window.location.reload();
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                // Pede para o novo SW assumir imediatamente
+                newWorker.postMessage('SKIP_WAITING');
               }
             });
           }
