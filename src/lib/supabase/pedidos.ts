@@ -1,8 +1,44 @@
 
 import { supabase } from './client';
 import { SupabasePedido } from './types';
+import { z } from 'zod';
 
 export let lastPedidoError: string | null = null;
+
+// Runtime validation to prevent bad payloads from reaching DB
+const pedidoItemSchema = z.object({
+  id: z.number().int().positive().optional(),
+  name: z.string().trim().min(1),
+  price: z.number().nonnegative(),
+  qty: z.number().int().nonnegative(),
+  category: z.string().optional(),
+  ice: z.any().optional(),
+  alcohol: z.string().optional().nullable(),
+  balyFlavor: z.string().optional().nullable(),
+  energyDrink: z.string().optional().nullable(),
+  energyDrinkFlavor: z.string().optional().nullable(),
+  observation: z.string().optional().nullable(),
+});
+
+const pedidoSchema = z.object({
+  codigo_pedido: z.string().trim().min(1),
+  cliente_nome: z.string().trim().min(1),
+  cliente_endereco: z.string().trim().min(1),
+  cliente_numero: z.string().trim().min(1).nullable().optional(),
+  cliente_complemento: z.string().trim().nullable().optional(),
+  cliente_referencia: z.string().trim().nullable().optional(),
+  cliente_bairro: z.string().trim().min(1),
+  taxa_entrega: z.number().nonnegative(),
+  cliente_whatsapp: z.string().trim().min(1),
+  forma_pagamento: z.string().trim().min(1),
+  troco: z.string().trim().nullable().optional(),
+  observacao: z.string().nullable().optional(),
+  itens: z.array(pedidoItemSchema).min(1),
+  total: z.number().nonnegative(),
+  status: z.string().trim().min(1),
+  discount_amount: z.number().nonnegative().optional(),
+  entregador: z.string().nullable().optional(),
+});
 
 // Fetch all pedidos
 export const fetchPedidos = async (): Promise<SupabasePedido[]> => {
@@ -119,6 +155,16 @@ export const savePedido = async (pedido: Omit<SupabasePedido, 'id' | 'data_criac
     };
 
     lastPedidoError = null;
+    // Validate payload before sending to DB
+    try {
+      pedidoSchema.parse(payload);
+    } catch (e: any) {
+      const msg = e?.errors ? JSON.stringify(e.errors, null, 2) : String(e);
+      console.error('Validação do pedido falhou:', e);
+      lastPedidoError = `Validação do pedido falhou:\n${msg}`;
+      return null;
+    }
+
     const { data, error } = await supabase
       .from('pedidos')
       .insert([payload])
@@ -126,7 +172,13 @@ export const savePedido = async (pedido: Omit<SupabasePedido, 'id' | 'data_criac
       .single();
 
     if (error) {
-      const errObj = { message: (error as any).message, details: (error as any).details, hint: (error as any).hint };
+      const errObj = { 
+        message: (error as any).message, 
+        details: (error as any).details, 
+        hint: (error as any).hint,
+        code: (error as any).code,
+        status: (error as any).status
+      };
       console.error('Erro ao salvar pedido:', errObj);
       lastPedidoError = JSON.stringify(errObj, null, 2);
       return null;
