@@ -220,6 +220,11 @@ const preparePedido = async (cart: Product[], form: FormData, isBalcao: boolean,
 
 const processOrder = async (cart: Product[], form: FormData, _isOpen: boolean, options?: { balcao?: boolean; funcionario?: string }) => {
   if (cart.length === 0) {
+    toast({
+      title: 'Carrinho vazio',
+      description: 'Adicione produtos ao carrinho antes de finalizar o pedido.',
+      variant: 'destructive'
+    });
     return;
   }
 
@@ -230,26 +235,59 @@ const processOrder = async (cart: Product[], form: FormData, _isOpen: boolean, o
   const hour = now.getHours();
   const isOpen = isBalcao ? (hour >= 14 || hour < 6) : (hour >= 18 || hour < 6);
 
-  // Validate minimum order value only for delivery orders
+  // Validate required fields only for delivery orders
   if (!isBalcao) {
+    const missingFields: string[] = [];
+    
+    if (!form.nome || form.nome.trim() === '') {
+      missingFields.push('Nome');
+    }
+    
+    if (!form.whatsapp || form.whatsapp.trim() === '') {
+      missingFields.push('WhatsApp');
+    } else {
+      const cleanWhatsApp = form.whatsapp.replace(/\D/g, '');
+      if (cleanWhatsApp.length < 10) {
+        toast({
+          title: 'WhatsApp inválido',
+          description: 'Digite um número de WhatsApp válido com DDD (mínimo 10 dígitos).',
+          variant: 'destructive'
+        });
+        return;
+      }
+    }
+    
+    if (!form.endereco || form.endereco.trim() === '') {
+      missingFields.push('Endereço');
+    }
+    
+    if (!form.numero || form.numero.trim() === '') {
+      missingFields.push('Número');
+    }
+    
+    if (!form.bairro || form.bairro.nome === 'Selecione Um Bairro') {
+      missingFields.push('Bairro');
+    }
+    
+    if (!form.pagamento || form.pagamento.trim() === '') {
+      missingFields.push('Forma de pagamento');
+    }
+    
+    if (missingFields.length > 0) {
+      toast({
+        title: 'Campos obrigatórios não preenchidos',
+        description: `Preencha os seguintes campos: ${missingFields.join(', ')}`,
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    // Validate minimum order value
     const cartTotal = cart.reduce((sum, p) => sum + getProductDisplayPrice(p), 0);
     if (cartTotal < 20) {
       toast({
         title: 'Valor mínimo não atingido',
         description: 'O pedido mínimo para delivery é de R$ 20,00',
-        variant: 'destructive'
-      });
-      return;
-    }
-  }
-
-  // Validate WhatsApp number only for delivery orders
-  if (!isBalcao) {
-    const cleanWhatsApp = form.whatsapp.replace(/\D/g, '');
-    if (cleanWhatsApp.length < 10) {
-      toast({
-        title: 'WhatsApp inválido',
-        description: 'Digite um número de WhatsApp válido com DDD.',
         variant: 'destructive'
       });
       return;
