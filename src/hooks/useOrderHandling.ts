@@ -91,7 +91,7 @@ const preparePedido = async (cart: Product[], form: FormData, isBalcao: boolean,
   }
   
   try {
-    const pedido = await savePedido({
+    const payload = {
       codigo_pedido: codigoPedido,
       cliente_nome: isBalcao ? `BALCÃO - ${funcionario || 'Funcionário não informado'} - ${form.nome || 'Cliente'}` : (form.nome || 'Cliente'),
       cliente_endereco: isBalcao ? 'Retirada no balcão' : (form.endereco || 'Não informado'),
@@ -109,7 +109,15 @@ const preparePedido = async (cart: Product[], form: FormData, isBalcao: boolean,
       status: isOpen ? 'pendente' : 'fora_horario',
       discount_amount: typeof totalDiscountAmount === 'number' && !isNaN(totalDiscountAmount) ? totalDiscountAmount : 0,
       entregador: null
-    });
+    } as const;
+
+    let pedido = await savePedido(payload as any);
+
+    // Retry once after a short delay if the first attempt fails (mobile/network hiccups)
+    if (!pedido) {
+      await new Promise((r) => setTimeout(r, 600));
+      pedido = await savePedido(payload as any);
+    }
     
     // Send to Telegram only for delivery orders (not balcão)
     if (pedido && !isBalcao) {

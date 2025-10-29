@@ -106,18 +106,28 @@ export const deletePedido = async (id: string): Promise<boolean> => {
 // Save a new pedido
 export const savePedido = async (pedido: Omit<SupabasePedido, 'id' | 'data_criacao'>): Promise<SupabasePedido | null> => {
   try {
+    // Normalize numeric fields to avoid type issues
+    const payload: any = {
+      ...pedido,
+      total: Number((pedido as any).total ?? 0),
+      taxa_entrega: Number((pedido as any).taxa_entrega ?? 0),
+      discount_amount: typeof (pedido as any).discount_amount === 'number' 
+        ? (pedido as any).discount_amount 
+        : Number((pedido as any).discount_amount ?? 0)
+    };
+
     const { data, error } = await supabase
       .from('pedidos')
-      .insert(pedido)
+      .insert([payload])
       .select()
       .single();
     
     if (error) {
-      console.error('Erro ao salvar pedido:', error);
+      console.error('Erro ao salvar pedido:', { message: (error as any).message, details: (error as any).details, hint: (error as any).hint });
       return null;
     }
     
-    return data;
+    return data as SupabasePedido;
   } catch (err) {
     console.error('Erro ao salvar pedido:', err);
     return null;
