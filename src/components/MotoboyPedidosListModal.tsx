@@ -52,7 +52,7 @@ const MotoboyPedidosListModal: React.FC<MotoboyPedidosListModalProps> = ({
   const loadPedidos = async () => {
     setLoading(true);
     try {
-      console.log('🔍 Loading pedidos for motoboy...');
+      console.log('🔍 Loading pedidos for motoboy...', new Date().toISOString());
       
       // Filter orders from the last 12 hours that need delivery
       const twelveHoursAgo = new Date();
@@ -72,7 +72,11 @@ const MotoboyPedidosListModal: React.FC<MotoboyPedidosListModalProps> = ({
         throw error;
       }
       
-      console.log('✅ Pedidos loaded:', data?.length || 0);
+      console.log('✅ Pedidos loaded:', data?.length || 0, data?.map(p => ({ 
+        id: p.codigo_pedido, 
+        status: p.status, 
+        entregador: p.entregador 
+      })));
       setPedidos(data || []);
     } catch (error) {
       console.error('❌ Erro ao carregar pedidos:', error);
@@ -104,14 +108,22 @@ const MotoboyPedidosListModal: React.FC<MotoboyPedidosListModalProps> = ({
 
       const alertChannel = supabase
         .channel('motoboy-alerts')
-        .on('broadcast', { event: 'play-alert' }, () => {
+        .on('broadcast', { event: 'play-alert' }, (payload) => {
+          console.log('🔔 Alert received!', payload, new Date().toISOString());
           playAlertSound();
           toast({
             title: 'Novo alerta!',
             description: 'Verifique os pedidos disponíveis',
           });
-          // Reload pedidos when alert is received
-          setTimeout(() => loadPedidos(), 300);
+          // Reload multiple times to catch DB updates
+          setTimeout(() => {
+            console.log('🔄 First reload after alert...');
+            loadPedidos();
+          }, 300);
+          setTimeout(() => {
+            console.log('🔄 Second reload after alert...');
+            loadPedidos();
+          }, 1000);
         })
         .subscribe();
 
