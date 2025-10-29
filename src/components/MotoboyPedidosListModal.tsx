@@ -52,7 +52,9 @@ const MotoboyPedidosListModal: React.FC<MotoboyPedidosListModalProps> = ({
   const loadPedidos = async () => {
     setLoading(true);
     try {
-      // Filter only recent orders (last 12 hours) that have a deliverer assigned
+      console.log('🔍 Loading pedidos for motoboy...');
+      
+      // Filter orders from the last 12 hours that need delivery
       const twelveHoursAgo = new Date();
       twelveHoursAgo.setHours(twelveHoursAgo.getHours() - 12);
 
@@ -61,14 +63,18 @@ const MotoboyPedidosListModal: React.FC<MotoboyPedidosListModalProps> = ({
         .select('*')
         .in('status', ['aceito', 'preparando', 'pronto', 'saiu_entrega'])
         .neq('cliente_bairro', 'BALCAO')
-        .not('entregador', 'is', null)
         .gte('data_criacao', twelveHoursAgo.toISOString())
         .order('data_criacao', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error loading pedidos:', error);
+        throw error;
+      }
+      
+      console.log('✅ Pedidos loaded:', data?.length || 0);
       setPedidos(data || []);
     } catch (error) {
-      console.error('Erro ao carregar pedidos:', error);
+      console.error('❌ Erro ao carregar pedidos:', error);
       toast({
         title: "Erro ao carregar pedidos",
         description: "Tente novamente",
