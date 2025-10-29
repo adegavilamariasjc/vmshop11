@@ -65,7 +65,7 @@ const Admin = () => {
         playDuration={30000}
       />
       
-      <div className="relative z-10 w-full max-w-full lg:max-w-7xl xl:max-w-[90rem] mx-auto min-h-screen bg-black/70 p-2 sm:p-4 md:p-6 content-overlay">
+      <div className="relative z-10 w-full mx-auto min-h-screen bg-black/70 p-2 sm:p-4 md:p-6 lg:p-8 xl:p-10 2xl:p-12 content-overlay">
         <>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
             <div className="w-28 sm:w-36 md:w-40">

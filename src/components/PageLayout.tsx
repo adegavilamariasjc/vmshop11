@@ -22,7 +22,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({ children }) => {
       <VideoBackground videoUrls={videoUrls} />
       
       <div className="relative z-10 w-full min-h-screen bg-black/50 p-0">
-        <div className="max-w-full sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-6xl mx-auto w-full px-3 sm:px-4 md:px-6 lg:px-8">
+        <div className="w-full mx-auto px-3 sm:px-4 md:px-6 lg:px-8 xl:px-12 2xl:px-16">
           <div className="flex justify-center py-4">
             <Logo />
           </div>

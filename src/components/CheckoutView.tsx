@@ -100,7 +100,7 @@ const [senhaError, setSenhaError] = useState('');
       
       <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-4 sm:mb-6">Finalizar Pedido</h2>
       
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 xl:gap-10 2xl:gap-12">
         {/* Order Summary */}
         <div>
           <OrderSummary cart={filteredCart} />
