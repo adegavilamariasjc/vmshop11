@@ -94,7 +94,11 @@ const MotoboyPedidosListModal: React.FC<MotoboyPedidosListModalProps> = ({
         .channel('motoboy-pedidos')
         .on('postgres_changes', 
           { event: '*', schema: 'public', table: 'pedidos' },
-          () => loadPedidos()
+          (payload) => {
+            console.log('📦 Real-time pedido change:', payload.eventType, payload.new);
+            // Small delay to ensure DB is fully updated
+            setTimeout(() => loadPedidos(), 200);
+          }
         )
         .subscribe();
 
@@ -106,6 +110,8 @@ const MotoboyPedidosListModal: React.FC<MotoboyPedidosListModalProps> = ({
             title: 'Novo alerta!',
             description: 'Verifique os pedidos disponíveis',
           });
+          // Reload pedidos when alert is received
+          setTimeout(() => loadPedidos(), 300);
         })
         .subscribe();
 
