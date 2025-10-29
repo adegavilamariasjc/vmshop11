@@ -59,6 +59,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
+        // Set roleLoading to true BEFORE setLoading(false) to prevent race condition
+        setRoleLoading(true);
         // Defer Supabase calls to avoid deadlocks in the callback
         setTimeout(() => fetchUserRole(session.user!.id), 0);
       } else {
@@ -74,6 +76,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user) {
+          // Set roleLoading to true BEFORE setLoading(false) to prevent race condition
+          setRoleLoading(true);
           // Defer role fetch to avoid deadlocks
           setTimeout(() => fetchUserRole(session.user!.id), 0);
         } else {
