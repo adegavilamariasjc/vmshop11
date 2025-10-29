@@ -165,26 +165,53 @@ export const savePedido = async (pedido: Omit<SupabasePedido, 'id' | 'data_criac
       return null;
     }
 
-    const { data, error } = await supabase
-      .from('pedidos')
-      .insert([payload])
-      .select()
-      .single();
+    // Primeiro tenta via Edge Function (usa Service Role e evita problemas de RLS do cliente)
+    const { data: funcData, error: funcError } = await supabase.functions.invoke('create-pedido', {
+      body: payload,
+    });
 
-    if (error) {
-      const errObj = { 
-        message: (error as any).message, 
-        details: (error as any).details, 
-        hint: (error as any).hint,
-        code: (error as any).code,
-        status: (error as any).status
-      };
-      console.error('Erro ao salvar pedido:', errObj);
+    if (funcError) {
+      console.warn('Edge function create-pedido falhou, tentando insert direto:', funcError);
+      const { data, error } = await supabase
+        .from('pedidos')
+        .insert([payload])
+        .select()
+        .single();
+
+      if (error) {
+        const errObj = { 
+          message: (error as any).message, 
+          details: (error as any).details, 
+          hint: (error as any).hint,
+          code: (error as any).code,
+          status: (error as any).status
+        };
+        console.error('Erro ao salvar pedido (fallback insert direto):', errObj);
+        lastPedidoError = JSON.stringify(errObj, null, 2);
+        return null;
+      }
+      
+      return data as SupabasePedido;
+    }
+
+    // Sucesso pela Edge Function
+    if (funcData?.success && funcData?.pedido) {
+      return funcData.pedido as SupabasePedido;
+    }
+
+    // Caso a função retorne formato diferente
+    if (funcData?.data) {
+      return funcData.data as SupabasePedido;
+    }
+
+    if (funcData?.error) {
+      const errObj = funcData.error;
+      console.error('Erro ao salvar pedido (edge):', errObj);
       lastPedidoError = JSON.stringify(errObj, null, 2);
       return null;
     }
-    
-    return data as SupabasePedido;
+
+    return null;
   } catch (err: any) {
     console.error('Erro ao salvar pedido:', err);
     lastPedidoError = err?.message ? err.message : JSON.stringify(err);
