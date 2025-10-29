@@ -63,6 +63,7 @@ const MotoboyPedidosListModal: React.FC<MotoboyPedidosListModalProps> = ({
         .select('*')
         .in('status', ['aceito', 'preparando', 'pronto', 'saiu_entrega'])
         .neq('cliente_bairro', 'BALCAO')
+        .not('entregador', 'is', null)
         .gte('data_criacao', twelveHoursAgo.toISOString())
         .order('data_criacao', { ascending: false });
 
