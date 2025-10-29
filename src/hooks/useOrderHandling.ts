@@ -91,6 +91,23 @@ const preparePedido = async (cart: Product[], form: FormData, isBalcao: boolean,
   }
   
   try {
+    // Sanitize itens to ensure numeric qty/price and valid structure for DB trigger
+    const sanitizedItems = cart
+      .filter((p) => Number(p.qty || 0) > 0)
+      .map((p) => ({
+        id: typeof p.id === 'number' ? p.id : (p.id ? Number(p.id) : undefined),
+        name: p.name,
+        price: Number(p.price) || 0,
+        qty: Number(p.qty) || 0,
+        category: p.category,
+        ice: p.ice,
+        alcohol: p.alcohol,
+        balyFlavor: p.balyFlavor,
+        energyDrink: p.energyDrink,
+        energyDrinkFlavor: p.energyDrinkFlavor,
+        observation: p.observation,
+      }));
+
     const payload = {
       codigo_pedido: codigoPedido,
       cliente_nome: isBalcao ? `BALCÃO - ${funcionario || 'Funcionário não informado'} - ${form.nome || 'Cliente'}` : (form.nome || 'Cliente'),
@@ -104,7 +121,7 @@ const preparePedido = async (cart: Product[], form: FormData, isBalcao: boolean,
       forma_pagamento: form.pagamento || 'Não informado',
       troco: form.troco || null,
       observacao: isBalcao ? `[BALCÃO - ${funcionario || 'Funcionário não informado'}] ${form.observacao || ''}` : (form.observacao || null),
-      itens: cart as any,
+      itens: sanitizedItems as any,
       total: typeof total === 'number' && !isNaN(total) ? total : 0,
       status: isOpen ? 'pendente' : 'fora_horario',
       discount_amount: typeof totalDiscountAmount === 'number' && !isNaN(totalDiscountAmount) ? totalDiscountAmount : 0,
@@ -112,7 +129,6 @@ const preparePedido = async (cart: Product[], form: FormData, isBalcao: boolean,
     } as const;
 
     let pedido = await savePedido(payload as any);
-
     // Retry once after a short delay if the first attempt fails (mobile/network hiccups)
     if (!pedido) {
       await new Promise((r) => setTimeout(r, 600));
