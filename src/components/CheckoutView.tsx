@@ -88,19 +88,19 @@ const [senhaError, setSenhaError] = useState('');
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="relative"
+      className="relative pb-24 sm:pb-8"
     >
       <button
         onClick={onBackToProducts}
-        className="flex items-center text-white mb-4"
+        className="flex items-center text-white mb-3 sm:mb-4 hover:text-white/80 transition-colors"
       >
-        <ChevronLeft size={20} />
-        <span>Voltar para produtos</span>
+        <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+        <span className="text-sm sm:text-base">Voltar para produtos</span>
       </button>
       
-      <h2 className="text-2xl font-bold text-white mb-6">Finalizar Pedido</h2>
+      <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-4 sm:mb-6">Finalizar Pedido</h2>
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
         {/* Order Summary */}
         <div>
           <OrderSummary cart={filteredCart} />
@@ -124,17 +124,19 @@ const [senhaError, setSenhaError] = useState('');
           <Button
             onClick={() => onSubmit(false)}
             disabled={!isFormValid || isSending}
-            className="w-full py-6 mt-6 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold text-lg shadow-[0_0_20px_rgba(34,197,94,0.5)] hover:shadow-[0_0_30px_rgba(34,197,94,0.7)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+            className="w-full py-4 sm:py-6 mt-4 sm:mt-6 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold text-base sm:text-lg shadow-[0_0_20px_rgba(34,197,94,0.5)] hover:shadow-[0_0_30px_rgba(34,197,94,0.7)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
           >
             {isSending ? (
               <>
-                <Loader2 size={18} className="animate-spin mr-2" />
-                <span>Enviando Pedido...</span>
+                <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin mr-2" />
+                <span className="text-sm sm:text-base">{isStoreOpen ? 'Enviando...' : 'Registrando...'}</span>
               </>
             ) : (
               <>
-                <Send size={18} className="mr-2" />
-                <span>{isStoreOpen ? 'Enviar Pedido via WhatsApp' : 'Registrar Pedido (Fora do Horário)'}</span>
+                <Send className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                <span className="text-sm sm:text-base leading-tight">
+                  {isStoreOpen ? 'Enviar Pedido via WhatsApp' : 'Registrar Pedido (Fora do Horário)'}
+                </span>
               </>
             )}
           </Button>
@@ -144,17 +146,17 @@ const [senhaError, setSenhaError] = useState('');
             type="button"
             onClick={() => { setShowPasswordDialog(true); setSenha(''); setFuncionario(''); setSenhaError(''); }}
             title="Pedido de Balcão"
-            className="fixed bottom-28 left-4 bg-accent-purple/70 hover:bg-accent-purple text-accent-purple-foreground p-3 rounded-full shadow-lg transition-all duration-200 z-50"
+            className="fixed bottom-20 sm:bottom-24 left-3 sm:left-4 bg-accent-purple/70 hover:bg-accent-purple text-accent-purple-foreground p-2.5 sm:p-3 rounded-full shadow-lg transition-all duration-200 z-40"
           >
-            <ShoppingBag size={16} />
+            <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
 
           {/* Dialog de senha para balcão */}
           <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
-            <DialogContent className="max-w-sm bg-black/95 border-white/20">
+            <DialogContent className="max-w-[90vw] sm:max-w-sm bg-black/95 border-white/20">
               <DialogHeader>
-                <DialogTitle className="text-xl font-bold text-white flex items-center gap-2">
-                  <Lock size={18} /> Pedido de Balcão
+                <DialogTitle className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+                  <Lock className="w-4 h-4 sm:w-5 sm:h-5" /> Pedido de Balcão
                 </DialogTitle>
               </DialogHeader>
               <div className="space-y-4">

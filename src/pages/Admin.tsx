@@ -58,75 +58,77 @@ const Admin = () => {
   }
 
   return (
-    <div className="min-h-screen w-full relative overflow-x-hidden">
+    <div className="min-h-screen w-full relative overflow-x-hidden overflow-y-auto">
       <BackgroundVideoPlayer 
         videoUrls={videoUrls}
         transitionDuration={2000}
         playDuration={30000}
       />
       
-      <div className="relative z-10 w-full lg:max-w-6xl mx-auto min-h-screen bg-black/70 p-2 sm:p-4 content-overlay">
+      <div className="relative z-10 w-full max-w-full lg:max-w-7xl xl:max-w-[90rem] mx-auto min-h-screen bg-black/70 p-2 sm:p-4 md:p-6 content-overlay">
         <>
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-            <div className="w-32 sm:w-40">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
+            <div className="w-28 sm:w-36 md:w-40">
               <Logo />
             </div>
             <Button 
               variant="outline" 
               onClick={handleLogout}
-              className="gap-2 w-full sm:w-auto"
+              className="gap-2 w-full sm:w-auto text-xs sm:text-sm"
               size="sm"
             >
-              <LogOut size={16} />
+              <LogOut className="w-3 h-3 sm:w-4 sm:h-4" />
               Sair
             </Button>
           </div>
             
             {/* Monitor de tráfego compacto no topo + Diagnóstico (debug=1) */}
-            <div className="mt-3 space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               <TrafficIndicator />
               {showDebug && <AuthDiagnostics />}
             </div>
             
-            <div className="mt-4 sm:mt-6">
-              <h1 className="text-xl sm:text-2xl font-bold text-white mb-4">Painel Administrativo</h1>
+            <div className="mt-3 sm:mt-4 md:mt-6">
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-3 sm:mb-4">Painel Administrativo</h1>
               
               <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-                <TabsList className="grid grid-cols-7 mb-4 sm:mb-8 w-full">
-                  <TabsTrigger value="pedidos" className="text-black font-medium text-xs sm:text-sm">Delivery</TabsTrigger>
-                  <TabsTrigger value="balcao" className="text-black font-medium text-xs sm:text-sm">Balcão</TabsTrigger>
-                  <TabsTrigger value="contador" className="text-black font-medium text-xs sm:text-sm">Contador</TabsTrigger>
-                  <TabsTrigger value="produtos" className="text-black font-medium text-xs sm:text-sm">Produtos</TabsTrigger>
-                  <TabsTrigger value="categorias" className="text-black font-medium text-xs sm:text-sm">Categorias</TabsTrigger>
-                  <TabsTrigger value="bairros" className="text-black font-medium text-xs sm:text-sm">Bairros</TabsTrigger>
-                  <TabsTrigger value="analise" className="text-black font-medium text-xs sm:text-sm">Análise IA</TabsTrigger>
-                </TabsList>
+                <div className="overflow-x-auto -mx-2 px-2 sm:mx-0 sm:px-0">
+                  <TabsList className="inline-flex sm:grid sm:grid-cols-7 mb-3 sm:mb-6 md:mb-8 w-max sm:w-full min-w-full">
+                    <TabsTrigger value="pedidos" className="text-black font-medium text-[10px] sm:text-xs md:text-sm px-2 sm:px-3 whitespace-nowrap">Delivery</TabsTrigger>
+                    <TabsTrigger value="balcao" className="text-black font-medium text-[10px] sm:text-xs md:text-sm px-2 sm:px-3 whitespace-nowrap">Balcão</TabsTrigger>
+                    <TabsTrigger value="contador" className="text-black font-medium text-[10px] sm:text-xs md:text-sm px-2 sm:px-3 whitespace-nowrap">Contador</TabsTrigger>
+                    <TabsTrigger value="produtos" className="text-black font-medium text-[10px] sm:text-xs md:text-sm px-2 sm:px-3 whitespace-nowrap">Produtos</TabsTrigger>
+                    <TabsTrigger value="categorias" className="text-black font-medium text-[10px] sm:text-xs md:text-sm px-2 sm:px-3 whitespace-nowrap">Categorias</TabsTrigger>
+                    <TabsTrigger value="bairros" className="text-black font-medium text-[10px] sm:text-xs md:text-sm px-2 sm:px-3 whitespace-nowrap">Bairros</TabsTrigger>
+                    <TabsTrigger value="analise" className="text-black font-medium text-[10px] sm:text-xs md:text-sm px-2 sm:px-3 whitespace-nowrap">Análise IA</TabsTrigger>
+                  </TabsList>
+                </div>
                 
-                <TabsContent value="pedidos" className="bg-black/50 p-4 rounded-md">
+                <TabsContent value="pedidos" className="bg-black/50 p-2 sm:p-3 md:p-4 rounded-md overflow-hidden">
                   {activeTab === "pedidos" && <SimplifiedAdminPedidos filterType="delivery" title="Pedidos Delivery" />}
                 </TabsContent>
                 
-                <TabsContent value="balcao" className="bg-black/50 p-4 rounded-md">
+                <TabsContent value="balcao" className="bg-black/50 p-2 sm:p-3 md:p-4 rounded-md overflow-hidden">
                   {activeTab === "balcao" && <SimplifiedAdminPedidos filterType="balcao" title="Pedidos Balcão" />}
                 </TabsContent>
                 
-                <TabsContent value="contador" className="bg-black/50 p-4 rounded-md">
+                <TabsContent value="contador" className="bg-black/50 p-2 sm:p-3 md:p-4 rounded-md overflow-hidden">
                   {activeTab === "contador" && <AppCounterManager />}
                 </TabsContent>
                 
-                <TabsContent value="produtos" className="bg-black/50 p-4 rounded-md">
+                <TabsContent value="produtos" className="bg-black/50 p-2 sm:p-3 md:p-4 rounded-md overflow-hidden">
                   {activeTab === "produtos" && <ProductManager key="produtos" />}
                 </TabsContent>
                 
-                <TabsContent value="categorias" className="bg-black/50 p-4 rounded-md">
+                <TabsContent value="categorias" className="bg-black/50 p-2 sm:p-3 md:p-4 rounded-md overflow-hidden">
                   {activeTab === "categorias" && <CategoryManager key="categorias" />}
                 </TabsContent>
                 
-                <TabsContent value="bairros" className="bg-black/50 p-4 rounded-md">
+                <TabsContent value="bairros" className="bg-black/50 p-2 sm:p-3 md:p-4 rounded-md overflow-hidden">
                   {activeTab === "bairros" && <BairroManager key="bairros" />}
                 </TabsContent>
                 
-                <TabsContent value="analise" className="bg-black/50 p-4 rounded-md">
+                <TabsContent value="analise" className="bg-black/50 p-2 sm:p-3 md:p-4 rounded-md overflow-hidden">
                   {activeTab === "analise" && <PredictiveAnalysisExport />}
                 </TabsContent>
               </Tabs>

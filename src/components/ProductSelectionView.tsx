@@ -122,14 +122,21 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
       
       <motion.button
         onClick={handleCartClick}
-        className="fixed bottom-6 right-6 bg-accent-purple hover:bg-accent-purple/90 text-accent-purple-foreground px-6 py-4 rounded-full shadow-2xl flex items-center gap-3 border-2 border-accent-purple/30"
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 bg-accent-purple hover:bg-accent-purple/90 text-accent-purple-foreground px-4 py-3 sm:px-6 sm:py-4 rounded-full shadow-2xl flex items-center gap-2 sm:gap-3 border-2 border-accent-purple/30 z-40"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         animate={filteredCart.length > 0 ? { y: [0, -5, 0], transition: { repeat: 2, duration: 0.6 } } : {}}
       >
-        <ShoppingBag size={24} />
-        <span className="font-bold text-lg">
-          {filteredCart.length > 0 ? `${filteredCart.reduce((sum, p) => sum + (p.qty || 1), 0)} itens - R$ ${cartTotal.toFixed(2)}` : "Carrinho"}
+        <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6" />
+        <span className="font-bold text-sm sm:text-base md:text-lg whitespace-nowrap">
+          {filteredCart.length > 0 ? (
+            <>
+              <span className="hidden sm:inline">{filteredCart.reduce((sum, p) => sum + (p.qty || 1), 0)} itens - </span>
+              <span>R$ {cartTotal.toFixed(2)}</span>
+            </>
+          ) : (
+            <span className="hidden sm:inline">Carrinho</span>
+          )}
         </span>
       </motion.button>
 
