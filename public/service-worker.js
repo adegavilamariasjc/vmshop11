@@ -38,17 +38,16 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Sempre buscar da rede (sem cache) - MODO ULTRA AGRESSIVO
+// Sempre buscar da rede (sem cache) - sem alterar cabeçalhos
 self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+  // Não interferir em requisições externas (ex: Supabase)
+  if (url.origin !== self.location.origin) {
+    return; // deixa o navegador lidar normalmente
+  }
+
   event.respondWith(
-    fetch(event.request, {
-      cache: 'no-store',
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
-      }
-    }).catch((error) => {
+    fetch(event.request, { cache: 'no-store' }).catch((error) => {
       console.error('Fetch failed:', error);
       throw error;
     })
