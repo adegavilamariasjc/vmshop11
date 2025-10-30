@@ -146,7 +146,7 @@ const [senhaError, setSenhaError] = useState('');
             type="button"
             onClick={() => { setShowPasswordDialog(true); setSenha(''); setFuncionario(''); setSenhaError(''); }}
             title="Pedido de Balcão"
-            className="fixed bottom-20 sm:bottom-24 left-3 sm:left-4 bg-accent-purple/70 hover:bg-accent-purple text-accent-purple-foreground p-2.5 sm:p-3 rounded-full shadow-lg transition-all duration-200 z-40"
+            className="fixed bottom-32 sm:bottom-36 left-3 sm:left-4 bg-accent-purple/70 hover:bg-accent-purple text-accent-purple-foreground p-2.5 sm:p-3 rounded-full shadow-lg transition-all duration-200 z-40"
           >
             <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
