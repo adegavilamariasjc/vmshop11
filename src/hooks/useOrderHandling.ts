@@ -262,6 +262,16 @@ const processOrder = async (cart: Product[], form: FormData, _isOpen: boolean, o
   const hour = now.getHours();
   const isOpen = isBalcao ? (hour >= 14 || hour < 6) : (hour >= 18 || hour < 6);
 
+  // Validate payment method for all orders (delivery and balcão)
+  if (!form.pagamento || form.pagamento.trim() === '') {
+    toast({
+      title: 'Forma de pagamento obrigatória',
+      description: 'Selecione uma forma de pagamento antes de finalizar o pedido.',
+      variant: 'destructive'
+    });
+    return;
+  }
+
   // Validate required fields only for delivery orders
   if (!isBalcao) {
     const missingFields: string[] = [];
@@ -294,10 +304,6 @@ const processOrder = async (cart: Product[], form: FormData, _isOpen: boolean, o
     
     if (!form.bairro || form.bairro.nome === 'Selecione Um Bairro') {
       missingFields.push('Bairro');
-    }
-    
-    if (!form.pagamento || form.pagamento.trim() === '') {
-      missingFields.push('Forma de pagamento');
     }
     
     if (missingFields.length > 0) {

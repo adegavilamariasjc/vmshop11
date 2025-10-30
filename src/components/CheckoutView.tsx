@@ -78,9 +78,11 @@ const isFormValid = filteredCart.length > 0 &&
 
 const SENHA_BALCAO = 'vm11';
 const FUNCIONARIOS = ['ANDRE', 'LUCAS', 'RAMON', 'VINICIUS', 'GABRIEL'];
+const FORMAS_PAGAMENTO = ['Dinheiro', 'Pix', 'Cartão de Crédito', 'Cartão de Débito'];
 const [showPasswordDialog, setShowPasswordDialog] = useState(false);
 const [senha, setSenha] = useState('');
 const [funcionario, setFuncionario] = useState('');
+const [formaPagamentoBalcao, setFormaPagamentoBalcao] = useState('');
 const [senhaError, setSenhaError] = useState('');
   return (
     <motion.div
@@ -144,7 +146,13 @@ const [senhaError, setSenhaError] = useState('');
           {/* Botão para pedido de balcão */}
           <button
             type="button"
-            onClick={() => { setShowPasswordDialog(true); setSenha(''); setFuncionario(''); setSenhaError(''); }}
+            onClick={() => { 
+              setShowPasswordDialog(true); 
+              setSenha(''); 
+              setFuncionario(''); 
+              setFormaPagamentoBalcao('');
+              setSenhaError(''); 
+            }}
             title="Pedido de Balcão"
             className="fixed bottom-32 sm:bottom-36 left-3 sm:left-4 bg-accent-purple/70 hover:bg-accent-purple text-accent-purple-foreground p-2.5 sm:p-3 rounded-full shadow-lg transition-all duration-200 z-40"
           >
@@ -161,7 +169,7 @@ const [senhaError, setSenhaError] = useState('');
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="funcionario" className="text-white">Funcionário</Label>
+                  <Label htmlFor="funcionario" className="text-white">Funcionário *</Label>
                   <Select value={funcionario} onValueChange={setFuncionario}>
                     <SelectTrigger className="mt-2 bg-white/10 border-white/20 text-white">
                       <SelectValue placeholder="Selecione o funcionário" />
@@ -180,14 +188,33 @@ const [senhaError, setSenhaError] = useState('');
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="senha-balcao" className="text-white">Senha de Acesso</Label>
+                  <Label htmlFor="pagamento-balcao" className="text-white">Forma de Pagamento *</Label>
+                  <Select value={formaPagamentoBalcao} onValueChange={setFormaPagamentoBalcao}>
+                    <SelectTrigger className="mt-2 bg-white/10 border-white/20 text-white">
+                      <SelectValue placeholder="Selecione a forma de pagamento" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-900 border-white/20 z-50">
+                      {FORMAS_PAGAMENTO.map((forma) => (
+                        <SelectItem 
+                          key={forma} 
+                          value={forma}
+                          className="text-white hover:bg-white/10 focus:bg-white/20 cursor-pointer"
+                        >
+                          {forma}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="senha-balcao" className="text-white">Senha de Acesso *</Label>
                   <Input
                     id="senha-balcao"
                     type="password"
                     value={senha}
                     onChange={(e) => { setSenha(e.target.value); setSenhaError(''); }}
                     placeholder="Digite a senha"
-                    className="mt-2"
+                    className="mt-2 bg-white/10 border-white/20 text-white"
                   />
                   {senhaError && <p className="text-red-400 text-sm mt-1">{senhaError}</p>}
                 </div>
@@ -203,14 +230,21 @@ const [senhaError, setSenhaError] = useState('');
                         setSenhaError('Selecione um funcionário');
                         return;
                       }
+                      if (!formaPagamentoBalcao) {
+                        setSenhaError('Selecione a forma de pagamento');
+                        return;
+                      }
                       if (senha === SENHA_BALCAO) {
+                        // Atualizar o form com a forma de pagamento antes de submeter
+                        setForm(prev => ({ ...prev, pagamento: formaPagamentoBalcao }));
                         setShowPasswordDialog(false);
-                        onSubmit(true, funcionario);
+                        // Usar setTimeout para garantir que o estado seja atualizado
+                        setTimeout(() => onSubmit(true, funcionario), 0);
                       } else {
                         setSenhaError('Senha incorreta');
                       }
                     }}
-                    disabled={!senha || !funcionario}
+                    disabled={!senha || !funcionario || !formaPagamentoBalcao}
                   >
                     Acessar
                   </Button>
