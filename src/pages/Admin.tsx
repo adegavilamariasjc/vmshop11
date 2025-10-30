@@ -18,6 +18,7 @@ import BairroManager from '../components/admin/BairroManager';
 import { AppCounterManager } from '../components/admin/AppCounterManager';
 import { PredictiveAnalysisExport } from '../components/admin/PredictiveAnalysisExport';
 import { AuthDiagnostics } from '../components/admin/AuthDiagnostics';
+import AnalyticsManager from '../components/admin/AnalyticsManager';
 
 const Admin = () => {
   const { user, role, loading, roleLoading, signOut } = useAuth();
@@ -93,13 +94,14 @@ const Admin = () => {
               
               <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
                 <div className="overflow-x-auto -mx-2 px-2 sm:mx-0 sm:px-0">
-                  <TabsList className="inline-flex sm:grid sm:grid-cols-7 mb-3 sm:mb-6 md:mb-8 w-max sm:w-full min-w-full">
+                  <TabsList className="inline-flex sm:grid sm:grid-cols-8 mb-3 sm:mb-6 md:mb-8 w-max sm:w-full min-w-full">
                     <TabsTrigger value="pedidos" className="text-black font-medium text-[10px] sm:text-xs md:text-sm px-2 sm:px-3 whitespace-nowrap">Delivery</TabsTrigger>
                     <TabsTrigger value="balcao" className="text-black font-medium text-[10px] sm:text-xs md:text-sm px-2 sm:px-3 whitespace-nowrap">Balcão</TabsTrigger>
                     <TabsTrigger value="contador" className="text-black font-medium text-[10px] sm:text-xs md:text-sm px-2 sm:px-3 whitespace-nowrap">Contador</TabsTrigger>
                     <TabsTrigger value="produtos" className="text-black font-medium text-[10px] sm:text-xs md:text-sm px-2 sm:px-3 whitespace-nowrap">Produtos</TabsTrigger>
                     <TabsTrigger value="categorias" className="text-black font-medium text-[10px] sm:text-xs md:text-sm px-2 sm:px-3 whitespace-nowrap">Categorias</TabsTrigger>
                     <TabsTrigger value="bairros" className="text-black font-medium text-[10px] sm:text-xs md:text-sm px-2 sm:px-3 whitespace-nowrap">Bairros</TabsTrigger>
+                    <TabsTrigger value="analytics" className="text-black font-medium text-[10px] sm:text-xs md:text-sm px-2 sm:px-3 whitespace-nowrap">Analytics</TabsTrigger>
                     <TabsTrigger value="analise" className="text-black font-medium text-[10px] sm:text-xs md:text-sm px-2 sm:px-3 whitespace-nowrap">Análise IA</TabsTrigger>
                   </TabsList>
                 </div>
@@ -126,6 +128,10 @@ const Admin = () => {
                 
                 <TabsContent value="bairros" className="bg-black/50 p-2 sm:p-3 md:p-4 rounded-md overflow-hidden">
                   {activeTab === "bairros" && <BairroManager key="bairros" />}
+                </TabsContent>
+                
+                <TabsContent value="analytics" className="bg-black/50 p-2 sm:p-3 md:p-4 rounded-md overflow-hidden">
+                  {activeTab === "analytics" && <AnalyticsManager />}
                 </TabsContent>
                 
                 <TabsContent value="analise" className="bg-black/50 p-2 sm:p-3 md:p-4 rounded-md overflow-hidden">

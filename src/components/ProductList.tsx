@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Minus, Loader2, TrendingUp } from 'lucide-react';
+import { Plus, Minus, Loader2 } from 'lucide-react';
 import { Product } from '../types';
 import { supabase } from '@/integrations/supabase/client';
 import { getProductIcon } from '@/utils/productIcons';
@@ -28,57 +28,6 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
       setError(null);
 
       try {
-        // Special case for "Mais Pedidos" category
-        if (category === 'Mais Pedidos') {
-          const { data: statsData, error: statsError } = await supabase
-            .from('product_stats')
-            .select(`
-              product_id,
-              purchases,
-              cart_additions,
-              products (
-                id,
-                name,
-                price,
-                description,
-                is_paused,
-                order_index,
-                category_id,
-                categories (
-                  name
-                )
-              )
-            `)
-            .order('purchases', { ascending: false })
-            .order('cart_additions', { ascending: false })
-            .limit(20);
-
-          if (statsError) {
-            console.error('Error fetching popular products:', statsError);
-            setError('Erro ao carregar produtos populares');
-            setIsLoading(false);
-            return;
-          }
-
-          const popularProducts = statsData
-            .filter(stat => stat.products && !stat.products.is_paused && (stat.purchases > 0 || stat.cart_additions > 0))
-            .map(stat => ({
-              id: stat.products.id,
-              name: stat.products.name,
-              price: stat.products.price,
-              description: stat.products.description,
-              is_paused: stat.products.is_paused,
-              order_index: stat.products.order_index,
-              category_name: stat.products.categories?.name,
-              cart_additions: stat.cart_additions
-            }));
-
-          setProducts(popularProducts);
-          setIsLoading(false);
-          return;
-        }
-
-        // Regular category logic
         const { data: categoryData, error: categoryError } = await supabase
           .from('categories')
           .select('id')
@@ -186,23 +135,9 @@ const ProductList: React.FC<ProductListProps> = ({ category, cart, onAddProduct,
             <div className="text-white flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <p className="font-medium truncate">{item.name}</p>
-                {category === 'Mais Pedidos' && item.cart_additions && item.cart_additions > 0 && (
-                  <span className="inline-flex items-center gap-1 text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full flex-shrink-0 border border-green-500/30">
-                    <TrendingUp size={12} />
-                    Em Alta
-                  </span>
-                )}
               </div>
-              {category === 'Mais Pedidos' && item.category_name && (
-                <p className="text-xs opacity-70">{item.category_name}</p>
-              )}
               <div className="flex items-center gap-2">
                 <p className="text-sm opacity-90">R$ {item.price.toFixed(2)}</p>
-                {category === 'Mais Pedidos' && item.cart_additions && item.cart_additions > 0 && (
-                  <span className="text-xs text-green-400 font-semibold">
-                    {item.cart_additions}x pedido{item.cart_additions > 1 ? 's' : ''}
-                  </span>
-                )}
               </div>
             </div>
             

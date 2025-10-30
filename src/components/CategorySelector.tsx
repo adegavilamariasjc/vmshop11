@@ -30,8 +30,7 @@ const CategorySelector: React.FC<CategorySelectorProps> = ({ activeCategory, onS
           return;
         }
         
-        // Add "Mais Pedidos" as the first category
-        const categoryNames = ['Mais Pedidos', ...data.map(category => category.name)];
+        const categoryNames = data.map(category => category.name);
         setCategories(categoryNames);
         
         if (categoryNames.length > 0 && !activeCategory) {
