@@ -90,6 +90,7 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
       <ProductSearchBar
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
+        onSelectSuggestion={handleProductSelect}
       />
       
       {searchQuery ? (

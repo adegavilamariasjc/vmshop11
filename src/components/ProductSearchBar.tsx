@@ -7,7 +7,7 @@ import { getProductIcon } from '@/utils/productIcons';
 interface ProductSearchBarProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  onSelectSuggestion?: (suggestion: string) => void;
+  onSelectSuggestion?: (productName: string, categoryName: string) => void;
 }
 
 interface SearchSuggestion {
@@ -89,7 +89,7 @@ const ProductSearchBar: React.FC<ProductSearchBarProps> = ({
     setShowSuggestions(false);
     setSuggestions([]);
     if (onSelectSuggestion) {
-      onSelectSuggestion(suggestion.name);
+      onSelectSuggestion(suggestion.name, suggestion.category_name);
     }
   };
 
