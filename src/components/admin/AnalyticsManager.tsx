@@ -14,6 +14,19 @@ import {
 } from 'lucide-react';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { 
+  generateInsights, 
+  analyzeTrend, 
+  analyzeABC, 
+  compareWithPreviousPeriod,
+  analyzeSeasonal,
+  ABCAnalysis,
+  TrendAnalysis,
+  Insight
+} from '@/lib/analytics/insights';
+import InsightsPanel from './analytics/InsightsPanel';
+import PeriodComparison from './analytics/PeriodComparison';
+import ABCAnalysisChart from './analytics/ABCAnalysisChart';
 
 interface SalesData {
   date: string;
@@ -75,6 +88,13 @@ const AnalyticsManager = () => {
   const [hourlyData, setHourlyData] = useState<HourlyData[]>([]);
   const [lowStockProducts, setLowStockProducts] = useState<any[]>([]);
   const [categoryPerformance, setCategoryPerformance] = useState<any[]>([]);
+  
+  // Novos estados para análises avançadas
+  const [insights, setInsights] = useState<Insight[]>([]);
+  const [trendAnalysis, setTrendAnalysis] = useState<TrendAnalysis | null>(null);
+  const [abcAnalysis, setABCAnalysis] = useState<ABCAnalysis | null>(null);
+  const [previousRevenue, setPreviousRevenue] = useState(0);
+  const [previousOrders, setPreviousOrders] = useState(0);
 
   useEffect(() => {
     loadAnalytics();
@@ -246,6 +266,22 @@ const AnalyticsManager = () => {
       setStockPotentialRevenue(stockPotentialCalc);
       setLowStockProducts(lowStock);
 
+      // Buscar dados do período anterior para comparação
+      const previousStartDate = startOfDay(subDays(startDate, dateRange));
+      const previousEndDate = endOfDay(subDays(endDate, dateRange));
+
+      const { data: previousPedidos } = await supabase
+        .from('pedidos')
+        .select('*')
+        .gte('data_criacao', previousStartDate.toISOString())
+        .lte('data_criacao', previousEndDate.toISOString())
+        .neq('status', 'cancelado');
+
+      const prevRevenue = previousPedidos?.reduce((sum, p) => sum + Number(p.total), 0) || 0;
+      const prevOrders = previousPedidos?.length || 0;
+      setPreviousRevenue(prevRevenue);
+      setPreviousOrders(prevOrders);
+
       // Performance por categoria
       const { data: categoriesData, error: categoriesError } = await supabase
         .from('categories')
@@ -287,6 +323,34 @@ const AnalyticsManager = () => {
         );
       }
 
+      // Análise de tendências
+      const salesTrend = analyzeTrend(
+        salesData.map(s => ({ date: s.date, value: s.total }))
+      );
+      setTrendAnalysis(salesTrend);
+
+      // Análise ABC de produtos
+      const productList = topProducts.map(p => ({ name: p.name, revenue: p.revenue }));
+      const abc = analyzeABC(productList);
+      setABCAnalysis(abc);
+
+      // Gerar insights inteligentes
+      const generatedInsights = generateInsights({
+        totalRevenue: revenue,
+        totalOrders: orders,
+        averageTicket: orders > 0 ? revenue / orders : 0,
+        profitMargin: revenue > 0 ? (calculatedProfit / revenue) * 100 : 0,
+        conversionRate: visitsCount && visitsCount > 0 ? (orders / visitsCount) * 100 : 0,
+        stockValue: stockValueCalc,
+        lowStockCount: lowStock.length,
+        topProducts: topProducts,
+        revenueChange: prevRevenue > 0 ? ((revenue - prevRevenue) / prevRevenue) * 100 : 0,
+        ordersChange: prevOrders > 0 ? ((orders - prevOrders) / prevOrders) * 100 : 0,
+        trend: salesTrend,
+        abcAnalysis: abc
+      });
+      setInsights(generatedInsights);
+
     } catch (error) {
       console.error('Error loading analytics:', error);
       toast({
@@ -321,6 +385,23 @@ const AnalyticsManager = () => {
           </button>
         ))}
       </div>
+
+      {/* Painel de Insights Inteligentes */}
+      {insights.length > 0 && (
+        <InsightsPanel insights={insights} />
+      )}
+
+      {/* Comparação com Período Anterior */}
+      {previousRevenue > 0 && (
+        <PeriodComparison
+          currentRevenue={totalRevenue}
+          previousRevenue={previousRevenue}
+          currentOrders={totalOrders}
+          previousOrders={previousOrders}
+          currentPeriod={`Últimos ${dateRange} dias`}
+          previousPeriod={`${dateRange} dias anteriores`}
+        />
+      )}
 
       {/* Cards de métricas principais */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -417,10 +498,11 @@ const AnalyticsManager = () => {
       </div>
 
       <Tabs defaultValue="vendas" className="w-full">
-        <TabsList className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7">
+        <TabsList className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8">
           <TabsTrigger value="vendas">Vendas</TabsTrigger>
           <TabsTrigger value="financeiro">Financeiro</TabsTrigger>
           <TabsTrigger value="produtos">Produtos</TabsTrigger>
+          <TabsTrigger value="abc">Análise ABC</TabsTrigger>
           <TabsTrigger value="pagamento">Pagamento</TabsTrigger>
           <TabsTrigger value="bairros">Bairros</TabsTrigger>
           <TabsTrigger value="horarios">Horários</TabsTrigger>
@@ -562,6 +644,10 @@ const AnalyticsManager = () => {
               </ResponsiveContainer>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="abc" className="space-y-4">
+          {abcAnalysis && <ABCAnalysisChart analysis={abcAnalysis} />}
         </TabsContent>
 
         <TabsContent value="produtos" className="space-y-4">
