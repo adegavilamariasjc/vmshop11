@@ -83,6 +83,7 @@ const AnalyticsManager = () => {
   // Dados para gráficos
   const [salesData, setSalesData] = useState<SalesData[]>([]);
   const [topProducts, setTopProducts] = useState<ProductSales[]>([]);
+  const [topProductsByQuantity, setTopProductsByQuantity] = useState<ProductSales[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethodData[]>([]);
   const [bairroData, setBairroData] = useState<BairroData[]>([]);
   const [hourlyData, setHourlyData] = useState<HourlyData[]>([]);
@@ -149,11 +150,11 @@ const AnalyticsManager = () => {
       })));
 
       // Buscar produtos para análise financeira
-      const { data: allProducts } = await supabase
+      const { data: allProductsDb } = await supabase
         .from('products')
         .select('id, name, price, custo_compra, quantidade_estoque');
 
-      const productsMap = new Map(allProducts?.map(p => [p.name, p]) || []);
+      const productsMap = new Map(allProductsDb?.map(p => [p.name, p]) || []);
 
       // Produtos mais vendidos com análise financeira
       const productSales: { [key: string]: { quantity: number; revenue: number; cost: number } } = {};
@@ -180,17 +181,27 @@ const AnalyticsManager = () => {
       setTotalProfit(calculatedProfit);
       setProfitMargin(revenue > 0 ? (calculatedProfit / revenue) * 100 : 0);
 
+      const allProducts = Object.entries(productSales)
+        .map(([name, data]) => ({
+          name,
+          quantity: data.quantity,
+          revenue: data.revenue,
+          cost: data.cost,
+          profit: data.revenue - data.cost,
+          margin: data.revenue > 0 ? ((data.revenue - data.cost) / data.revenue) * 100 : 0
+        }));
+
+      // Top 10 por lucro
       setTopProducts(
-        Object.entries(productSales)
-          .map(([name, data]) => ({
-            name,
-            quantity: data.quantity,
-            revenue: data.revenue,
-            cost: data.cost,
-            profit: data.revenue - data.cost,
-            margin: data.revenue > 0 ? ((data.revenue - data.cost) / data.revenue) * 100 : 0
-          }))
+        [...allProducts]
           .sort((a, b) => b.profit - a.profit)
+          .slice(0, 10)
+      );
+
+      // Top 10 por quantidade vendida
+      setTopProductsByQuantity(
+        [...allProducts]
+          .sort((a, b) => b.quantity - a.quantity)
           .slice(0, 10)
       );
 
@@ -654,6 +665,31 @@ const AnalyticsManager = () => {
           <Card className="bg-gray-800/50 border-gray-700">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
+                <ShoppingCart className="h-5 w-5" />
+                Top 10 Produtos Mais Vendidos (Quantidade)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={400}>
+                <BarChart data={topProductsByQuantity} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis type="number" stroke="#9ca3af" />
+                  <YAxis dataKey="name" type="category" width={150} stroke="#9ca3af" />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151' }}
+                    labelStyle={{ color: '#f3f4f6' }}
+                  />
+                  <Legend />
+                  <Bar dataKey="quantity" fill="#3b82f6" name="Quantidade Vendida" />
+                  <Bar dataKey="revenue" fill="#8b5cf6" name="Faturamento (R$)" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gray-800/50 border-gray-700">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
                 <Package className="h-5 w-5" />
                 Top 10 Produtos Mais Lucrativos
               </CardTitle>
@@ -679,7 +715,45 @@ const AnalyticsManager = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card className="bg-gray-800/50 border-gray-700">
               <CardHeader>
-                <CardTitle className="text-white text-sm">Detalhes dos Produtos</CardTitle>
+                <CardTitle className="text-white text-sm">Mais Vendidos - Detalhes</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {topProductsByQuantity.map((product, idx) => (
+                    <div key={idx} className="p-3 bg-gray-700/30 rounded-lg space-y-1">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium text-white text-sm">{product.name}</span>
+                        <span className="text-xs font-bold text-blue-400">{product.quantity} vendidos</span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                          <p className="text-gray-400">Receita</p>
+                          <p className="text-blue-400 font-mono">R$ {product.revenue.toFixed(2)}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-400">Custo</p>
+                          <p className="text-red-400 font-mono">R$ {product.cost.toFixed(2)}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-400">Lucro</p>
+                          <p className="text-green-400 font-mono">R$ {product.profit.toFixed(2)}</p>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center text-xs pt-1 border-t border-gray-600">
+                        <span className="text-gray-400">Margem</span>
+                        <span className={`font-mono ${product.margin >= 30 ? 'text-green-400' : product.margin >= 15 ? 'text-yellow-400' : 'text-red-400'}`}>
+                          {product.margin.toFixed(1)}%
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gray-800/50 border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-white text-sm">Mais Lucrativos - Detalhes</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2 max-h-96 overflow-y-auto">
