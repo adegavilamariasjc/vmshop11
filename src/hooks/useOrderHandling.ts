@@ -14,6 +14,7 @@ export const useOrderHandling = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isDuplicateOrder, setIsDuplicateOrder] = useState(false);
   const [whatsAppUrl, setWhatsAppUrl] = useState("");
+  const [lastOrderIsBalcao, setLastOrderIsBalcao] = useState(false);
   const { toast } = useToast();
 
   const getFullProductName = (name: string, category?: string): string => {
@@ -228,6 +229,7 @@ const processOrder = async (cart: Product[], form: FormData, _isOpen: boolean, o
   }
 
   const isBalcao = !!options?.balcao;
+  setLastOrderIsBalcao(isBalcao);
   
   // Check if store is open based on type (balcão or delivery)
   const now = new Date();
@@ -339,6 +341,11 @@ const processOrder = async (cart: Product[], form: FormData, _isOpen: boolean, o
   const handleOrderConfirmation = () => {
     if (!isDuplicateOrder && whatsAppUrl) {
       window.open(whatsAppUrl, "_blank");
+    }
+    
+    if (lastOrderIsBalcao) {
+      // Para pedidos de balcão, não recarregar a página para evitar repetição de confirmação
+      return;
     }
     
     window.location.reload();

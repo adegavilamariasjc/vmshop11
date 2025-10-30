@@ -150,7 +150,7 @@ const [senhaError, setSenhaError] = useState('');
               setShowPasswordDialog(true); 
               setSenha(''); 
               setFuncionario(''); 
-              setFormaPagamentoBalcao('');
+              setFormaPagamentoBalcao(form.pagamento || '');
               setSenhaError(''); 
             }}
             title="Pedido de Balcão"
@@ -226,22 +226,23 @@ const [senhaError, setSenhaError] = useState('');
                     variant="purple"
                     className="flex-1"
                     onClick={() => {
+                      const efetivaPagamento = formaPagamentoBalcao || form.pagamento;
                       if (!funcionario) {
                         setSenhaError('Selecione um funcionário');
                         return;
                       }
-                      if (!formaPagamentoBalcao) {
+                      if (!efetivaPagamento) {
                         setSenhaError('Selecione a forma de pagamento');
                         return;
                       }
                       if (senha === SENHA_BALCAO) {
                         setShowPasswordDialog(false);
-                        onSubmit(true, funcionario, formaPagamentoBalcao);
+                        onSubmit(true, funcionario, efetivaPagamento);
                       } else {
                         setSenhaError('Senha incorreta');
                       }
                     }}
-                    disabled={!senha || !funcionario || !formaPagamentoBalcao}
+                    disabled={!senha || !funcionario || !(formaPagamentoBalcao || form.pagamento)}
                   >
                     Acessar
                   </Button>
