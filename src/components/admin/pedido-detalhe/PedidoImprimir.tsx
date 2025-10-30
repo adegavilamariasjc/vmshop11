@@ -2,8 +2,6 @@
 import React, { useEffect, useRef } from 'react';
 import { usePrintWindow } from './print/usePrintWindow';
 import { PrintablePedido } from './print/PrinterUtils';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/components/ui/use-toast';
 
 export const PedidoImprimir = ({
   pedido,
@@ -13,10 +11,9 @@ export const PedidoImprimir = ({
   setIsPrinting: (v: boolean) => void;
 }) => {
   const { openPrintWindow } = usePrintWindow();
-  const { toast } = useToast();
   const hasExecuted = useRef(false);
 
-  // Send to Telegram first, then print
+  // Open print window directly
   useEffect(() => {
     if (!pedido || hasExecuted.current) return;
     hasExecuted.current = true;
@@ -44,58 +41,9 @@ export const PedidoImprimir = ({
         discount_amount: pedido.discount_amount
       };
       
-      // Send to Telegram FIRST
-      try {
-        console.log('📤 Sending order to Telegram:', pedido.codigo_pedido);
-        
-        const { data, error } = await supabase.functions.invoke('send-telegram-order', {
-          body: {
-            codigoPedido: pedido.codigo_pedido,
-            clienteNome: pedido.cliente_nome,
-            clienteEndereco: pedido.cliente_endereco,
-            clienteNumero: pedido.cliente_numero,
-            clienteComplemento: pedido.cliente_complemento,
-            clienteReferencia: pedido.cliente_referencia,
-            clienteBairro: pedido.cliente_bairro,
-            taxaEntrega: pedido.taxa_entrega,
-            clienteWhatsapp: pedido.cliente_whatsapp,
-            formaPagamento: pedido.forma_pagamento,
-            troco: pedido.troco,
-            observacao: pedido.observacao,
-            itens: pedido.itens,
-            total: pedido.total,
-            discountAmount: pedido.discount_amount || 0
-          }
-        });
-
-        if (error) {
-          console.error('Error sending to Telegram:', error);
-          toast({
-            title: "Aviso",
-            description: "Não foi possível enviar para o Telegram. Verifique a configuração.",
-            variant: "destructive",
-          });
-        } else {
-          console.log('✅ Order sent to Telegram successfully:', data);
-          toast({
-            title: "Pedido enviado",
-            description: "Pedido enviado para o Telegram com sucesso!",
-          });
-        }
-      } catch (error) {
-        console.error('Failed to send to Telegram:', error);
-        toast({
-          title: "Aviso",
-          description: "Erro ao enviar para o Telegram.",
-          variant: "destructive",
-        });
-      }
-      
-      // Then open print window (with small delay to ensure Telegram request completes)
-      setTimeout(() => {
-        openPrintWindow(printablePedido);
-        setIsPrinting(false);
-      }, 500);
+      // Open print window
+      openPrintWindow(printablePedido);
+      setIsPrinting(false);
     };
     
     processOrder();
