@@ -263,23 +263,6 @@ export const useOrderAlerts = () => {
         console.log('📡 Realtime subscription status:', status);
         if (status === 'SUBSCRIBED') {
           console.log('✅ Successfully subscribed to pedidos updates');
-          
-          // Initial check for pending orders when subscribing
-          supabase
-            .from('pedidos')
-            .select('*')
-            .order('data_criacao', { ascending: false })
-            .then(({ data }) => {
-              if (data) {
-                const pendingOrders = data.filter(o => o.status === 'pendente');
-                if (pendingOrders.length > 0) {
-                  console.log('🔔 Found pending orders on subscription');
-                  initializeDeliveryAudio();
-                  initializeBalcaoAudio();
-                  setTimeout(() => startAlert(data), 200);
-                }
-              }
-            });
         }
       });
 

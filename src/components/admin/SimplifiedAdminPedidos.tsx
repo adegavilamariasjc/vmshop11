@@ -391,7 +391,7 @@ const SimplifiedAdminPedidos: React.FC<SimplifiedAdminPedidosProps> = ({
                     Ver Detalhes
                   </Button>
                   
-                  {pedido.status === 'pendente' && (
+                  {pedido.status === 'pendente' && filterType !== 'balcao' && (
                     <Button
                       onClick={() => handleAcceptOrder(pedido.id)}
                       size="sm"
