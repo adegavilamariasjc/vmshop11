@@ -19,7 +19,7 @@ interface CheckoutViewProps {
   setForm: React.Dispatch<React.SetStateAction<FormData>>;
   bairros: { nome: string; taxa: number }[];
   onBackToProducts: () => void;
-  onSubmit: (isBalcao?: boolean, funcionario?: string) => void;
+  onSubmit: (isBalcao?: boolean, funcionario?: string, formaPagamento?: string) => void;
   isSending?: boolean;
   isStoreOpen: boolean;
 }
@@ -235,11 +235,8 @@ const [senhaError, setSenhaError] = useState('');
                         return;
                       }
                       if (senha === SENHA_BALCAO) {
-                        // Atualizar o form com a forma de pagamento antes de submeter
-                        setForm(prev => ({ ...prev, pagamento: formaPagamentoBalcao }));
                         setShowPasswordDialog(false);
-                        // Usar setTimeout para garantir que o estado seja atualizado
-                        setTimeout(() => onSubmit(true, funcionario), 0);
+                        onSubmit(true, funcionario, formaPagamentoBalcao);
                       } else {
                         setSenhaError('Senha incorreta');
                       }

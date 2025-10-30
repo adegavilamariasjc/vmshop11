@@ -59,7 +59,7 @@ export const useOrderHandling = () => {
     }
   };
 
-const preparePedido = async (cart: Product[], form: FormData, isBalcao: boolean, funcionario?: string) => {
+const preparePedido = async (cart: Product[], form: FormData, isBalcao: boolean, funcionario?: string, formaPagamento?: string) => {
   console.log('🔄 preparePedido chamado - isBalcao:', isBalcao, '- Cliente:', isBalcao ? funcionario : form.nome);
   if (cart.length === 0) return false;
   
@@ -118,7 +118,7 @@ const preparePedido = async (cart: Product[], form: FormData, isBalcao: boolean,
       cliente_bairro: isBalcao ? 'BALCAO' : (form.bairro.nome || 'Não informado'),
       taxa_entrega: isBalcao ? 0 : (typeof form.bairro.taxa === 'number' ? form.bairro.taxa : 0),
       cliente_whatsapp: isBalcao ? 'Não informado' : (form.whatsapp || 'Não informado'),
-      forma_pagamento: form.pagamento || 'Não informado',
+      forma_pagamento: formaPagamento || form.pagamento || 'Não informado',
       troco: form.troco || null,
       observacao: isBalcao ? `[BALCÃO - ${funcionario || 'Funcionário não informado'}] ${form.observacao || ''}` : (form.observacao || null),
       itens: sanitizedItems as any,
@@ -217,7 +217,7 @@ const preparePedido = async (cart: Product[], form: FormData, isBalcao: boolean,
     return `https://wa.me/5512982704573?text=${mensagemEncoded}`;
   };
 
-const processOrder = async (cart: Product[], form: FormData, _isOpen: boolean, options?: { balcao?: boolean; funcionario?: string }) => {
+const processOrder = async (cart: Product[], form: FormData, _isOpen: boolean, options?: { balcao?: boolean; funcionario?: string; formaPagamento?: string }) => {
   if (cart.length === 0) {
     toast({
       title: 'Carrinho vazio',
@@ -235,7 +235,8 @@ const processOrder = async (cart: Product[], form: FormData, _isOpen: boolean, o
   const isOpen = isBalcao ? (hour >= 14 || hour < 6) : (hour >= 18 || hour < 6);
 
   // Validate payment method for all orders (delivery and balcão)
-  if (!form.pagamento || form.pagamento.trim() === '') {
+  const paymentMethod = options?.formaPagamento || form.pagamento;
+  if (!paymentMethod || paymentMethod.trim() === '') {
     toast({
       title: 'Forma de pagamento obrigatória',
       description: 'Selecione uma forma de pagamento antes de finalizar o pedido.',
@@ -302,7 +303,7 @@ const processOrder = async (cart: Product[], form: FormData, _isOpen: boolean, o
   setIsSendingOrder(true);
   
   try {
-    const success = await preparePedido(cart, form, isBalcao, options?.funcionario);
+    const success = await preparePedido(cart, form, isBalcao, options?.funcionario, options?.formaPagamento);
     
     if (!success) {
       toast({
