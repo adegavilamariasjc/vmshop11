@@ -10,7 +10,7 @@ import {
 import { 
   TrendingUp, DollarSign, Package, Clock, 
   MapPin, CreditCard, Users, ShoppingCart,
-  AlertTriangle, Activity
+  AlertTriangle, Activity, Percent, TrendingDown
 } from 'lucide-react';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -25,6 +25,9 @@ interface ProductSales {
   name: string;
   quantity: number;
   revenue: number;
+  cost: number;
+  profit: number;
+  margin: number;
 }
 
 interface PaymentMethodData {
@@ -56,6 +59,13 @@ const AnalyticsManager = () => {
   const [totalOrders, setTotalOrders] = useState(0);
   const [averageTicket, setAverageTicket] = useState(0);
   const [conversionRate, setConversionRate] = useState(0);
+  
+  // Métricas financeiras
+  const [totalCost, setTotalCost] = useState(0);
+  const [totalProfit, setTotalProfit] = useState(0);
+  const [profitMargin, setProfitMargin] = useState(0);
+  const [stockValue, setStockValue] = useState(0);
+  const [stockPotentialRevenue, setStockPotentialRevenue] = useState(0);
   
   // Dados para gráficos
   const [salesData, setSalesData] = useState<SalesData[]>([]);
@@ -118,22 +128,49 @@ const AnalyticsManager = () => {
         orders: data.orders
       })));
 
-      // Produtos mais vendidos
-      const productSales: { [key: string]: { quantity: number; revenue: number } } = {};
+      // Buscar produtos para análise financeira
+      const { data: allProducts } = await supabase
+        .from('products')
+        .select('id, name, price, custo_compra, quantidade_estoque');
+
+      const productsMap = new Map(allProducts?.map(p => [p.name, p]) || []);
+
+      // Produtos mais vendidos com análise financeira
+      const productSales: { [key: string]: { quantity: number; revenue: number; cost: number } } = {};
+      let totalCostCalculated = 0;
+      
       pedidos?.forEach(p => {
         const items = p.itens as any[];
         items?.forEach(item => {
+          const productData = productsMap.get(item.name);
+          const itemCost = (productData?.custo_compra || item.price * 0.6) * item.qty; // 60% como custo estimado se não houver
+          
           if (!productSales[item.name]) {
-            productSales[item.name] = { quantity: 0, revenue: 0 };
+            productSales[item.name] = { quantity: 0, revenue: 0, cost: 0 };
           }
           productSales[item.name].quantity += item.qty;
           productSales[item.name].revenue += item.price * item.qty;
+          productSales[item.name].cost += itemCost;
+          totalCostCalculated += itemCost;
         });
       });
+
+      setTotalCost(totalCostCalculated);
+      const calculatedProfit = revenue - totalCostCalculated;
+      setTotalProfit(calculatedProfit);
+      setProfitMargin(revenue > 0 ? (calculatedProfit / revenue) * 100 : 0);
+
       setTopProducts(
         Object.entries(productSales)
-          .map(([name, data]) => ({ name, ...data }))
-          .sort((a, b) => b.quantity - a.quantity)
+          .map(([name, data]) => ({
+            name,
+            quantity: data.quantity,
+            revenue: data.revenue,
+            cost: data.cost,
+            profit: data.revenue - data.cost,
+            margin: data.revenue > 0 ? ((data.revenue - data.cost) / data.revenue) * 100 : 0
+          }))
+          .sort((a, b) => b.profit - a.profit)
           .slice(0, 10)
       );
 
@@ -183,15 +220,31 @@ const AnalyticsManager = () => {
           .sort((a, b) => a.hour.localeCompare(b.hour))
       );
 
-      // Produtos com estoque baixo
-      const { data: products, error: productsError } = await supabase
+      // Análise de estoque e valor
+      const { data: stockProducts } = await supabase
         .from('products')
-        .select('id, name, quantidade_estoque, estoque_minimo')
-        .eq('controlar_estoque', true);
+        .select('id, name, quantidade_estoque, estoque_minimo, custo_compra, price, controlar_estoque');
 
-      if (!productsError) {
-        setLowStockProducts(products?.filter(p => p.quantidade_estoque <= p.estoque_minimo && p.estoque_minimo > 0) || []);
-      }
+      let stockValueCalc = 0;
+      let stockPotentialCalc = 0;
+      const lowStock: any[] = [];
+
+      stockProducts?.forEach(p => {
+        const cost = p.custo_compra || 0;
+        const price = p.price || 0;
+        const qty = p.quantidade_estoque || 0;
+
+        stockValueCalc += cost * qty;
+        stockPotentialCalc += price * qty;
+
+        if (p.controlar_estoque && qty <= p.estoque_minimo && p.estoque_minimo > 0) {
+          lowStock.push(p);
+        }
+      });
+
+      setStockValue(stockValueCalc);
+      setStockPotentialRevenue(stockPotentialCalc);
+      setLowStockProducts(lowStock);
 
       // Performance por categoria
       const { data: categoriesData, error: categoriesError } = await supabase
@@ -316,9 +369,57 @@ const AnalyticsManager = () => {
         </Card>
       </div>
 
+      {/* Cards de métricas financeiras */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="bg-gradient-to-br from-red-600/20 to-red-800/20 border-red-500/30">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-white">Custo Total</CardTitle>
+            <TrendingDown className="h-4 w-4 text-red-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">R$ {totalCost.toFixed(2)}</div>
+            <p className="text-xs text-gray-400 mt-1">Custos dos produtos vendidos</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-emerald-600/20 to-emerald-800/20 border-emerald-500/30">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-white">Lucro Bruto</CardTitle>
+            <TrendingUp className="h-4 w-4 text-emerald-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">R$ {totalProfit.toFixed(2)}</div>
+            <p className="text-xs text-gray-400 mt-1">Receita - Custos</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-amber-600/20 to-amber-800/20 border-amber-500/30">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-white">Margem de Lucro</CardTitle>
+            <Percent className="h-4 w-4 text-amber-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{profitMargin.toFixed(1)}%</div>
+            <p className="text-xs text-gray-400 mt-1">Margem média</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-indigo-600/20 to-indigo-800/20 border-indigo-500/30">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-white">Valor em Estoque</CardTitle>
+            <Package className="h-4 w-4 text-indigo-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">R$ {stockValue.toFixed(2)}</div>
+            <p className="text-xs text-gray-400 mt-1">Custo do estoque atual</p>
+          </CardContent>
+        </Card>
+      </div>
+
       <Tabs defaultValue="vendas" className="w-full">
-        <TabsList className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6">
+        <TabsList className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7">
           <TabsTrigger value="vendas">Vendas</TabsTrigger>
+          <TabsTrigger value="financeiro">Financeiro</TabsTrigger>
           <TabsTrigger value="produtos">Produtos</TabsTrigger>
           <TabsTrigger value="pagamento">Pagamento</TabsTrigger>
           <TabsTrigger value="bairros">Bairros</TabsTrigger>
@@ -371,12 +472,104 @@ const AnalyticsManager = () => {
           </Card>
         </TabsContent>
 
+        <TabsContent value="financeiro" className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card className="bg-gray-800/50 border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-white">ROI do Estoque</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="p-4 bg-gray-700/30 rounded-lg">
+                    <p className="text-sm text-gray-400">Investimento em Estoque</p>
+                    <p className="text-2xl font-bold text-red-400">R$ {stockValue.toFixed(2)}</p>
+                  </div>
+                  <div className="p-4 bg-gray-700/30 rounded-lg">
+                    <p className="text-sm text-gray-400">Receita Potencial</p>
+                    <p className="text-2xl font-bold text-green-400">R$ {stockPotentialRevenue.toFixed(2)}</p>
+                  </div>
+                  <div className="p-4 bg-gradient-to-r from-purple-900/30 to-blue-900/30 rounded-lg border border-purple-500/30">
+                    <p className="text-sm text-gray-400">ROI Potencial</p>
+                    <p className="text-3xl font-bold text-purple-400">
+                      {stockValue > 0 ? (((stockPotentialRevenue - stockValue) / stockValue) * 100).toFixed(1) : '0.0'}%
+                    </p>
+                  </div>
+                  <div className="p-4 bg-gray-700/30 rounded-lg">
+                    <p className="text-sm text-gray-400">Lucro Potencial do Estoque</p>
+                    <p className="text-2xl font-bold text-emerald-400">
+                      R$ {(stockPotentialRevenue - stockValue).toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gray-800/50 border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-white">Resumo Financeiro do Período</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center p-3 bg-blue-900/20 rounded-lg border border-blue-500/30">
+                    <span className="text-gray-300">Receita Total</span>
+                    <span className="text-xl font-bold text-blue-400">R$ {totalRevenue.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-red-900/20 rounded-lg border border-red-500/30">
+                    <span className="text-gray-300">Custo Total</span>
+                    <span className="text-xl font-bold text-red-400">R$ {totalCost.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-green-900/20 rounded-lg border border-green-500/30">
+                    <span className="text-gray-300">Lucro Bruto</span>
+                    <span className="text-xl font-bold text-green-400">R$ {totalProfit.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-purple-900/20 rounded-lg border border-purple-500/30">
+                    <span className="text-gray-300">Margem de Lucro</span>
+                    <span className="text-xl font-bold text-purple-400">{profitMargin.toFixed(1)}%</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-amber-900/20 rounded-lg border border-amber-500/30">
+                    <span className="text-gray-300">Ticket Médio</span>
+                    <span className="text-xl font-bold text-amber-400">R$ {averageTicket.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center p-3 bg-cyan-900/20 rounded-lg border border-cyan-500/30">
+                    <span className="text-gray-300">Lucro Médio/Pedido</span>
+                    <span className="text-xl font-bold text-cyan-400">
+                      R$ {totalOrders > 0 ? (totalProfit / totalOrders).toFixed(2) : '0.00'}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card className="bg-gray-800/50 border-gray-700">
+            <CardHeader>
+              <CardTitle className="text-white">Evolução de Lucro e Margem</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={salesData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis dataKey="date" stroke="#9ca3af" />
+                  <YAxis stroke="#9ca3af" />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151' }}
+                    labelStyle={{ color: '#f3f4f6' }}
+                  />
+                  <Legend />
+                  <Line type="monotone" dataKey="total" stroke="#3b82f6" name="Receita (R$)" strokeWidth={2} />
+                  <Line type="monotone" dataKey="orders" stroke="#10b981" name="Pedidos" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="produtos" className="space-y-4">
           <Card className="bg-gray-800/50 border-gray-700">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <Package className="h-5 w-5" />
-                Top 10 Produtos Mais Vendidos
+                Top 10 Produtos Mais Lucrativos
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -390,12 +583,75 @@ const AnalyticsManager = () => {
                     labelStyle={{ color: '#f3f4f6' }}
                   />
                   <Legend />
-                  <Bar dataKey="quantity" fill="#10b981" name="Quantidade" />
+                  <Bar dataKey="profit" fill="#10b981" name="Lucro (R$)" />
                   <Bar dataKey="revenue" fill="#8b5cf6" name="Faturamento (R$)" />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card className="bg-gray-800/50 border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-white text-sm">Detalhes dos Produtos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {topProducts.map((product, idx) => (
+                    <div key={idx} className="p-3 bg-gray-700/30 rounded-lg space-y-1">
+                      <div className="flex justify-between items-center">
+                        <span className="font-medium text-white text-sm">{product.name}</span>
+                        <span className="text-xs text-gray-400">{product.quantity} vendidos</span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                          <p className="text-gray-400">Receita</p>
+                          <p className="text-blue-400 font-mono">R$ {product.revenue.toFixed(2)}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-400">Custo</p>
+                          <p className="text-red-400 font-mono">R$ {product.cost.toFixed(2)}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-400">Lucro</p>
+                          <p className="text-green-400 font-mono">R$ {product.profit.toFixed(2)}</p>
+                        </div>
+                      </div>
+                      <div className="pt-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs text-gray-400">Margem:</span>
+                          <span className={`text-xs font-semibold ${product.margin >= 30 ? 'text-green-400' : product.margin >= 15 ? 'text-yellow-400' : 'text-red-400'}`}>
+                            {product.margin.toFixed(1)}%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gray-800/50 border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-white text-sm">Produtos por Margem de Lucro</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={350}>
+                  <BarChart data={[...topProducts].sort((a, b) => b.margin - a.margin).slice(0, 8)}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <XAxis dataKey="name" stroke="#9ca3af" angle={-45} textAnchor="end" height={100} />
+                    <YAxis stroke="#9ca3af" />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151' }}
+                      labelStyle={{ color: '#f3f4f6' }}
+                      formatter={(value: any) => `${value.toFixed(1)}%`}
+                    />
+                    <Bar dataKey="margin" fill="#f59e0b" name="Margem %" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="pagamento" className="space-y-4">
