@@ -106,7 +106,7 @@ const Index = () => {
             setForm={setForm}
             bairros={bairros}
             onBackToProducts={() => setShowSummary(false)}
-            onSubmit={(isBalcao?: boolean, funcionario?: string) => processOrder(cart, form, isOpen, { balcao: !!isBalcao, funcionario })}
+            onSubmit={(isBalcao?: boolean, funcionario?: string, formaPagamento?: string) => processOrder(cart, form, isOpen, { balcao: !!isBalcao, funcionario, formaPagamento })}
             isSending={isSendingOrder}
             isStoreOpen={isOpen}
           />
