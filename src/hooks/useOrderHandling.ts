@@ -138,36 +138,8 @@ const preparePedido = async (cart: Product[], form: FormData, isBalcao: boolean,
       }
     }
     
-    // Send to Telegram only for delivery orders (not balcão)
-    if (pedido && !isBalcao) {
-      console.log('📤 Enviando pedido para Telegram:', pedido.codigo_pedido);
-      try {
-        await supabase.functions.invoke('send-telegram-order', {
-          body: {
-            codigoPedido: pedido.codigo_pedido,
-            clienteNome: pedido.cliente_nome,
-            clienteEndereco: pedido.cliente_endereco,
-            clienteNumero: pedido.cliente_numero,
-            clienteComplemento: pedido.cliente_complemento,
-            clienteReferencia: pedido.cliente_referencia,
-            clienteBairro: pedido.cliente_bairro,
-            taxaEntrega: pedido.taxa_entrega,
-            clienteWhatsapp: pedido.cliente_whatsapp,
-            formaPagamento: pedido.forma_pagamento,
-            troco: pedido.troco,
-            observacao: pedido.observacao,
-            itens: pedido.itens,
-            total: pedido.total,
-            discountAmount: pedido.discount_amount,
-            entregador: pedido.entregador
-          }
-        });
-        console.log('Pedido delivery enviado para Telegram:', pedido.codigo_pedido);
-      } catch (telegramError) {
-        console.error('Erro ao enviar para Telegram:', telegramError);
-        // Não bloqueia o pedido se falhar o envio para Telegram
-      }
-    }
+    // NOTE: Telegram notification is now sent only when a motoboy is assigned (in SimplifiedAdminPedidos.tsx)
+    // This avoids duplicate notifications
     
     return !!pedido;
   } catch (err) {
