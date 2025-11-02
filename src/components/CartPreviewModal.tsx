@@ -21,6 +21,8 @@ interface CartPreviewModalProps {
   cart: Product[];
   onClearCart: () => void;
   onProceedToCheckout: () => void;
+  onUpdateQuantity: (item: Product, delta: number) => void;
+  onRemoveItem: (item: Product) => void;
   isStoreOpen: boolean;
 }
 
@@ -30,6 +32,8 @@ const CartPreviewModal: React.FC<CartPreviewModalProps> = ({
   cart,
   onClearCart,
   onProceedToCheckout,
+  onUpdateQuantity,
+  onRemoveItem,
   isStoreOpen
 }) => {
   const { toast } = useToast();
@@ -77,7 +81,12 @@ const CartPreviewModal: React.FC<CartPreviewModalProps> = ({
         {/* Content area with scrolling */}
         <div className="flex-1 overflow-y-auto py-2" style={{ maxHeight: 'calc(70vh - 140px)' }}>
           <div className="pr-2">
-            <OrderSummary cart={filteredCart} />
+            <OrderSummary 
+              cart={filteredCart} 
+              onUpdateQuantity={onUpdateQuantity}
+              onRemoveItem={onRemoveItem}
+              isEditable={true}
+            />
             <CartSummary 
               subtotal={cartTotal} 
               deliveryFee={0}

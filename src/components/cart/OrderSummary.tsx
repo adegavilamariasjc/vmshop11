@@ -6,9 +6,17 @@ import { getProductDisplayPrice } from '../../utils/discountUtils';
 
 interface OrderSummaryProps {
   cart: Product[];
+  onUpdateQuantity?: (item: Product, delta: number) => void;
+  onRemoveItem?: (item: Product) => void;
+  isEditable?: boolean;
 }
 
-const OrderSummary: React.FC<OrderSummaryProps> = ({ cart }) => {
+const OrderSummary: React.FC<OrderSummaryProps> = ({ 
+  cart, 
+  onUpdateQuantity, 
+  onRemoveItem,
+  isEditable = false 
+}) => {
   // Filter out items with zero quantity
   const filteredCart = cart.filter(item => (item.qty || 0) > 0);
   
@@ -19,7 +27,12 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ cart }) => {
       </h3>
       
       {filteredCart.map((item, index) => (
-        <CartItem key={index} item={item} />
+        <CartItem 
+          key={index} 
+          item={item}
+          onUpdateQuantity={isEditable ? onUpdateQuantity : undefined}
+          onRemoveItem={isEditable ? onRemoveItem : undefined}
+        />
       ))}
     </div>
   );

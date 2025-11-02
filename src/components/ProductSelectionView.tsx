@@ -147,6 +147,8 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
         cart={cart}
         onClearCart={handleClearCart}
         onProceedToCheckout={onProceedToCheckout}
+        onUpdateQuantity={onUpdateQuantity}
+        onRemoveItem={(item) => onUpdateQuantity(item, -(item.qty || 1))}
         isStoreOpen={isStoreOpen}
       />
     </motion.div>

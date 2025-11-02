@@ -2,12 +2,16 @@
 import React from 'react';
 import { Product } from '../../types';
 import { calculateBeerDiscount } from '../../utils/discountUtils';
+import { Plus, Minus, Trash2 } from 'lucide-react';
+import { Button } from '../ui/button';
 
 interface CartItemProps {
   item: Product;
+  onUpdateQuantity?: (item: Product, delta: number) => void;
+  onRemoveItem?: (item: Product) => void;
 }
 
-const CartItem: React.FC<CartItemProps> = ({ item }) => {
+const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemoveItem }) => {
   // Function to get the full product name for certain categories
   const getFullProductName = (product: Product) => {
     if (product.category?.toLowerCase() === 'batidas' && !product.name.toLowerCase().includes('batida de')) {
@@ -17,17 +21,51 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
   };
 
   const discountInfo = calculateBeerDiscount(item);
+  const isEditable = !!onUpdateQuantity && !!onRemoveItem;
 
   return (
     <div className="mb-3">
-      <div className="flex justify-between">
-        <span className="text-white text-shadow-dark">
-          {item.qty || 1}x {getFullProductName(item)} 
-          {item.alcohol ? ` (${item.alcohol})` : ""}
-          {item.balyFlavor ? ` (Baly: ${item.balyFlavor})` : ""}
-          {discountInfo.hasDiscount ? ` (-${discountInfo.discountPercentage}%)` : ""}
-        </span>
-        <span className="text-white font-semibold text-shadow-dark">
+      <div className="flex justify-between items-start gap-2">
+        <div className="flex-1">
+          <span className="text-white text-shadow-dark">
+            {item.qty || 1}x {getFullProductName(item)} 
+            {item.alcohol ? ` (${item.alcohol})` : ""}
+            {item.balyFlavor ? ` (Baly: ${item.balyFlavor})` : ""}
+            {discountInfo.hasDiscount ? ` (-${discountInfo.discountPercentage}%)` : ""}
+          </span>
+        </div>
+        
+        {isEditable && (
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={() => onUpdateQuantity(item, -1)}
+              disabled={(item.qty || 1) <= 1}
+            >
+              <Minus className="h-3 w-3" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={() => onUpdateQuantity(item, 1)}
+            >
+              <Plus className="h-3 w-3" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-destructive hover:text-destructive"
+              onClick={() => onRemoveItem(item)}
+            >
+              <Trash2 className="h-3 w-3" />
+            </Button>
+          </div>
+        )}
+        
+        <span className="text-white font-semibold text-shadow-dark whitespace-nowrap">
           R$ {discountInfo.hasDiscount 
             ? discountInfo.discountedPrice.toFixed(2) 
             : ((item.price || 0) * (item.qty || 1)).toFixed(2)}
