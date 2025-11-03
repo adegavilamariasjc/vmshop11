@@ -7,9 +7,11 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Package, ShoppingCart, TrendingUp, AlertTriangle, Search, Plus, Minus, Edit } from 'lucide-react';
+import { Loader2, Package, ShoppingCart, TrendingUp, AlertTriangle, Search, Plus, Minus, Edit, Info, HelpCircle } from 'lucide-react';
 import { StockAdjustmentModal } from './StockAdjustmentModal';
 import { toast } from 'sonner';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface ProductStock {
   id: number;
@@ -206,9 +208,19 @@ export const StockInventoryManager = () => {
   );
 
   return (
-    <div className="space-y-4">
-      {/* Cards de Resumo */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+    <TooltipProvider>
+      <div className="space-y-4">
+        {/* Guia de Uso */}
+        <Alert className="bg-blue-900/20 border-blue-500">
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Gestão Inteligente de Estoque:</strong> Veja sugestões automáticas de compra baseadas em vendas, 
+            giro de estoque e histórico. A coluna &quot;Giro&quot; mostra quantas vezes o estoque foi vendido (maior que 1 = alta demanda).
+          </AlertDescription>
+        </Alert>
+
+        {/* Cards de Resumo */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card className="bg-gray-800 border-gray-700 p-4">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-blue-500/20 rounded-lg">
@@ -325,9 +337,45 @@ export const StockInventoryManager = () => {
                         <TableHead className="text-gray-300">Categoria</TableHead>
                         <TableHead className="text-gray-300 text-center">Estoque</TableHead>
                         <TableHead className="text-gray-300 text-center">Mínimo</TableHead>
-                        <TableHead className="text-gray-300 text-right">Vendas 30d</TableHead>
-                        <TableHead className="text-gray-300 text-center">Giro</TableHead>
-                        <TableHead className="text-gray-300 text-center">Sugestão</TableHead>
+                        <TableHead className="text-gray-300 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            Vendas 30d
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <HelpCircle className="h-3 w-3 text-gray-500" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs">Quantidade vendida nos últimos 30 dias</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
+                        </TableHead>
+                        <TableHead className="text-gray-300 text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            Giro
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <HelpCircle className="h-3 w-3 text-gray-500" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs">Quantas vezes o estoque girou em 30 dias. Maior que 1 = alta rotação (compre mais!)</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
+                        </TableHead>
+                        <TableHead className="text-gray-300 text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            Sugestão
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <HelpCircle className="h-3 w-3 text-gray-500" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs">Sugestão inteligente de quantidade a comprar baseada em vendas e estoque mínimo</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
+                        </TableHead>
                         <TableHead className="text-gray-300 text-center">Status</TableHead>
                         <TableHead className="text-gray-300 text-center">Ações</TableHead>
                       </TableRow>
@@ -400,12 +448,26 @@ export const StockInventoryManager = () => {
             <div className="p-4">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-white">Lista Inteligente de Compras</h3>
-                  <p className="text-sm text-gray-400">Baseado em vendas, giro e estoque mínimo</p>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-lg font-semibold text-white">Lista Inteligente de Compras</h3>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Info className="h-4 w-4 text-gray-500" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="max-w-xs">
+                          Sugestões automáticas baseadas em: produtos abaixo do mínimo, 
+                          alto giro de vendas e histórico dos últimos 30 dias
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <p className="text-sm text-gray-400">🤖 Calculado automaticamente com base em dados reais de vendas</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-gray-400">Custo Estimado</p>
+                  <p className="text-sm text-gray-400">💰 Investimento Necessário</p>
                   <p className="text-2xl font-bold text-green-400">R$ {custoListaCompras.toFixed(2)}</p>
+                  <p className="text-xs text-gray-500">{listaCompras.length} {listaCompras.length === 1 ? 'produto' : 'produtos'}</p>
                 </div>
               </div>
 
@@ -481,7 +543,8 @@ export const StockInventoryManager = () => {
           produto={selectedProduct}
           onSuccess={handleAdjustmentComplete}
         />
-      )}
-    </div>
+        )}
+      </div>
+    </TooltipProvider>
   );
 };
