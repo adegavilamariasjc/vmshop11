@@ -99,7 +99,7 @@ const CartPreviewModal: React.FC<CartPreviewModalProps> = ({
         <div className="flex gap-3 mt-4 pt-4 border-t border-gray-700 shrink-0">
           <Button
             variant="destructive"
-            className="w-full"
+            className="w-1/3"
             onClick={handleClearCart}
             disabled={filteredCart.length === 0}
           >
@@ -108,12 +108,12 @@ const CartPreviewModal: React.FC<CartPreviewModalProps> = ({
           </Button>
           <Button
             variant="purple"
-            className="w-full"
+            className="w-2/3 h-12 text-base font-bold shadow-lg hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all duration-300 animate-pulse"
             onClick={handleProceed}
             disabled={filteredCart.length === 0}
           >
-            <ArrowRight className="h-4 w-4 mr-2" />
-            Avançar
+            <ArrowRight className="h-5 w-5 mr-2" />
+            Finalizar Pedido
           </Button>
         </div>
       </DialogContent>
