@@ -123,7 +123,8 @@ const ProductSelectionView: React.FC<ProductSelectionViewProps> = ({
       
       <motion.button
         onClick={handleCartClick}
-        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 bg-accent-purple hover:bg-accent-purple/90 text-accent-purple-foreground px-4 py-3 sm:px-6 sm:py-4 rounded-full shadow-2xl flex items-center gap-2 sm:gap-3 border-2 border-accent-purple/30 z-40"
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 bg-accent-purple hover:bg-accent-purple/90 text-accent-purple-foreground px-4 py-3 sm:px-6 sm:py-4 rounded-full shadow-2xl flex items-center gap-2 sm:gap-3 border-2 border-white/20 z-40 backdrop-blur-sm"
+        style={{ backgroundColor: 'hsl(271, 91%, 65%)' }}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         animate={filteredCart.length > 0 ? { y: [0, -5, 0], transition: { repeat: 2, duration: 0.6 } } : {}}
