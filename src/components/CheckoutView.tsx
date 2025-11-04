@@ -22,6 +22,7 @@ interface CheckoutViewProps {
   onSubmit: (isBalcao?: boolean, funcionario?: string, formaPagamento?: string) => void;
   isSending?: boolean;
   isStoreOpen: boolean;
+  balcaoMode?: boolean;
 }
 
 
@@ -33,7 +34,8 @@ const CheckoutView: React.FC<CheckoutViewProps> = ({
   onBackToProducts,
   onSubmit,
   isSending = false,
-  isStoreOpen
+  isStoreOpen,
+  balcaoMode = false
 }) => {
   // Filter cart items with zero quantity
   const filteredCart = useMemo(() => 
@@ -117,139 +119,175 @@ const [senhaError, setSenhaError] = useState('');
         
         {/* Checkout Form */}
         <div>
-          <CheckoutForm 
-            form={form}
-            setForm={setForm}
-            bairros={bairros}
-          />
+          {!balcaoMode && (
+            <CheckoutForm 
+              form={form}
+              setForm={setForm}
+              bairros={bairros}
+            />
+          )}
           
-          <Button
-            onClick={() => onSubmit(false)}
-            disabled={!isFormValid || isSending}
-            className="w-full py-4 sm:py-6 mt-4 sm:mt-6 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold text-base sm:text-lg shadow-[0_0_20px_rgba(34,197,94,0.5)] hover:shadow-[0_0_30px_rgba(34,197,94,0.7)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
-          >
-            {isSending ? (
-              <>
-                <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin mr-2" />
-                <span className="text-sm sm:text-base">{isStoreOpen ? 'Enviando...' : 'Registrando...'}</span>
-              </>
-            ) : (
-              <>
-                <Send className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                <span className="text-sm sm:text-base leading-tight">
-                  {isStoreOpen ? 'Enviar Pedido via WhatsApp' : 'Registrar Pedido (Fora do Horário)'}
-                </span>
-              </>
-            )}
-          </Button>
+          {balcaoMode && (
+            <div className="bg-accent-purple/10 border border-accent-purple/30 rounded-lg p-4 mb-6 backdrop-blur-sm">
+              <p className="text-white/90 text-center">
+                <span className="font-semibold">Modo Balcão:</span> Pedido será registrado diretamente no balcão
+              </p>
+            </div>
+          )}
+          
+          {!balcaoMode && (
+            <Button
+              onClick={() => onSubmit(false)}
+              disabled={!isFormValid || isSending}
+              className="w-full py-4 sm:py-6 mt-4 sm:mt-6 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold text-base sm:text-lg shadow-[0_0_20px_rgba(34,197,94,0.5)] hover:shadow-[0_0_30px_rgba(34,197,94,0.7)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+            >
+              {isSending ? (
+                <>
+                  <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin mr-2" />
+                  <span className="text-sm sm:text-base">{isStoreOpen ? 'Enviando...' : 'Registrando...'}</span>
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                  <span className="text-sm sm:text-base leading-tight">
+                    {isStoreOpen ? 'Enviar Pedido via WhatsApp' : 'Registrar Pedido (Fora do Horário)'}
+                  </span>
+                </>
+              )}
+            </Button>
+          )}
 
-          {/* Botão para pedido de balcão */}
-          <button
-            type="button"
-            onClick={() => { 
-              setShowPasswordDialog(true); 
-              setSenha(''); 
-              setFuncionario(''); 
-              setFormaPagamentoBalcao(form.pagamento || '');
-              setSenhaError(''); 
-            }}
-            title="Pedido de Balcão"
-            className="fixed bottom-32 sm:bottom-36 left-3 sm:left-4 bg-accent-purple/70 hover:bg-accent-purple text-accent-purple-foreground p-2.5 sm:p-3 rounded-full shadow-lg transition-all duration-200 z-40"
-          >
-            <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
-          </button>
+          {balcaoMode && (
+            <Button
+              onClick={() => onSubmit(true)}
+              disabled={isSending}
+              className="w-full py-4 sm:py-6 mt-4 sm:mt-6 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold text-base sm:text-lg shadow-[0_0_20px_rgba(168,85,247,0.5)] hover:shadow-[0_0_30px_rgba(168,85,247,0.7)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+            >
+              {isSending ? (
+                <>
+                  <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin mr-2" />
+                  <span className="text-sm sm:text-base">Registrando...</span>
+                </>
+              ) : (
+                <>
+                  <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                  <span className="text-sm sm:text-base leading-tight">Finalizar Pedido de Balcão</span>
+                </>
+              )}
+            </Button>
+          )}
 
-          {/* Dialog de senha para balcão */}
-          <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
-            <DialogContent className="max-w-[90vw] sm:max-w-sm bg-black/95 border-white/20">
-              <DialogHeader>
-                <DialogTitle className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
-                  <Lock className="w-4 h-4 sm:w-5 sm:h-5" /> Pedido de Balcão
-                </DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="funcionario" className="text-white">Funcionário *</Label>
-                  <Select value={funcionario} onValueChange={setFuncionario}>
-                    <SelectTrigger className="mt-2 bg-white/10 border-white/20 text-white">
-                      <SelectValue placeholder="Selecione o funcionário" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-gray-900 border-white/20 z-50">
-                      {FUNCIONARIOS.map((func) => (
-                        <SelectItem 
-                          key={func} 
-                          value={func}
-                          className="text-white hover:bg-white/10 focus:bg-white/20 cursor-pointer"
-                        >
-                          {func}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="pagamento-balcao" className="text-white">Forma de Pagamento *</Label>
-                  <Select value={formaPagamentoBalcao} onValueChange={setFormaPagamentoBalcao}>
-                    <SelectTrigger className="mt-2 bg-white/10 border-white/20 text-white">
-                      <SelectValue placeholder="Selecione a forma de pagamento" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-gray-900 border-white/20 z-50">
-                      {FORMAS_PAGAMENTO.map((forma) => (
-                        <SelectItem 
-                          key={forma} 
-                          value={forma}
-                          className="text-white hover:bg-white/10 focus:bg-white/20 cursor-pointer"
-                        >
-                          {forma}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="senha-balcao" className="text-white">Senha de Acesso *</Label>
-                  <Input
-                    id="senha-balcao"
-                    type="password"
-                    value={senha}
-                    onChange={(e) => { setSenha(e.target.value); setSenhaError(''); }}
-                    placeholder="Digite a senha"
-                    className="mt-2 bg-white/10 border-white/20 text-white"
-                  />
-                  {senhaError && <p className="text-red-400 text-sm mt-1">{senhaError}</p>}
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20" onClick={() => setShowPasswordDialog(false)}>
-                    Cancelar
-                  </Button>
-                  <Button
-                    variant="purple"
-                    className="flex-1"
-                    onClick={() => {
-                      const efetivaPagamento = formaPagamentoBalcao || form.pagamento;
-                      if (!funcionario) {
-                        setSenhaError('Selecione um funcionário');
-                        return;
-                      }
-                      if (!efetivaPagamento) {
-                        setSenhaError('Selecione a forma de pagamento');
-                        return;
-                      }
-                      if (senha === SENHA_BALCAO) {
-                        setShowPasswordDialog(false);
-                        onSubmit(true, funcionario, efetivaPagamento);
-                      } else {
-                        setSenhaError('Senha incorreta');
-                      }
-                    }}
-                    disabled={!senha || !funcionario || !(formaPagamentoBalcao || form.pagamento)}
-                  >
-                    Acessar
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+          {!balcaoMode && (
+            <>
+              {/* Botão para pedido de balcão */}
+              <button
+                type="button"
+                onClick={() => { 
+                  setShowPasswordDialog(true); 
+                  setSenha(''); 
+                  setFuncionario(''); 
+                  setFormaPagamentoBalcao(form.pagamento || '');
+                  setSenhaError(''); 
+                }}
+                title="Pedido de Balcão"
+                className="fixed bottom-32 sm:bottom-36 left-3 sm:left-4 bg-accent-purple/70 hover:bg-accent-purple text-accent-purple-foreground p-2.5 sm:p-3 rounded-full shadow-lg transition-all duration-200 z-40"
+              >
+                <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
+
+              {/* Dialog de senha para balcão */}
+              <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
+                <DialogContent className="max-w-[90vw] sm:max-w-sm bg-black/95 border-white/20">
+                  <DialogHeader>
+                    <DialogTitle className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+                      <Lock className="w-4 h-4 sm:w-5 sm:h-5" /> Pedido de Balcão
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="funcionario" className="text-white">Funcionário *</Label>
+                      <Select value={funcionario} onValueChange={setFuncionario}>
+                        <SelectTrigger className="mt-2 bg-white/10 border-white/20 text-white">
+                          <SelectValue placeholder="Selecione o funcionário" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-900 border-white/20 z-50">
+                          {FUNCIONARIOS.map((func) => (
+                            <SelectItem 
+                              key={func} 
+                              value={func}
+                              className="text-white hover:bg-white/10 focus:bg-white/20 cursor-pointer"
+                            >
+                              {func}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="pagamento-balcao" className="text-white">Forma de Pagamento *</Label>
+                      <Select value={formaPagamentoBalcao} onValueChange={setFormaPagamentoBalcao}>
+                        <SelectTrigger className="mt-2 bg-white/10 border-white/20 text-white">
+                          <SelectValue placeholder="Selecione a forma de pagamento" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-gray-900 border-white/20 z-50">
+                          {FORMAS_PAGAMENTO.map((forma) => (
+                            <SelectItem 
+                              key={forma} 
+                              value={forma}
+                              className="text-white hover:bg-white/10 focus:bg-white/20 cursor-pointer"
+                            >
+                              {forma}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="senha-balcao" className="text-white">Senha de Acesso *</Label>
+                      <Input
+                        id="senha-balcao"
+                        type="password"
+                        value={senha}
+                        onChange={(e) => { setSenha(e.target.value); setSenhaError(''); }}
+                        placeholder="Digite a senha"
+                        className="mt-2 bg-white/10 border-white/20 text-white"
+                      />
+                      {senhaError && <p className="text-red-400 text-sm mt-1">{senhaError}</p>}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20" onClick={() => setShowPasswordDialog(false)}>
+                        Cancelar
+                      </Button>
+                      <Button
+                        variant="purple"
+                        className="flex-1"
+                        onClick={() => {
+                          const efetivaPagamento = formaPagamentoBalcao || form.pagamento;
+                          if (!funcionario) {
+                            setSenhaError('Selecione um funcionário');
+                            return;
+                          }
+                          if (!efetivaPagamento) {
+                            setSenhaError('Selecione a forma de pagamento');
+                            return;
+                          }
+                          if (senha === SENHA_BALCAO) {
+                            setShowPasswordDialog(false);
+                            onSubmit(true, funcionario, efetivaPagamento);
+                          } else {
+                            setSenhaError('Senha incorreta');
+                          }
+                        }}
+                        disabled={!senha || !funcionario || !(formaPagamentoBalcao || form.pagamento)}
+                      >
+                        Acessar
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </>
+          )}
         </div>
       </div>
     </motion.div>

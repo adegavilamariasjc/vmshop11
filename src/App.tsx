@@ -8,6 +8,7 @@ import React, { useEffect } from 'react';
 import Index from "./pages/Index";
 import Admin from "./pages/Admin";
 import EntregasDashboard from "./pages/EntregasDashboard";
+import Balcao from "./pages/Balcao";
 import NotFound from "./pages/NotFound";
 import { setupGlobalTracking, trackPageVisit } from "./utils/trackPageVisit";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -46,6 +47,7 @@ const App = () => {
                 <Route path="/" element={<Index />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/entregas" element={<EntregasDashboard />} />
+                <Route path="/balcao" element={<Balcao />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

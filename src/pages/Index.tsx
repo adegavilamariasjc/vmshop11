@@ -13,7 +13,11 @@ import { useOrderHandling } from '../hooks/useOrderHandling';
 import { AlcoholOption } from '@/types';
 import { normalizeText } from '@/lib/utils';
 
-const Index = () => {
+interface IndexProps {
+  balcaoMode?: boolean;
+}
+
+const Index = ({ balcaoMode = false }: IndexProps) => {
   const { isOpen } = useStoreStatus();
   const {
     cart,
@@ -109,6 +113,7 @@ const Index = () => {
             onSubmit={(isBalcao?: boolean, funcionario?: string, formaPagamento?: string) => processOrder(cart, form, isOpen, { balcao: !!isBalcao, funcionario, formaPagamento })}
             isSending={isSendingOrder}
             isStoreOpen={isOpen}
+            balcaoMode={balcaoMode}
           />
         )}
       </AnimatePresence>

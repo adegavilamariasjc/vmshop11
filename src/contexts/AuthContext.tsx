@@ -3,7 +3,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-type UserRole = 'admin' | 'motoboy' | null;
+type UserRole = 'admin' | 'motoboy' | 'balcao' | null;
 
 interface AuthContextType {
   user: User | null;
@@ -13,7 +13,7 @@ interface AuthContextType {
   roleLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
-  hasRole: (role: 'admin' | 'motoboy') => boolean;
+  hasRole: (role: 'admin' | 'motoboy' | 'balcao') => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -167,7 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const hasRole = (checkRole: 'admin' | 'motoboy'): boolean => {
+  const hasRole = (checkRole: 'admin' | 'motoboy' | 'balcao'): boolean => {
     return role === checkRole;
   };
 

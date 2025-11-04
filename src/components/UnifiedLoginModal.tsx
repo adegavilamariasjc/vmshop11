@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Shield, Bike, Loader2 } from 'lucide-react';
+import { Shield, Bike, Loader2, ShoppingBag } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -17,7 +17,7 @@ const UnifiedLoginModal: React.FC<UnifiedLoginModalProps> = ({
   isOpen,
   onClose,
 }) => {
-  const [activeTab, setActiveTab] = useState<'admin' | 'motoboy'>('admin');
+  const [activeTab, setActiveTab] = useState<'admin' | 'motoboy' | 'balcao'>('admin');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -31,7 +31,8 @@ const UnifiedLoginModal: React.FC<UnifiedLoginModalProps> = ({
     try {
       // Aceita tanto usuário simples quanto email completo
       const raw = username.trim();
-      const email = raw.includes('@') ? raw : `${raw}@sistema.local`;
+      const domain = activeTab === 'balcao' ? 'balcao.local' : 'sistema.local';
+      const email = raw.includes('@') ? raw : `${raw}@${domain}`;
       await signIn(email.toLowerCase(), password);
       
       setUsername('');
@@ -39,8 +40,12 @@ const UnifiedLoginModal: React.FC<UnifiedLoginModalProps> = ({
       onClose();
       
       // Redirecionar baseado na aba ativa
-      const redirectPath = activeTab === 'admin' ? '/admin' : '/entregas';
-      navigate(redirectPath);
+      if (activeTab === 'balcao') {
+        navigate('/balcao');
+      } else {
+        const redirectPath = activeTab === 'admin' ? '/admin' : '/entregas';
+        navigate(redirectPath);
+      }
     } catch (error) {
       // Erro já é tratado no contexto de Auth com toast
       console.error('Login failed:', error);
@@ -50,7 +55,7 @@ const UnifiedLoginModal: React.FC<UnifiedLoginModalProps> = ({
   };
 
   const handleTabChange = (value: string) => {
-    setActiveTab(value as 'admin' | 'motoboy');
+    setActiveTab(value as 'admin' | 'motoboy' | 'balcao');
     setUsername('');
     setPassword('');
   };
@@ -65,14 +70,18 @@ const UnifiedLoginModal: React.FC<UnifiedLoginModalProps> = ({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="admin" className="gap-2">
               <Shield size={16} />
-              Administrador
+              Admin
             </TabsTrigger>
             <TabsTrigger value="motoboy" className="gap-2">
               <Bike size={16} />
               Motoboys
+            </TabsTrigger>
+            <TabsTrigger value="balcao" className="gap-2">
+              <ShoppingBag size={16} />
+              Balcão
             </TabsTrigger>
           </TabsList>
 
@@ -197,12 +206,75 @@ const UnifiedLoginModal: React.FC<UnifiedLoginModalProps> = ({
               </div>
             </form>
           </TabsContent>
+
+          <TabsContent value="balcao" className="mt-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="balcao-username">Nome do Funcionário</Label>
+                <Input
+                  id="balcao-username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="andre, ramon, lucas..."
+                  required
+                  autoComplete="username"
+                  disabled={loading}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="balcao-password">Senha</Label>
+                <Input
+                  id="balcao-password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  autoComplete="current-password"
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onClose}
+                  disabled={loading}
+                  className="flex-1"
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={loading}
+                  className="flex-1 gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="animate-spin" size={16} />
+                      Entrando...
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingBag size={16} />
+                      Entrar
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </TabsContent>
         </Tabs>
 
         <div className="text-xs text-muted-foreground text-center mt-4">
           {activeTab === 'admin' 
             ? 'Acesso restrito a administradores do sistema'
-            : 'Acesso para equipe de entregadores'}
+            : activeTab === 'motoboy'
+            ? 'Acesso para equipe de entregadores'
+            : 'Acesso para funcionários do balcão'}
         </div>
       </DialogContent>
     </Dialog>
