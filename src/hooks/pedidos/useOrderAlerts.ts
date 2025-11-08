@@ -251,7 +251,14 @@ export const useOrderAlerts = () => {
               
               if (data) {
                 onOrderChange(data);
-                // Don't trigger alerts on UPDATE/DELETE - only on INSERT
+                
+                // Check if there are no more pending orders and stop alert immediately
+                const pendingOrders = data.filter(order => order.status === 'pendente');
+                if (pendingOrders.length === 0) {
+                  console.log('🔇 Stopping alerts - no pending orders after update');
+                  stopAlert();
+                }
+                
                 console.log('📝 Updated orders list without triggering alert');
               }
             }
