@@ -238,7 +238,7 @@ export const useOrderAlerts = () => {
                 }
               }
             } else {
-              // For UPDATE/DELETE events, refresh data
+              // For UPDATE/DELETE events, refresh data WITHOUT triggering alerts
               const { data, error } = await supabase
                 .from('pedidos')
                 .select('*')
@@ -251,7 +251,8 @@ export const useOrderAlerts = () => {
               
               if (data) {
                 onOrderChange(data);
-                startAlert(data);
+                // Don't trigger alerts on UPDATE/DELETE - only on INSERT
+                console.log('📝 Updated orders list without triggering alert');
               }
             }
           } catch (error) {
