@@ -73,12 +73,12 @@ export const useOrderAlerts = () => {
     const deliveryOrders = orders.filter(o => 
       o.status === 'pendente' && 
       o.cliente_bairro !== 'BALCAO' && 
-      !o.motoboy_id
+      (o.motoboy_id === null || o.motoboy_id === undefined || o.motoboy_id === '')
     );
     const balcaoOrders = orders.filter(o => 
       o.status === 'pendente' && 
       o.cliente_bairro === 'BALCAO' && 
-      !o.motoboy_id
+      (o.motoboy_id === null || o.motoboy_id === undefined || o.motoboy_id === '')
     );
     
     // Play delivery alert
@@ -213,6 +213,17 @@ export const useOrderAlerts = () => {
           
           // Process change immediately for instant UI update
           try {
+            // Stop immediately if an UPDATE indicates acceptance or assignment
+            const oldRow = (payload.old as any) || null;
+            const newRow = (payload.new as any) || null;
+            if (payload.eventType === 'UPDATE' && oldRow && newRow) {
+              const wasPendingUnassigned = oldRow.status === 'pendente' && (oldRow.motoboy_id === null || oldRow.motoboy_id === undefined || oldRow.motoboy_id === '');
+              const nowAcceptedOrAssigned = newRow.status !== 'pendente' || (newRow.motoboy_id !== null && newRow.motoboy_id !== undefined && newRow.motoboy_id !== '');
+              if (wasPendingUnassigned && nowAcceptedOrAssigned) {
+                console.log('🛑 Update indicates acceptance/assignment, stopping alerts immediately');
+                stopAlert();
+              }
+            }
             // For INSERT events, immediately update UI with new order
             if (payload.eventType === 'INSERT' && payload.new) {
               console.log('📥 New order detected, updating UI instantly');
