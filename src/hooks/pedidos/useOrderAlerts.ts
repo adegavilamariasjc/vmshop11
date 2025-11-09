@@ -69,8 +69,17 @@ export const useOrderAlerts = () => {
 
   // Start alert based on order type
   const startAlert = useCallback((orders: any[]) => {
-    const deliveryOrders = orders.filter(o => o.status === 'pendente' && o.cliente_bairro !== 'BALCAO');
-    const balcaoOrders = orders.filter(o => o.status === 'pendente' && o.cliente_bairro === 'BALCAO');
+    // Filtra pedidos pendentes SEM motoboy atribuído
+    const deliveryOrders = orders.filter(o => 
+      o.status === 'pendente' && 
+      o.cliente_bairro !== 'BALCAO' && 
+      !o.motoboy_id
+    );
+    const balcaoOrders = orders.filter(o => 
+      o.status === 'pendente' && 
+      o.cliente_bairro === 'BALCAO' && 
+      !o.motoboy_id
+    );
     
     // Play delivery alert
     if (deliveryOrders.length > 0 && !isPlayingDeliveryRef.current) {
@@ -238,7 +247,7 @@ export const useOrderAlerts = () => {
                 }
               }
             } else {
-              // For UPDATE/DELETE events, refresh data WITHOUT triggering alerts
+              // For UPDATE/DELETE events, refresh data and check alerts
               const { data, error } = await supabase
                 .from('pedidos')
                 .select('*')
@@ -252,14 +261,11 @@ export const useOrderAlerts = () => {
               if (data) {
                 onOrderChange(data);
                 
-                // Check if there are no more pending orders and stop alert immediately
-                const pendingOrders = data.filter(order => order.status === 'pendente');
-                if (pendingOrders.length === 0) {
-                  console.log('🔇 Stopping alerts - no pending orders after update');
-                  stopAlert();
-                }
+                // Verifica e atualiza alertas - para se não houver mais pedidos pendentes sem motoboy
+                console.log('🔄 Checking alerts after update...');
+                startAlert(data);
                 
-                console.log('📝 Updated orders list without triggering alert');
+                console.log('📝 Updated orders list and rechecked alerts');
               }
             }
           } catch (error) {
