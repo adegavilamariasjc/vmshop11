@@ -87,6 +87,7 @@ export const usePedidosManager = () => {
     handleExcluirPedido,
     handleAtualizarStatus,
     setShowDetalhe,
-    formatDateTime
+    formatDateTime,
+    stopAlert
   };
 };

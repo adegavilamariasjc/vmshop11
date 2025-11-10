@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { RefreshCw, Eye, Check, UserPlus, MapPin, Phone, DollarSign } from 'lucide-react';
+import { RefreshCw, Eye, Check, UserPlus, MapPin, Phone, DollarSign, BellOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import PedidoDetalhe from './PedidoDetalhe';
@@ -291,15 +291,26 @@ const SimplifiedAdminPedidos: React.FC<SimplifiedAdminPedidosProps> = ({
     <div>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
         <h2 className="text-lg sm:text-xl font-bold text-white">{title}</h2>
-        <Button 
-          onClick={handleRefresh} 
-          disabled={refreshing}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto"
-          size="sm"
-        >
-          <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-          Atualizar
-        </Button>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Button 
+            onClick={handleRefresh} 
+            disabled={refreshing}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto"
+            size="sm"
+          >
+            <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            Atualizar
+          </Button>
+          <Button 
+            onClick={stopAlert}
+            variant="secondary"
+            className="w-full sm:w-auto"
+            size="sm"
+          >
+            <BellOff className="mr-2 h-4 w-4" />
+            Silenciar
+          </Button>
+        </div>
       </div>
       
       <div className="space-y-3">

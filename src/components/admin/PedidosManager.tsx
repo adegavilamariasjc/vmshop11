@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, BellOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PedidosTable from './PedidosTable';
 import PedidoDetalhe from './PedidoDetalhe';
@@ -18,7 +18,8 @@ const PedidosManager = () => {
     handleExcluirPedido,
     handleAtualizarStatus,
     setShowDetalhe,
-    formatDateTime
+    formatDateTime,
+    stopAlert
   } = usePedidosManager();
 
   return (
@@ -33,6 +34,13 @@ const PedidosManager = () => {
           >
             <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
             Atualizar
+          </Button>
+          <Button 
+            onClick={stopAlert}
+            variant="secondary"
+          >
+            <BellOff className="mr-2 h-4 w-4" />
+            Silenciar
           </Button>
         </div>
       </div>
