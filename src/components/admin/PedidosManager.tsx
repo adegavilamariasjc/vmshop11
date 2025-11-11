@@ -19,7 +19,8 @@ const PedidosManager = () => {
     handleAtualizarStatus,
     setShowDetalhe,
     formatDateTime,
-    stopAlert
+    stopAlert,
+    muteAlerts
   } = usePedidosManager();
 
   return (
@@ -36,11 +37,11 @@ const PedidosManager = () => {
             Atualizar
           </Button>
           <Button 
-            onClick={stopAlert}
+            onClick={muteAlerts}
             variant="secondary"
           >
             <BellOff className="mr-2 h-4 w-4" />
-            Silenciar
+            Silenciar (forçar)
           </Button>
         </div>
       </div>

@@ -20,7 +20,7 @@ export interface Pedido {
 }
 
 export const usePedidosManager = () => {
-  const { setupRealtimeMonitoring, stopAlert } = useOrderAlerts();
+  const { setupRealtimeMonitoring, stopAlert, muteAlerts } = useOrderAlerts();
   const { 
     pedidos, 
     setPedidos, 
@@ -88,6 +88,7 @@ export const usePedidosManager = () => {
     handleAtualizarStatus,
     setShowDetalhe,
     formatDateTime,
-    stopAlert
+    stopAlert,
+    muteAlerts
   };
 };

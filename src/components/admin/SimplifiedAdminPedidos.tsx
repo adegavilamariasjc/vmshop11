@@ -46,7 +46,7 @@ const SimplifiedAdminPedidos: React.FC<SimplifiedAdminPedidosProps> = ({
   const [delivererModalOpen, setDelivererModalOpen] = useState(false);
   const [selectedPedidoForDeliverer, setSelectedPedidoForDeliverer] = useState<string | null>(null);
   const { toast } = useToast();
-  const { setupRealtimeMonitoring, stopAlert } = useOrderAlerts();
+  const { setupRealtimeMonitoring, muteAlerts, stopAlert } = useOrderAlerts();
 
   useEffect(() => {
     loadPedidos();
@@ -302,13 +302,13 @@ const SimplifiedAdminPedidos: React.FC<SimplifiedAdminPedidosProps> = ({
             Atualizar
           </Button>
           <Button 
-            onClick={stopAlert}
+            onClick={muteAlerts}
             variant="secondary"
             className="w-full sm:w-auto"
             size="sm"
           >
             <BellOff className="mr-2 h-4 w-4" />
-            Silenciar
+            Silenciar (forçar)
           </Button>
         </div>
       </div>

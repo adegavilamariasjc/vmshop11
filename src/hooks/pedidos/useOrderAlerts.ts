@@ -8,6 +8,7 @@ export const useOrderAlerts = () => {
   const isPlayingDeliveryRef = useRef(false);
   const isPlayingBalcaoRef = useRef(false);
   const playedBalcaoPedidosRef = useRef<Set<string>>(new Set());
+  const isMutedRef = useRef(false);
 
   // Initialize delivery audio (order.mp3)
   const initializeDeliveryAudio = useCallback(() => {
@@ -69,6 +70,10 @@ export const useOrderAlerts = () => {
 
   // Start alert based on order type
   const startAlert = useCallback((orders: any[]) => {
+    if (isMutedRef.current) {
+      console.log('🔕 Silenciado: ignorando qualquer reprodução de alerta');
+      return;
+    }
     // Filtra pedidos pendentes SEM motoboy atribuído
     const deliveryOrders = orders.filter(o => 
       o.status === 'pendente' && 
@@ -182,16 +187,38 @@ export const useOrderAlerts = () => {
 
   // Stop all alerts
   const stopAlert = useCallback(() => {
-    if (deliveryAudioRef.current && isPlayingDeliveryRef.current) {
+    if (deliveryAudioRef.current) {
       deliveryAudioRef.current.pause();
       deliveryAudioRef.current.currentTime = 0;
-      isPlayingDeliveryRef.current = false;
     }
-    if (balcaoAudioRef.current && isPlayingBalcaoRef.current) {
+    if (balcaoAudioRef.current) {
       balcaoAudioRef.current.pause();
       balcaoAudioRef.current.currentTime = 0;
-      isPlayingBalcaoRef.current = false;
     }
+    isPlayingDeliveryRef.current = false;
+    isPlayingBalcaoRef.current = false;
+  }, []);
+
+  // Force mute: prevent any new audio from starting until unmuted
+  const muteAlerts = useCallback(() => {
+    console.log('🔕 Silenciar forçado ativado');
+    isMutedRef.current = true;
+    // Stop anything currently playing
+    if (deliveryAudioRef.current) {
+      deliveryAudioRef.current.pause();
+      deliveryAudioRef.current.currentTime = 0;
+    }
+    if (balcaoAudioRef.current) {
+      balcaoAudioRef.current.pause();
+      balcaoAudioRef.current.currentTime = 0;
+    }
+    isPlayingDeliveryRef.current = false;
+    isPlayingBalcaoRef.current = false;
+  }, []);
+
+  const unmuteAlerts = useCallback(() => {
+    console.log('🔔 Silenciar forçado desativado');
+    isMutedRef.current = false;
   }, []);
 
   // Setup realtime monitoring with optimized latency
@@ -255,11 +282,15 @@ export const useOrderAlerts = () => {
                 console.log('📊 Pending orders count:', pendingOrders.length);
                 
                 if (pendingOrders.length > 0) {
-                  console.log('🔊 Starting alerts for pending orders');
-                  // Force audio initialization for immediate playback
-                  initializeDeliveryAudio();
-                  initializeBalcaoAudio();
-                  setTimeout(() => startAlert(data), 100);
+                  if (isMutedRef.current) {
+                    console.log('🔕 Mudo: não iniciar alertas mesmo com pedidos pendentes');
+                  } else {
+                    console.log('🔊 Starting alerts for pending orders');
+                    // Force audio initialization for immediate playback
+                    initializeDeliveryAudio();
+                    initializeBalcaoAudio();
+                    setTimeout(() => startAlert(data), 100);
+                  }
                 } else {
                   stopAlert();
                 }
@@ -279,9 +310,14 @@ export const useOrderAlerts = () => {
               if (data) {
                 onOrderChange(data);
                 
-                // Verifica e atualiza alertas - para se não houver mais pedidos pendentes sem motoboy
+                // Verifica e atualiza alertas - respeitando modo mudo
                 console.log('🔄 Checking alerts after update...');
-                startAlert(data);
+                if (!isMutedRef.current) {
+                  startAlert(data);
+                } else {
+                  console.log('🔕 Mudo: ignorando alerts após update');
+                  stopAlert();
+                }
                 
                 console.log('📝 Updated orders list and rechecked alerts');
               }
@@ -322,6 +358,8 @@ export const useOrderAlerts = () => {
 
   return {
     setupRealtimeMonitoring,
-    stopAlert
+    stopAlert,
+    muteAlerts,
+    unmuteAlerts
   };
 };
