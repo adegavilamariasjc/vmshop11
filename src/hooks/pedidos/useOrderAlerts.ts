@@ -81,8 +81,15 @@ export const useOrderAlerts = () => {
       (o.motoboy_id === null || o.motoboy_id === undefined || o.motoboy_id === '')
     );
     
-    // Play delivery alert
-    if (deliveryOrders.length > 0 && !isPlayingDeliveryRef.current) {
+    console.log('🔍 Verificando pedidos:', {
+      deliveryCount: deliveryOrders.length,
+      balcaoCount: balcaoOrders.length,
+      isPlayingDelivery: isPlayingDeliveryRef.current,
+      isPlayingBalcao: isPlayingBalcaoRef.current
+    });
+    
+    // Play delivery alert SOMENTE se não houver pedidos de balcão
+    if (deliveryOrders.length > 0 && balcaoOrders.length === 0 && !isPlayingDeliveryRef.current) {
       console.log('🎵 Tentando iniciar alerta de delivery para', deliveryOrders.length, 'pedidos');
       initializeDeliveryAudio();
       
@@ -109,8 +116,8 @@ export const useOrderAlerts = () => {
       } else {
         console.error('❌ deliveryAudioRef.current é null!');
       }
-    } else if (deliveryOrders.length === 0 && isPlayingDeliveryRef.current) {
-      console.log('🔇 Parando alerta de delivery (sem pedidos pendentes)');
+    } else if ((deliveryOrders.length === 0 || balcaoOrders.length > 0) && isPlayingDeliveryRef.current) {
+      console.log('🔇 Parando alerta de delivery (sem pedidos pendentes ou há pedidos de balcão)');
       if (deliveryAudioRef.current) {
         deliveryAudioRef.current.pause();
         deliveryAudioRef.current.currentTime = 0;
