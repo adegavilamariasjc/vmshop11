@@ -51,18 +51,39 @@ const SimplifiedAdminPedidos: React.FC<SimplifiedAdminPedidosProps> = ({
   useEffect(() => {
     loadPedidos();
     
-    // Setup realtime with audio alerts
-    const cleanup = setupRealtimeMonitoring((updatedPedidos) => {
-      console.log('📥 Pedidos updated via realtime:', updatedPedidos.length);
+    // Only setup audio alerts for delivery, not for balcao
+    let cleanup: (() => void) | null = null;
+    
+    if (filterType === 'delivery') {
+      // Setup realtime with audio alerts for delivery
+      cleanup = setupRealtimeMonitoring((updatedPedidos) => {
+        console.log('📥 Pedidos updated via realtime:', updatedPedidos.length);
+        const filteredPedidos = updatedPedidos.filter(p => p.cliente_bairro !== 'BALCAO');
+        console.log('🔍 Filtered pedidos for delivery:', filteredPedidos.length);
+        setPedidos(filteredPedidos);
+      });
+    } else {
+      // For balcao, setup realtime without audio alerts
+      const channel = supabase
+        .channel('balcao-pedidos-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'pedidos'
+          },
+          () => {
+            console.log('📥 Balcão pedidos changed, reloading...');
+            loadPedidos();
+          }
+        )
+        .subscribe();
       
-      // Apply the same filter as loadPedidos
-      const filteredPedidos = filterType === 'balcao'
-        ? updatedPedidos.filter(p => p.cliente_bairro === 'BALCAO')
-        : updatedPedidos.filter(p => p.cliente_bairro !== 'BALCAO');
-      
-      console.log('🔍 Filtered pedidos for', filterType, ':', filteredPedidos.length);
-      setPedidos(filteredPedidos);
-    });
+      cleanup = () => {
+        supabase.removeChannel(channel);
+      };
+    }
 
     return cleanup;
   }, [setupRealtimeMonitoring, filterType]);
@@ -300,15 +321,6 @@ const SimplifiedAdminPedidos: React.FC<SimplifiedAdminPedidosProps> = ({
           >
             <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
             Atualizar
-          </Button>
-          <Button 
-            onClick={muteAlerts}
-            variant="secondary"
-            className="w-full sm:w-auto"
-            size="sm"
-          >
-            <BellOff className="mr-2 h-4 w-4" />
-            Silenciar (forçar)
           </Button>
         </div>
       </div>
