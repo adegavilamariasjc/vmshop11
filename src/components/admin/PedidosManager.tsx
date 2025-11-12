@@ -1,12 +1,13 @@
 
-import React from 'react';
-import { RefreshCw, BellOff } from 'lucide-react';
+import React, { useState } from 'react';
+import { RefreshCw, BellOff, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PedidosTable from './PedidosTable';
 import PedidoDetalhe from './PedidoDetalhe';
 import { usePedidosManager } from '@/hooks/usePedidosManager';
 
 const PedidosManager = () => {
+  const [isMuted, setIsMuted] = useState(false);
   const {
     pedidos,
     isLoading,
@@ -20,8 +21,19 @@ const PedidosManager = () => {
     setShowDetalhe,
     formatDateTime,
     stopAlert,
-    muteAlerts
+    muteAlerts,
+    unmuteAlerts
   } = usePedidosManager();
+
+  const toggleMute = () => {
+    if (isMuted) {
+      unmuteAlerts();
+      setIsMuted(false);
+    } else {
+      muteAlerts();
+      setIsMuted(true);
+    }
+  };
 
   return (
     <div>
@@ -37,11 +49,20 @@ const PedidosManager = () => {
             Atualizar
           </Button>
           <Button 
-            onClick={muteAlerts}
-            variant="secondary"
+            onClick={toggleMute}
+            variant={isMuted ? "destructive" : "secondary"}
           >
-            <BellOff className="mr-2 h-4 w-4" />
-            Silenciar (forçar)
+            {isMuted ? (
+              <>
+                <BellOff className="mr-2 h-4 w-4" />
+                Som Desativado
+              </>
+            ) : (
+              <>
+                <Bell className="mr-2 h-4 w-4" />
+                Som Ativo
+              </>
+            )}
           </Button>
         </div>
       </div>
