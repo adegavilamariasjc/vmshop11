@@ -93,8 +93,8 @@ export const useOrderAlerts = () => {
       isPlayingBalcao: isPlayingBalcaoRef.current
     });
     
-    // Play delivery alert SOMENTE se não houver pedidos de balcão
-    if (deliveryOrders.length > 0 && balcaoOrders.length === 0 && !isPlayingDeliveryRef.current) {
+    // Play delivery alert independent of balcão (não bloquear por balcão)
+    if (deliveryOrders.length > 0 && !isPlayingDeliveryRef.current) {
       console.log('🎵 Tentando iniciar alerta de delivery para', deliveryOrders.length, 'pedidos');
       initializeDeliveryAudio();
       
@@ -121,8 +121,8 @@ export const useOrderAlerts = () => {
       } else {
         console.error('❌ deliveryAudioRef.current é null!');
       }
-    } else if ((deliveryOrders.length === 0 || balcaoOrders.length > 0) && isPlayingDeliveryRef.current) {
-      console.log('🔇 Parando alerta de delivery (sem pedidos pendentes ou há pedidos de balcão)');
+    } else if (deliveryOrders.length === 0 && isPlayingDeliveryRef.current) {
+      console.log('🔇 Parando alerta de delivery (sem pedidos pendentes)');
       if (deliveryAudioRef.current) {
         deliveryAudioRef.current.pause();
         deliveryAudioRef.current.currentTime = 0;
