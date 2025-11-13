@@ -63,26 +63,13 @@ const SimplifiedAdminPedidos: React.FC<SimplifiedAdminPedidosProps> = ({
         setPedidos(filteredPedidos);
       });
     } else {
-      // For balcao, setup realtime without audio alerts
-      const channel = supabase
-        .channel('balcao-pedidos-changes')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'pedidos'
-          },
-          () => {
-            console.log('📥 Balcão pedidos changed, reloading...');
-            loadPedidos();
-          }
-        )
-        .subscribe();
-      
-      cleanup = () => {
-        supabase.removeChannel(channel);
-      };
+      // For balcao, setup realtime with only balcão audio (no delivery sound)
+      cleanup = setupRealtimeMonitoring((updatedPedidos) => {
+        console.log('📥 Pedidos updated via realtime:', updatedPedidos.length);
+        const filteredPedidos = updatedPedidos.filter(p => p.cliente_bairro === 'BALCAO');
+        console.log('🔍 Filtered pedidos for balcao:', filteredPedidos.length);
+        setPedidos(filteredPedidos);
+      }, { allowDeliverySound: false, allowBalcaoSound: true });
     }
 
     return cleanup;

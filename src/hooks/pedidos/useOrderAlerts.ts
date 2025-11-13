@@ -9,6 +9,8 @@ export const useOrderAlerts = () => {
   const isPlayingBalcaoRef = useRef(false);
   const playedBalcaoPedidosRef = useRef<Set<string>>(new Set());
   const isMutedRef = useRef(false);
+  const allowDeliveryRef = useRef(true);
+  const allowBalcaoRef = useRef(true);
 
   // Initialize delivery audio (order.mp3)
   const initializeDeliveryAudio = useCallback(() => {
@@ -94,7 +96,7 @@ export const useOrderAlerts = () => {
     });
     
     // Play delivery alert independent of balcão (não bloquear por balcão)
-    if (deliveryOrders.length > 0 && !isPlayingDeliveryRef.current) {
+    if (allowDeliveryRef.current && deliveryOrders.length > 0 && !isPlayingDeliveryRef.current) {
       console.log('🎵 Tentando iniciar alerta de delivery para', deliveryOrders.length, 'pedidos');
       initializeDeliveryAudio();
       
@@ -131,7 +133,7 @@ export const useOrderAlerts = () => {
     }
     
     // Play balcão alert - apenas uma vez por pedido novo
-    if (balcaoOrders.length > 0) {
+    if (allowBalcaoRef.current && balcaoOrders.length > 0) {
       // Remove pedidos que não estão mais pendentes do tracking
       const currentBalcaoIds = new Set(balcaoOrders.map(o => o.id));
       playedBalcaoPedidosRef.current.forEach(id => {
@@ -222,11 +224,15 @@ export const useOrderAlerts = () => {
   }, []);
 
   // Setup realtime monitoring with optimized latency
-  const setupRealtimeMonitoring = useCallback((onOrderChange: (orders: any[]) => void) => {
+  const setupRealtimeMonitoring = useCallback((onOrderChange: (orders: any[]) => void, options?: { allowDeliverySound?: boolean; allowBalcaoSound?: boolean }) => {
     // Clean up existing channel
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current);
     }
+
+    // Apply sound options
+    allowDeliveryRef.current = options?.allowDeliverySound ?? true;
+    allowBalcaoRef.current = options?.allowBalcaoSound ?? true;
 
     // Create new channel with instant updates
     const channel = supabase
