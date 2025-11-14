@@ -193,7 +193,13 @@ const SimplifiedAdminPedidos: React.FC<SimplifiedAdminPedidosProps> = ({
       // Send to Telegram with deliverer info
       try {
         console.log('📤 Enviando pedido para Telegram com entregador:', deliverer);
-        await supabase.functions.invoke('send-telegram-order', {
+        console.log('📤 Dados do pedido:', {
+          codigoPedido: pedidoData.codigo_pedido,
+          clienteNome: pedidoData.cliente_nome,
+          entregador: deliverer
+        });
+        
+        const { data: telegramResponse, error: telegramError } = await supabase.functions.invoke('send-telegram-order', {
           body: {
             codigoPedido: pedidoData.codigo_pedido,
             clienteNome: pedidoData.cliente_nome,
@@ -206,16 +212,46 @@ const SimplifiedAdminPedidos: React.FC<SimplifiedAdminPedidosProps> = ({
             clienteWhatsapp: pedidoData.cliente_whatsapp,
             formaPagamento: pedidoData.forma_pagamento,
             troco: pedidoData.troco,
-            observacao: null,
+            observacao: (pedidoData as any).observacao || null,
             itens: pedidoData.itens,
             total: pedidoData.total,
-            discountAmount: 0,
+            discountAmount: (pedidoData as any).discount_amount || 0,
             entregador: deliverer
           }
         });
-        console.log('✅ Pedido enviado para Telegram');
-      } catch (telegramError) {
-        console.error('❌ Erro ao enviar para Telegram:', telegramError);
+
+        if (telegramError) {
+          console.error('❌ Erro do Supabase ao invocar função:', telegramError);
+          toast({
+            title: "Erro ao enviar para Telegram",
+            description: `Erro: ${telegramError.message}`,
+            variant: "destructive"
+          });
+          return;
+        }
+
+        if (telegramResponse && !telegramResponse.success) {
+          console.error('❌ Edge function retornou erro:', telegramResponse);
+          toast({
+            title: "Erro ao enviar para Telegram",
+            description: telegramResponse.error || "Erro desconhecido na edge function",
+            variant: "destructive"
+          });
+          return;
+        }
+        
+        console.log('✅ Pedido enviado para Telegram com sucesso:', telegramResponse);
+        toast({
+          title: "Pedido enviado para Telegram",
+          description: `Pedido ${pedidoData.codigo_pedido} enviado com sucesso`,
+        });
+      } catch (telegramError: any) {
+        console.error('❌ Exceção ao enviar para Telegram:', telegramError);
+        toast({
+          title: "Erro ao enviar para Telegram",
+          description: telegramError.message || "Erro desconhecido",
+          variant: "destructive"
+        });
       }
 
       // Broadcast alert to motoboys
