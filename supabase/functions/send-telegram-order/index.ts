@@ -13,10 +13,14 @@ serve(async (req) => {
 
   try {
     const TELEGRAM_BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN');
-    const TELEGRAM_CHAT_ID = Deno.env.get('TELEGRAM_CHAT_ID') || '-1002345678901'; // Default group ID (user will need to set this)
+    const TELEGRAM_CHAT_ID = Deno.env.get('TELEGRAM_CHAT_ID');
 
     if (!TELEGRAM_BOT_TOKEN) {
       throw new Error('TELEGRAM_BOT_TOKEN não configurado');
+    }
+
+    if (!TELEGRAM_CHAT_ID) {
+      throw new Error('TELEGRAM_CHAT_ID não configurado. Configure o ID do grupo/supergrupo do Telegram.');
     }
 
     const {
@@ -120,6 +124,12 @@ ${observacao ? `📝 **OBSERVAÇÃO:** ${observacao}` : ''}
     
     if (!response.ok) {
       console.error('Telegram API error:', result);
+      
+      // Check for specific errors
+      if (result.description?.includes('group chat was upgraded to a supergroup')) {
+        throw new Error(`❌ IMPORTANTE: O grupo do Telegram foi atualizado para supergrupo. Você precisa atualizar a secret TELEGRAM_CHAT_ID com o novo ID do supergrupo. Para descobrir o novo ID: 1) Adicione o bot @userinfobot no grupo, 2) O bot mostrará o novo ID (começa com -100). Atualize a secret TELEGRAM_CHAT_ID com esse novo valor.`);
+      }
+      
       throw new Error(`Erro ao enviar para Telegram: ${result.description || 'Erro desconhecido'}`);
     }
 
