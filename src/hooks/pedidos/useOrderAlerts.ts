@@ -10,11 +10,13 @@ export const useOrderAlerts = () => {
   const allowBalcaoRef = useRef(true);
   
   // Delivery alert state
+  const isPlayingDeliveryRef = useRef(false);
   const deliveryLoopCountRef = useRef(0);
   const deliveryIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const activePendingDeliveryIdsRef = useRef<Set<string>>(new Set());
   
   // Balcão alert state
+  const isPlayingBalcaoRef = useRef(false);
   const playedBalcaoPedidosRef = useRef<Set<string>>(new Set());
 
   // Initialize delivery audio (order.mp3)
