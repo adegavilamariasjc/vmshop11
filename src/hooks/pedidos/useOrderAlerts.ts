@@ -83,16 +83,15 @@ export const useOrderAlerts = () => {
       console.log('🔕 Silenciado: ignorando qualquer reprodução de alerta');
       return;
     }
-    // Filtra pedidos pendentes SEM motoboy atribuído
+    // Filtra pedidos pendentes SEM entregador atribuído
     const deliveryOrders = orders.filter(o => 
       o.status === 'pendente' && 
       o.cliente_bairro !== 'BALCAO' && 
-      (o.motoboy_id === null || o.motoboy_id === undefined || o.motoboy_id === '')
+      (!o.entregador || o.entregador === '')
     );
     const balcaoOrders = orders.filter(o => 
       o.status === 'pendente' && 
-      o.cliente_bairro === 'BALCAO' && 
-      (o.motoboy_id === null || o.motoboy_id === undefined || o.motoboy_id === '')
+      o.cliente_bairro === 'BALCAO'
     );
     
     console.log('🔍 Verificando pedidos:', {
@@ -263,11 +262,18 @@ export const useOrderAlerts = () => {
             // Stop immediately if an UPDATE indicates acceptance or assignment
             const oldRow = (payload.old as any) || null;
             const newRow = (payload.new as any) || null;
-            if (payload.eventType === 'UPDATE' && oldRow && newRow) {
-              const wasPendingUnassigned = oldRow.status === 'pendente' && (oldRow.motoboy_id === null || oldRow.motoboy_id === undefined || oldRow.motoboy_id === '');
-              const nowAcceptedOrAssigned = newRow.status !== 'pendente' || (newRow.motoboy_id !== null && newRow.motoboy_id !== undefined && newRow.motoboy_id !== '');
-              if (wasPendingUnassigned && nowAcceptedOrAssigned) {
-                console.log('🛑 Update indicates acceptance/assignment, stopping alerts immediately');
+            if (payload.eventType === 'UPDATE' && newRow) {
+              // Para o alerta se o pedido foi aceito (status mudou) ou entregador foi atribuído
+              const hasEntregador = newRow.entregador && newRow.entregador !== '';
+              const isNotPending = newRow.status !== 'pendente';
+              const isDeliveryOrder = newRow.cliente_bairro !== 'BALCAO';
+              
+              if (isDeliveryOrder && (hasEntregador || isNotPending)) {
+                console.log('🛑 Entregador atribuído ou status mudou, parando alerta imediatamente:', {
+                  entregador: newRow.entregador,
+                  status: newRow.status,
+                  pedido: newRow.codigo_pedido
+                });
                 stopAlert();
               }
             }
