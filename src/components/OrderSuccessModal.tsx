@@ -9,8 +9,10 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog';
-import { CheckCircle, Clock, AlertTriangle } from 'lucide-react';
+import { CheckCircle, Clock, AlertTriangle, MessageCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
+
+const WHATSAPP_LOJA = '5512982704573';
 
 interface OrderSuccessModalProps {
   isOpen: boolean;
@@ -95,14 +97,33 @@ const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
           </div>
           <DialogTitle className="text-2xl font-bold text-white">
             {isDuplicate ? 
-              "Alerta de Pedido Duplicado!" : 
+              "Pedido Já Realizado!" : 
               isStoreOpen ? "Seu pedido foi enviado com sucesso!" : "Pedido Registrado - Fora do Horário"}
           </DialogTitle>
           <DialogDescription className="text-lg pt-4 px-2 text-white">
             {isDuplicate ? (
-              <span className="text-amber-400 font-medium text-lg">
-                Detectamos um pedido semelhante recente. Por favor, entre em contato com a loja para confirmar este pedido.
-              </span>
+              <div className="space-y-4">
+                <span className="text-amber-400 font-medium text-lg block">
+                  Parece que você já fez um pedido recentemente!
+                </span>
+                <div className="bg-amber-900/50 p-4 rounded-md border border-amber-500">
+                  <p className="text-white font-medium text-base leading-relaxed">
+                    Basta aguardar, nosso tempo de entrega é de <strong className="text-amber-300">20 a 50 minutos</strong>.
+                  </p>
+                </div>
+                <div className="mt-3 text-white/90">
+                  <p className="mb-3">Caso tenha dúvidas, entre em contato com a loja:</p>
+                  <a 
+                    href={`https://wa.me/${WHATSAPP_LOJA}?text=Olá! Gostaria de verificar o status do meu pedido.`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors font-medium"
+                  >
+                    <MessageCircle size={20} />
+                    WhatsApp da Loja
+                  </a>
+                </div>
+              </div>
             ) : isStoreOpen ? (
               <>
                 <div className="mb-4 bg-green-900/70 p-4 rounded-md border border-green-500 shadow-lg">
