@@ -305,9 +305,14 @@ const processOrder = async (cart: Product[], form: FormData, _isOpen: boolean, o
   setIsSendingOrder(true);
   
   try {
+    console.log('📱 processOrder: Iniciando - isBalcao:', isBalcao);
+    
     const success = await preparePedido(cart, form, isBalcao, options?.funcionario, options?.formaPagamento);
     
-    if (!success) {
+    console.log('📱 processOrder: preparePedido result:', success);
+    
+    if (!success && !isDuplicateOrder) {
+      console.error('📱 processOrder: Falha ao preparar pedido');
       toast({
         title: 'Erro ao registrar pedido',
         description: lastPedidoError ? `Detalhes:\n${lastPedidoError}` : 'Não foi possível registrar o pedido. Tente novamente.',
@@ -319,14 +324,21 @@ const processOrder = async (cart: Product[], form: FormData, _isOpen: boolean, o
     
     // Only create WhatsApp URL if store is open and not balcão
     if (!isDuplicateOrder && isOpen && !isBalcao) {
-      const url = createWhatsAppMessage(cart, form);
-      setWhatsAppUrl(url);
+      try {
+        const url = createWhatsAppMessage(cart, form);
+        setWhatsAppUrl(url);
+        console.log('📱 processOrder: WhatsApp URL criada');
+      } catch (urlError) {
+        console.error('📱 processOrder: Erro ao criar URL WhatsApp:', urlError);
+        // Continue without WhatsApp URL
+      }
     }
     
+    console.log('📱 processOrder: Mostrando modal de sucesso');
     setShowSuccessModal(true);
     
   } catch (err: any) {
-    console.error('Erro ao enviar pedido:', err);
+    console.error('📱 processOrder: Erro ao enviar pedido:', err);
     const msg = (err && err.message) ? err.message : (lastPedidoError || 'Ocorreu um erro ao enviar o pedido. Tente novamente.');
     toast({
       title: 'Erro ao enviar pedido',
@@ -339,8 +351,19 @@ const processOrder = async (cart: Product[], form: FormData, _isOpen: boolean, o
 };
 
   const handleOrderConfirmation = () => {
+    console.log('📱 handleOrderConfirmation: isDuplicate:', isDuplicateOrder, 'whatsAppUrl:', !!whatsAppUrl, 'isBalcao:', lastOrderIsBalcao);
+    
     if (!isDuplicateOrder && whatsAppUrl) {
-      window.open(whatsAppUrl, "_blank");
+      // Use setTimeout for better iOS compatibility
+      setTimeout(() => {
+        try {
+          window.open(whatsAppUrl, "_blank");
+        } catch (e) {
+          console.error('📱 handleOrderConfirmation: Erro ao abrir WhatsApp:', e);
+          // Fallback for iOS - try location.href
+          window.location.href = whatsAppUrl;
+        }
+      }, 100);
     }
     
     if (lastOrderIsBalcao) {
@@ -348,7 +371,10 @@ const processOrder = async (cart: Product[], form: FormData, _isOpen: boolean, o
       return;
     }
     
-    window.location.reload();
+    // Delay reload for iOS to ensure WhatsApp opens first
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
   };
 
   return {
