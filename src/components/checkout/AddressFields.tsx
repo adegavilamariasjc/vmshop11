@@ -21,20 +21,17 @@ const AddressFields: React.FC<AddressFieldsProps> = ({
   onChange,
   setAddress
 }) => {
-  // Ensure house number only accepts digits
+  // Ensure house number only accepts digits - iOS/Safari compatible
   const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, ''); // Remove non-digits
     
-    const syntheticEvent = {
-      ...e,
+    // Create a proper event-like object compatible with iOS/Safari
+    onChange({
       target: {
-        ...e.target,
         name: 'numero',
         value
       }
-    };
-    
-    onChange(syntheticEvent);
+    } as React.ChangeEvent<HTMLInputElement>);
   };
   
   return (
@@ -51,12 +48,13 @@ const AddressFields: React.FC<AddressFieldsProps> = ({
             id="endereco"
             name="endereco"
             type="text"
+            autoComplete="street-address"
+            autoCapitalize="words"
             value={endereco}
             onChange={onChange}
             className="w-full bg-gray-800 text-gray-200 text-shadow-dark border border-gray-700 rounded-md p-2 text-sm placeholder:text-gray-400"
             placeholder="Digite o nome da rua"
-            required
-            style={{color: '#D6BCFA'}} // Light purple text color
+            style={{color: '#D6BCFA', WebkitAppearance: 'none'}}
           />
         </FormField>
       </div>
@@ -68,12 +66,13 @@ const AddressFields: React.FC<AddressFieldsProps> = ({
             name="numero"
             type="text"
             inputMode="numeric"
+            pattern="[0-9]*"
+            autoComplete="address-line2"
             value={numero}
             onChange={handleNumberChange}
             className="w-full bg-gray-800 text-gray-200 text-shadow-dark border border-gray-700 rounded-md p-2 text-sm placeholder:text-gray-400"
             placeholder="Apenas números"
-            required
-            style={{color: '#D6BCFA'}} // Light purple text color
+            style={{color: '#D6BCFA', WebkitAppearance: 'none'}}
           />
         </FormField>
       </div>
@@ -84,11 +83,12 @@ const AddressFields: React.FC<AddressFieldsProps> = ({
             id="complemento"
             name="complemento"
             type="text"
+            autoComplete="address-line3"
             value={complemento}
             onChange={onChange}
             className="w-full bg-gray-800 text-gray-200 text-shadow-dark border border-gray-700 rounded-md p-2 text-sm placeholder:text-gray-400"
             placeholder="Apto, Bloco, etc."
-            style={{color: '#D6BCFA'}} // Light purple text color
+            style={{color: '#D6BCFA', WebkitAppearance: 'none'}}
           />
         </FormField>
       </div>
@@ -99,11 +99,12 @@ const AddressFields: React.FC<AddressFieldsProps> = ({
             id="referencia"
             name="referencia"
             type="text"
+            autoComplete="off"
             value={referencia}
             onChange={onChange}
             className="w-full bg-gray-800 text-gray-200 text-shadow-dark border border-gray-700 rounded-md p-2 text-sm placeholder:text-gray-400"
             placeholder="Próximo a..."
-            style={{color: '#D6BCFA'}} // Light purple text color
+            style={{color: '#D6BCFA', WebkitAppearance: 'none'}}
           />
         </FormField>
       </div>

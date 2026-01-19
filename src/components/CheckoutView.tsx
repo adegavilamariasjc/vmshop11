@@ -137,9 +137,15 @@ const [senhaError, setSenhaError] = useState('');
           
           {!balcaoMode && (
             <Button
-              onClick={() => onSubmit(false)}
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onSubmit(false);
+              }}
               disabled={!isFormValid || isSending}
-              className="w-full py-4 sm:py-6 mt-4 sm:mt-6 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold text-base sm:text-lg shadow-[0_0_20px_rgba(34,197,94,0.5)] hover:shadow-[0_0_30px_rgba(34,197,94,0.7)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+              className="w-full py-4 sm:py-6 mt-4 sm:mt-6 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold text-base sm:text-lg shadow-[0_0_20px_rgba(34,197,94,0.5)] hover:shadow-[0_0_30px_rgba(34,197,94,0.7)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none touch-manipulation"
+              style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               {isSending ? (
                 <>
@@ -159,9 +165,15 @@ const [senhaError, setSenhaError] = useState('');
 
           {balcaoMode && (
             <Button
-              onClick={() => onSubmit(true)}
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onSubmit(true);
+              }}
               disabled={isSending}
-              className="w-full py-4 sm:py-6 mt-4 sm:mt-6 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold text-base sm:text-lg shadow-[0_0_20px_rgba(168,85,247,0.5)] hover:shadow-[0_0_30px_rgba(168,85,247,0.7)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+              className="w-full py-4 sm:py-6 mt-4 sm:mt-6 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold text-base sm:text-lg shadow-[0_0_20px_rgba(168,85,247,0.5)] hover:shadow-[0_0_30px_rgba(168,85,247,0.7)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none touch-manipulation"
+              style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               {isSending ? (
                 <>

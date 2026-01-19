@@ -16,7 +16,8 @@ const PersonalInfoFields: React.FC<PersonalInfoFieldsProps> = ({
 }) => {
   // Format WhatsApp number with proper spacing and validation
   const handleWhatsAppChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, ''); // Remove non-digits
+    const rawValue = e.target.value;
+    const value = rawValue.replace(/\D/g, ''); // Remove non-digits
     
     if (value.length <= 11) {
       let formattedValue = value;
@@ -26,16 +27,13 @@ const PersonalInfoFields: React.FC<PersonalInfoFieldsProps> = ({
         formattedValue = `${value.slice(0, 2)} ${value.slice(2)}`;
       }
       
-      const syntheticEvent = {
-        ...e,
+      // Create a proper event-like object compatible with iOS/Safari
+      onChange({
         target: {
-          ...e.target,
           name: 'whatsapp',
           value: formattedValue
         }
-      };
-      
-      onChange(syntheticEvent);
+      } as React.ChangeEvent<HTMLInputElement>);
     }
   };
 
@@ -50,12 +48,13 @@ const PersonalInfoFields: React.FC<PersonalInfoFieldsProps> = ({
             id="nome"
             name="nome"
             type="text"
+            autoComplete="name"
+            autoCapitalize="words"
             value={nome}
             onChange={onChange}
             className="w-full bg-gray-800 text-gray-200 text-shadow-dark border border-gray-700 rounded-md p-2 text-sm placeholder:text-gray-400"
             placeholder="Seu nome completo"
-            required
-            style={{color: '#D6BCFA'}} // Light purple text color
+            style={{color: '#D6BCFA', WebkitAppearance: 'none'}}
           />
         </FormField>
       </div>
@@ -66,16 +65,16 @@ const PersonalInfoFields: React.FC<PersonalInfoFieldsProps> = ({
             id="whatsapp"
             name="whatsapp"
             type="tel"
+            autoComplete="tel"
+            inputMode="numeric"
+            pattern="[0-9 ]*"
             value={whatsapp}
             onChange={handleWhatsAppChange}
             className={`w-full bg-gray-800 text-gray-200 text-shadow-dark border rounded-md p-2 text-sm placeholder:text-gray-400 ${
               whatsapp && !isWhatsAppValid ? 'border-red-500' : 'border-gray-700'
             }`}
             placeholder="Ex: 12 999999999"
-            required
-            minLength={12}
-            maxLength={13} // 2 digits + space + 9 digits = 12 chars
-            style={{color: '#D6BCFA'}} // Light purple text color
+            style={{color: '#D6BCFA', WebkitAppearance: 'none'}}
           />
           {whatsapp && !isWhatsAppValid && (
             <p className="text-red-500 text-xs mt-1">Digite um número válido com DDD (mínimo 10 dígitos)</p>
