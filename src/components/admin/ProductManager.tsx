@@ -179,7 +179,6 @@ const ProductManager: React.FC = () => {
             <ProductExport />
             <ProductExportFiltered />
           </div>
-          </div>
 
           <div className="space-y-2">
             <h3 className="text-lg font-semibold text-white">Lista de Produtos</h3>
