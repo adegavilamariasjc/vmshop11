@@ -177,6 +177,8 @@ const ProductManager: React.FC = () => {
           <div className="bg-gray-900/50 p-4 rounded-md flex flex-wrap gap-3 items-center">
             <ProductPDFExport />
             <ProductExport />
+            <ProductExportFiltered />
+          </div>
           </div>
 
           <div className="space-y-2">
