@@ -5,7 +5,7 @@ import { CategorySelector } from './products/CategorySelector';
 import { AddProductForm } from './products/AddProductForm';
 import { ProductList } from './products/ProductList';
 import { ProductPDFExport } from './ProductPDFExport';
-import ProductExport from './ProductExport';
+import ProductExport, { ProductExportFiltered } from './ProductExport';
 import { StockReportsManager } from './stock/StockReportsManager';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { SupabaseCategory, SupabaseProduct } from '@/lib/supabase/types';
@@ -177,6 +177,7 @@ const ProductManager: React.FC = () => {
           <div className="bg-gray-900/50 p-4 rounded-md flex flex-wrap gap-3 items-center">
             <ProductPDFExport />
             <ProductExport />
+            <ProductExportFiltered />
           </div>
 
           <div className="space-y-2">
