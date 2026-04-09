@@ -9,8 +9,8 @@ const AudioPlayer = () => {
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const tracks = [
-    "https://adegavm.shop/adegavm.mp3",
-    "https://adegavm.shop/adegavm2.mp3"
+    "https://adegavm.com.br/adegavm.mp3",
+    "https://adegavm.com.br/adegavm2.mp3"
   ];
 
   const togglePlayPause = () => {
