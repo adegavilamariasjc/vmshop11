@@ -1,5 +1,5 @@
 
-const baseUrl = 'https://adegavm.shop';
+const baseUrl = 'https://adegavm.com.br';
 
 export const getVideoUrls = (): string[] => {
   const videoUrls: string[] = [];

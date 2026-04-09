@@ -22,12 +22,12 @@ const Logo: React.FC = () => {
       fallbackSrc: "/placeholder.svg"
     },
     {
-      src: `https://adegavm.shop/ban1.png?t=${timestamp}`,
+      src: `https://adegavm.com.br/ban1.png?t=${timestamp}`,
       alt: "Banner Promocional 1",
       fallbackSrc: "/placeholder.svg"
     },
     {
-      src: `https://adegavm.shop/ban2.png?t=${timestamp}`,
+      src: `https://adegavm.com.br/ban2.png?t=${timestamp}`,
       alt: "Banner Promocional 2", 
       fallbackSrc: "/placeholder.svg"
     }
